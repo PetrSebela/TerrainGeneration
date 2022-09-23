@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -17,24 +16,24 @@ public class ChunkManager : MonoBehaviour
     [SerializeField][Range(0, 1)] private float _surfaceLevel = 0;
     [SerializeField] private Dictionary<Vector3, float[,,]> _chunkDictionary = new Dictionary<Vector3, float[,,]>();
     [SerializeField] private float _maxHeight;
+    
 
-
-    private float _lastSurfaceLevel;
-    private float _lastScale;
     private Vector3 _worldSeed;
-    private float _startTime;
-    private Queue<MeshBuildData> meshQueue = new Queue<MeshBuildData>();
-    private List<Thread> threads = new List<Thread>();
-
+    private Queue<MeshBuildData> meshQueue = new Queue<MeshBuildData>();    
 
     void FixedUpdate()
     {
         if (_generate)
         {
             _worldSeed = new Vector3(UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000)) / 10000;
-            UpdateWorld();
+            ThreadStart threadStart = delegate{
+                UpdateWorld();
+            };
+
+            new Thread(threadStart).Start();
             _generate = false;
         }
+
 
         if (meshQueue.Count > 0)
         {
@@ -42,10 +41,11 @@ public class ChunkManager : MonoBehaviour
             {
                 MeshBuildData meshData = meshQueue.Dequeue();
                 Mesh mesh = new Mesh();
-                mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
                 mesh.vertices = meshData.vertexList;
                 mesh.triangles = meshData.triangleList;
                 mesh.RecalculateNormals();
+                
                 GameObject chunk = new GameObject();
                 chunk.transform.parent = this.transform;
                 chunk.transform.position = meshData.position;
@@ -58,13 +58,13 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-
+    // ty vole jak dlouho na tom hajzlu ses.. honis?
     void UpdateWorld()
     {
-        _startTime = Time.realtimeSinceStartup;
+        // _startTime = Time.realtimeSinceStartup;
         for (int x = 0; x < _renderDistance; x++)
         {
-            for (int y = 0; y < _renderDistance; y++)
+            for (int y = 0; y < Mathf.Ceil(_maxHeight/_chunkSize); y++)
             {
                 for (int z = 0; z < _renderDistance; z++)
                 {
@@ -74,7 +74,7 @@ public class ChunkManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Procedure took " + (Time.realtimeSinceStartup - _startTime).ToString() + "ms to execute");
+        // Debug.Log("Procedure took " + (Time.realtimeSinceStartup - _startTime).ToString() + "ms to execute");
     }
 
     float[,,] SampleChunkData(Vector3 offset)
