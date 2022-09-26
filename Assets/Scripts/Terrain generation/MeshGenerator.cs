@@ -16,7 +16,7 @@ public class MeshGenerator : MonoBehaviour
         0,3,2
     };
 
-    public static MeshBuildData ConstructChunkMesh(float[,] chunkData, Vector3 position, float surfaceLevel, float chunkSize, int chunkResolution)
+    public static MeshBuildData ConstructChunkMesh(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution)
     {
 
         List<Vector3> vertexList = new List<Vector3>();

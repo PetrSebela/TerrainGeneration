@@ -14,6 +14,8 @@ public class DebugScript : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _velocityDisplay;
     [SerializeField] private Rigidbody _rb;
 
+    [SerializeField] private TextMeshProUGUI _chunkPositionDisplay;
+
 
 
     [Header("Performance")]
@@ -40,13 +42,15 @@ public class DebugScript : MonoBehaviour
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity))
         {
             _distanceDisplay.text = "Distance:" + hit.distance.ToString();
+            _chunkPositionDisplay.text = "Chunk: " + hit.transform.name;
         }
         else
         {
             _distanceDisplay.text = "Distance: 0";
+            _chunkPositionDisplay.text = "Chunk: ";
         }
 
-        _velocityDisplay.text = "Speed: " + _rb.velocity.magnitude.ToString();
+        _velocityDisplay.text = "Speed: " + Mathf.Round(_rb.velocity.magnitude).ToString();
 
     }
 }

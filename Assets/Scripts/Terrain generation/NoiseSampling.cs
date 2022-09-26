@@ -14,8 +14,8 @@ public static class NoiseSampling
 
         for (int layerIndex = 0; layerIndex < noiseLayers.Length; layerIndex++)
         {
-            float pureSample = Mathf.PerlinNoise(((samplePosition.x + worldSeed.x) * noiseLayers[layerIndex].scale),
-                                                ((samplePosition.y + worldSeed.z) * noiseLayers[layerIndex].scale));
+            float pureSample = Mathf.PerlinNoise(((samplePosition.x + worldSeed.x + noiseLayers[layerIndex].offset.x) * noiseLayers[layerIndex].scale),
+                                                ((samplePosition.y + worldSeed.z + noiseLayers[layerIndex].offset.y) * noiseLayers[layerIndex].scale));
 
             sample += pureSample * noiseLayers[layerIndex].weight;
         }
