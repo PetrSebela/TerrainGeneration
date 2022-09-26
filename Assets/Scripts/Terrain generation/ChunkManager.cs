@@ -12,9 +12,12 @@ public class ChunkManager : MonoBehaviour
 
     [Header("World setting")]
     [SerializeField] private int _renderDistance;
+    [SerializeField] private int _unloadChunks;
     [SerializeField] private bool _generate = true;
     [SerializeField][Range(0, 1)] private float _surfaceLevel = 0;
     [SerializeField] private List<Vector3> _chunkDictionary = new List<Vector3>();
+    [SerializeField] private Dictionary<Vector3,GameObject> _ChunkKeeper = new Dictionary<Vector3, GameObject>();
+
     [SerializeField] private float _maxHeight;
     [SerializeField] private NoiseLayer[] noiseLayers;
     [SerializeField] private Transform tracker;
@@ -87,14 +90,26 @@ public class ChunkManager : MonoBehaviour
             GameObject chunk = new GameObject();
             chunk.isStatic = true;
             chunk.transform.parent = this.transform;
-            chunk.transform.position = meshData.position;
+            chunk.transform.position = meshData.position * _chunkSize;
             chunk.transform.name = meshData.position.ToString();
             MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
             meshFilter.mesh = mesh;
             MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
             meshRenderer.material = _defaultMaterial;
+            _ChunkKeeper.Add(meshData.position,chunk);
             // }
+        }
+
+        Vector3[] cp = _chunkDictionary.ToArray();
+        foreach (Vector3 chunk in cp)
+        {
+            if(Vector3.Distance(tracker.position,chunk) >= _unloadChunks * _chunkSize){
+                Debug.Log(_ChunkKeeper[chunk]);
+                Destroy(_ChunkKeeper[chunk]);
+                _ChunkKeeper.Remove(chunk);
+                _chunkDictionary.Remove(chunk);
+            }
         }
     }
 
@@ -113,7 +128,7 @@ public class ChunkManager : MonoBehaviour
                         toGenerate = chunkQueue.Dequeue();
                     }
                     // Vector3 sampleOffset = new Vector3(x, 0, z);
-                    MeshBuildData meshData = MeshGenerator.ConstructChunkMesh(SampleChunkData(toGenerate), toGenerate * _chunkSize, _surfaceLevel, _chunkSize, _chunkResolution);
+                    MeshBuildData meshData = MeshGenerator.ConstructChunkMesh(SampleChunkData(toGenerate), toGenerate, _surfaceLevel, _chunkSize, _chunkResolution);
                     meshQueue.Enqueue(meshData);
                 }
                 catch { }

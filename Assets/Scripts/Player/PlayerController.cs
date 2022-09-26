@@ -60,6 +60,24 @@ public class PlayerController : MonoBehaviour
 
         _mouseMovement.x = Input.GetAxisRaw("Mouse X");
         _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
+        
+
+
+        if(Input.GetKey(KeyCode.I)){
+            _mouseMovement.y += 1;
+        }
+        if(Input.GetKey(KeyCode.K)){
+            _mouseMovement.y -= 1;
+        }
+
+        if(Input.GetKey(KeyCode.L)){
+            _mouseMovement.x += 1;
+        }
+
+        if(Input.GetKey(KeyCode.J)){
+            _mouseMovement.x -= 1;
+        }
+
 
         _cameraRotation.y += _mouseMovement.x * _mouseSens;
         _cameraRotation.x -= _mouseMovement.y * _mouseSens;
