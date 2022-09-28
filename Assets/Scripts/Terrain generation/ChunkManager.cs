@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading;
+using Unity.Mathematics;
 
 public class ChunkManager : MonoBehaviour
 {
@@ -12,58 +13,67 @@ public class ChunkManager : MonoBehaviour
 
     [Header("World setting")]
     [SerializeField] private int _renderDistance;
+
     [SerializeField] private int _unloadChunks;
-    [SerializeField] private bool _generate = true;
     [SerializeField] private bool _unloadChunksFlag = true;
+
     [SerializeField] private List<Vector3> _chunkPositionList = new List<Vector3>();
     [SerializeField] private Dictionary<Vector3, GameObject> _ChunkDictionary = new Dictionary<Vector3, GameObject>();
-
+    [SerializeField] private float _waterLevel;
     [SerializeField] private float _maxHeight;
-    [SerializeField] private NoiseLayer[] noiseLayers;
+    [SerializeField] private float _noiseScale;
     [SerializeField] private Transform tracker;
+    [SerializeField] private AnimationCurve _terrainMapping;
+    [SerializeField] private int _treesPerChunk;
+    [SerializeField] private Range _treeExistanceHeights;
+    [SerializeField] private GameObject _treeModel;
+    [SerializeField] private bool _useTrees;
 
-    [SerializeField] private Texture2D texture;
+    [Header("Preview")]
+    public int _previewSize;
+    public Texture2D texture;
 
-
-
-
-
+    private HeightMapGenerator heightMapGenerator;
     private Vector3 _worldSeed;
     private Queue<MeshBuildData> meshQueue = new Queue<MeshBuildData>();
     private Queue<Vector3> chunkQueue = new Queue<Vector3>();
 
     void Start()
     {
-        for (int layerIndex = 0; layerIndex < noiseLayers.Length; layerIndex++)
+
+        heightMapGenerator = new HeightMapGenerator(_noiseScale, 0.005f, 8, 1.25f, 0.5f, _terrainMapping);
+
+        //? height map preview
+        texture = new Texture2D(_previewSize, _previewSize, TextureFormat.ARGB32, false);
+        float[,] samples = heightMapGenerator.SampleChunkData(new Vector3(0, 0, 0), _previewSize, _previewSize * 32, 1, _terrainMapping);
+
+        for (int x = 0; x < _previewSize; x++)
         {
-            noiseLayers[layerIndex].offset = new Vector2(UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000));
-        }
-
-
-        texture = new Texture2D(_chunkResolution, _chunkResolution, TextureFormat.ARGB32, false);
-        float[,] samples = SampleChunkData(new Vector3(0, 0, 0));
-
-        for (int x = 0; x < _chunkResolution; x++)
-        {
-            for (int y = 0; y < _chunkResolution; y++)
+            for (int y = 0; y < _previewSize; y++)
             {
                 texture.SetPixel(x, y, new Color(samples[x, y], samples[x, y], samples[x, y]));
             }
         }
-
         texture.Apply();
 
+
+        // Generating world seed and starting generation thread
+        _worldSeed = new Vector3(UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000));
+        ThreadStart threadStart = delegate
+        {
+            UpdateWorld();
+        };
+
+        new Thread(threadStart).Start();
     }
 
 
+    // Chunks have their own coordinate system. 1 Chunk (0,0,0) = 1 Unit (0,0,1);  
     void FixedUpdate()
     {
-        Vector3 cp = tracker.position;
-        Vector3 chunkChecker = new Vector3(Mathf.Round(cp.x / _chunkSize), 0, Mathf.Round(cp.z / _chunkSize));
-        Debug.Log(chunkChecker);
+        Vector3 trackerPosition = tracker.position;
+        Vector3 chunkChecker = new Vector3(Mathf.Round(trackerPosition.x / _chunkSize), 0, Mathf.Round(trackerPosition.z / _chunkSize));
 
-
-        // Chunks are name without relationship to their size. (0,0,0) -> neighbour (0,0,1)
         for (int x = _renderDistance / -2; x < _renderDistance / 2; x++)
         {
             for (int y = _renderDistance / -2; y < _renderDistance / 2; y++)
@@ -76,21 +86,6 @@ public class ChunkManager : MonoBehaviour
                 }
             }
         }
-
-
-        if (_generate)
-        {
-            _worldSeed = new Vector3(UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000), UnityEngine.Random.Range(0, 10000));
-            ThreadStart threadStart = delegate
-            {
-                UpdateWorld();
-            };
-
-            new Thread(threadStart).Start();
-            _generate = false;
-        }
-
-
     }
 
     void Update()
@@ -99,6 +94,11 @@ public class ChunkManager : MonoBehaviour
         {
             MeshBuildData meshData = meshQueue.Dequeue();
             Mesh mesh = new Mesh();
+
+            // GameObject waterPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            // waterPlane.transform.position = new Vector3(_chunkSize, _maxHeight * _waterLevel, _chunkSize) / 2 + meshData.position;
+            // waterPlane.transform.localScale = new Vector3(_chunkSize, 0, _chunkSize);
+
             mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             mesh.vertices = meshData.vertexList;
             mesh.triangles = meshData.triangleList;
@@ -106,7 +106,7 @@ public class ChunkManager : MonoBehaviour
             GameObject chunk = new GameObject();
             chunk.isStatic = true;
             chunk.transform.parent = this.transform;
-            chunk.transform.position = meshData.position * _chunkSize - new Vector3(0, _maxHeight / 2, 0);
+            chunk.transform.position = meshData.position * _chunkSize;
             chunk.transform.name = meshData.position.ToString();
             MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
@@ -114,21 +114,41 @@ public class ChunkManager : MonoBehaviour
             MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
             meshRenderer.material = _defaultMaterial;
             _ChunkDictionary.Add(meshData.position, chunk);
+
+            if (_useTrees)
+                for (int i = 0; i < _treesPerChunk; i++)
+                {
+                    RaycastHit hit;
+                    Vector3 offset = new Vector3(UnityEngine.Random.Range(0, _chunkSize), _maxHeight * 1.5f, UnityEngine.Random.Range(0, _chunkSize));
+                    if (Physics.Raycast(new Vector3(meshData.position.x, 0, meshData.position.z) * _chunkSize + offset, Vector3.down, out hit, Mathf.Infinity))
+                    {
+                        if (hit.point.y >= _treeExistanceHeights.from && hit.point.y <= _treeExistanceHeights.to && Vector3.Angle(hit.normal, Vector3.up) < 25f)
+                        {
+                            if (Unity.Mathematics.noise.snoise(new float2(hit.point.x * 0.00025f, hit.point.z * 0.00025f)) >= UnityEngine.Random.Range(-0.9f, 0.9f))
+                            {
+                                GameObject tree = Instantiate(_treeModel);
+                                tree.transform.position = hit.point;
+                                tree.transform.parent = chunk.transform;
+                                float scale = UnityEngine.Random.Range(3.1f, 5f);
+                                tree.transform.localScale = new Vector3(scale, scale, scale);
+                                tree.isStatic = true;
+                            }
+                        }
+                    }
+                }
         }
 
-        List<Vector3> chunkTmp = new List<Vector3>(_ChunkDictionary.Keys);
-
-
-        if (_unloadChunksFlag)
-            foreach (Vector3 chunk in chunkTmp)
-            {
-                if (Vector3.Distance(tracker.position, chunk * _chunkSize) >= (_unloadChunks * _chunkSize) && _ChunkDictionary.ContainsKey(chunk))
-                {
-                    Destroy(_ChunkDictionary[chunk]);
-                    _ChunkDictionary.Remove(chunk);
-                    _chunkPositionList.Remove(chunk);
-                }
-            }
+        // List<Vector3> chunkTmp = new List<Vector3>(_ChunkDictionary.Keys);
+        // if (_unloadChunksFlag)
+        //     foreach (Vector3 chunk in chunkTmp)
+        //     {
+        //         if (Vector3.Distance(tracker.position, chunk * _chunkSize) >= (_unloadChunks * _chunkSize) && _ChunkDictionary.ContainsKey(chunk))
+        //         {
+        //             Destroy(_ChunkDictionary[chunk]);
+        //             _ChunkDictionary.Remove(chunk);
+        //             _chunkPositionList.Remove(chunk);
+        //         }
+        //     }
     }
 
     void UpdateWorld()
@@ -137,42 +157,14 @@ public class ChunkManager : MonoBehaviour
         {
             for (int i = 0; i < chunkQueue.Count; i++)
             {
-                try
-                {
-                    Vector3 toGenerate;
-                    lock (chunkQueue)
-                    {
-                        toGenerate = chunkQueue.Dequeue();
-                    }
-                    // Vector3 sampleOffset = new Vector3(x, 0, z);
-                    MeshBuildData meshData = MeshGenerator.ConstructChunkMesh(SampleChunkData(toGenerate), toGenerate, _chunkSize, _chunkResolution);
-                    meshQueue.Enqueue(meshData);
-                }
-                catch { }
+                Vector3 toGenerate;
+                lock (chunkQueue)
+                    toGenerate = chunkQueue.Dequeue();
+
+                MeshBuildData meshData = MeshConstructor.ConstructTerrain(heightMapGenerator.SampleChunkData(toGenerate, _chunkResolution, _chunkSize, _maxHeight, _terrainMapping), toGenerate, _chunkSize, _chunkResolution);
+                meshQueue.Enqueue(meshData);
             }
         }
-    }
-
-
-    float[,] SampleChunkData(Vector3 offset)
-    {
-        // float[,,] chunk = new float[_chunkSize + 1, _chunkSize + 1, _chunkSize + 1];
-
-        float[,] chunkSamples = new float[_chunkResolution + 1, _chunkResolution + 1];
-        float sampleRate = _chunkSize / _chunkResolution;
-
-        for (int x = 0; x < _chunkResolution + 1; x++)
-        {
-            for (int y = 0; y < _chunkResolution + 1; y++)
-            {
-                float x1 = NoiseSampling.sampleNoise(x, y, sampleRate, offset, _chunkSize, noiseLayers, _worldSeed);
-                float x2 = NoiseSampling.sampleNoise(x + 64.6f, y + 49.76f, sampleRate, offset, _chunkSize, noiseLayers, _worldSeed);
-
-                chunkSamples[x, y] = NoiseSampling.sampleNoise(x + 2048 * x1, y + 2048 * x2, sampleRate, offset, _chunkSize, noiseLayers, _worldSeed) * _maxHeight;
-            }
-        }
-
-        return chunkSamples;
     }
 
 
@@ -201,5 +193,18 @@ public struct NoiseLayer
         this.scale = scale;
         this.weight = weight;
         this.offset = Vector2.zero;
+    }
+}
+
+[System.Serializable]
+public struct Range
+{
+    public float from;
+    public float to;
+
+    public Range(float from, float to)
+    {
+        this.from = from;
+        this.to = to;
     }
 }

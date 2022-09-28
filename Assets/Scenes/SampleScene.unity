@@ -14,10 +14,10 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.0002
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -220,29 +220,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 967913fd6e5230b4cbe91c0c1861c752, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chunkResolution: 128
+  _chunkResolution: 64
   _chunkSize: 512
   _defaultMaterial: {fileID: 2100000, guid: 113d6faa7167d11419ff258c75e96ba5, type: 2}
-  _renderDistance: 16
+  _renderDistance: 8
   _unloadChunks: 24
-  _generate: 1
   _unloadChunksFlag: 0
   _chunkPositionList: []
-  _maxHeight: 8000
-  noiseLayers:
-  - name: MEGA
-    scale: 0.00001
-    weight: 0.6
-    offset: {x: 0, y: 0}
-  - name: MEGA
-    scale: 0.00025
-    weight: 0.399
-    offset: {x: 0, y: 0}
-  - name: MEGA
-    scale: 0.01
-    weight: 0.001
-    offset: {x: 0, y: 0}
+  _waterLevel: 0.05
+  _maxHeight: 1024
+  _noiseScale: 0.00075
   tracker: {fileID: 1620735406}
+  _terrainMapping:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -1.4987825
+      value: -1.0047549
+      inSlope: 0.66321176
+      outSlope: 0.66321176
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: -0.0066223145
+      value: -0.015136719
+      inSlope: 0.00895359
+      outSlope: 0.00895359
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.42539573
+      outWeight: 0.49186343
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1.236719
+      tangentMode: 1
+      weightedMode: 3
+      inWeight: 0.33333334
+      outWeight: 0.49958256
+    - serializedVersion: 3
+      time: 1.9876705
+      value: 1.9898111
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _treesPerChunk: 256
+  _treeExistanceHeights:
+    from: 400
+    to: 800
+  _treeModel: {fileID: 1160069283211327037, guid: f50f000e50072c74695cc3b1a248bc3c,
+    type: 3}
+  _useTrees: 1
+  _previewSize: 0
   texture: {fileID: 0}
 --- !u!4 &100951351
 Transform:

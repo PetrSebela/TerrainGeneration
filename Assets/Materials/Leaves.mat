@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Terrain material
-  m_Shader: {fileID: -6465566751694194690, guid: ae33bb7b4b0d5c14e9e0ff7a32ce25af,
+  m_Name: Leaves
+  m_Shader: {fileID: -6465566751694194690, guid: b48ca9b2bdfe2f04c9d51143e9ec3e8a,
     type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -110,10 +110,9 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FromTo: {r: 0, g: 1024, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
---- !u!114 &5756122129708610483
+--- !u!114 &4707368787603226505
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
