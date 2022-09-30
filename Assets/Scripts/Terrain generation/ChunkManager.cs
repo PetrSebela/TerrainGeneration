@@ -126,12 +126,15 @@ public class ChunkManager : MonoBehaviour
                         {
                             if (Unity.Mathematics.noise.snoise(new float2(hit.point.x * 0.00025f, hit.point.z * 0.00025f)) >= UnityEngine.Random.Range(-0.9f, 0.9f))
                             {
-                                GameObject tree = Instantiate(_treeModel);
-                                tree.transform.position = hit.point;
-                                tree.transform.parent = chunk.transform;
-                                float scale = UnityEngine.Random.Range(3.1f, 5f);
-                                tree.transform.localScale = new Vector3(scale, scale, scale);
-                                tree.isStatic = true;
+                                // GameObject tree = Instantiate(_treeModel);
+                                // tree.transform.position = hit.point;
+                                // tree.transform.parent = chunk.transform;
+                                // float scale = UnityEngine.Random.Range(3.1f, 5f);
+                                // tree.transform.localScale = new Vector3(scale, scale, scale);
+                                // tree.transform.localScale = new Vector3(3.5f, 3.5f, 3.5f);
+                                Matrix4x4 matrix = Matrix4x4.TRS(hit.point,Quaternion.Euler(Vector3.zero),new Vector3(3.5f, 3.5f, 3.5f));
+                                
+                                // tree.isStatic = true;
                             }
                         }
                     }
