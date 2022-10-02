@@ -46,7 +46,33 @@ public class MeshConstructor : MonoBehaviour
             }
         }
 
-        MeshBuildData meshData = new MeshBuildData(vertexList.ToArray(), triangleList.ToArray(), position);
+        // combine vertices
+        Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
+
+        int vertexMapIndex = 0;
+        foreach (Vector3 item in vertexList)
+        {
+            if (!duplicateMapping.ContainsKey(item))
+            {
+                duplicateMapping.Add(item, vertexMapIndex++);
+            }
+        }
+
+        List<Vector3> constructVertexList = new List<Vector3>();
+        List<int> constructTriangleList = new List<int>();
+        foreach (int item in triangleList)
+        {
+            constructTriangleList.Add(duplicateMapping[vertexList[item]]);
+        }
+
+        foreach (Vector3 item in duplicateMapping.Keys)
+        {
+            constructVertexList.Add(item);
+        }
+
+
+
+        MeshBuildData meshData = new MeshBuildData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
         return meshData;
     }
 }
