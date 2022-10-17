@@ -223,57 +223,23 @@ MonoBehaviour:
   _chunkResolution: 64
   _chunkSize: 512
   _defaultMaterial: {fileID: 2100000, guid: e2939f54fdebe694c95a0870f08ffc6d, type: 2}
-  _renderDistance: 16
+  _chunkRenderDistance: 32
+  _prerenderDistance: 4
   _chunkPositionList: []
   _useWater: 1
-  _waterLevel: 0.45
+  _waterHeight: 0.2
   _waterChunkRenderDistance: 32
   _waterChunkSize: 8192
   _waterMaterial: {fileID: 2100000, guid: 3dd53825794efdb42b4cf6a2c4ac5bde, type: 2}
-  _maxHeight: 1024
-  tracker: {fileID: 1620735406}
-  _terrainMapping:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: -0.12107347
-      outSlope: -0.12107347
-      tangentMode: 0
-      weightedMode: 2
-      inWeight: 0
-      outWeight: 0.4253065
-    - serializedVersion: 3
-      time: 0.29222766
-      value: 0.9507154
-      inSlope: -0.024188487
-      outSlope: -0.024188487
-      tangentMode: 0
-      weightedMode: 3
-      inWeight: 0.24940827
-      outWeight: 0.889477
-    - serializedVersion: 3
-      time: 1
-      value: 0.65
-      inSlope: -0.16321416
-      outSlope: -0.16321416
-      tangentMode: 0
-      weightedMode: 1
-      inWeight: 0.41247714
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  _treesPerChunk: 256
-  _treeExistanceHeights:
-    from: 400
-    to: 800
+  _maxTerrainHeight: 1024
+  _tracker: {fileID: 1620735406}
+  _treesInChunk: 0
+  _treeSpawnHeight:
+    from: 0
+    to: 0
   _treeModel: {fileID: 1160069283211327037, guid: f50f000e50072c74695cc3b1a248bc3c,
     type: 3}
-  _useTrees: 1
-  _previewSize: 0
-  texture: {fileID: 0}
+  _useTrees: 0
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
@@ -1265,7 +1231,7 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5
-  m_Height: 4
+  m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1720843523

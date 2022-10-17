@@ -16,25 +16,30 @@ public class MeshConstructor : MonoBehaviour
         0,3,2
     };
 
-    public static MeshBuildData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution)
+    // takes in constant size 2D array and creates mesh with variable leavel of detail
+    public static MeshBuildData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber)
     {
 
         List<Vector3> vertexList = new List<Vector3>();
         List<int> triangleList = new List<int>();
         int vertexCout = 0;
+        float basicSample = chunkSize / (float)(chunkResolution);
+        float sampleRate = (chunkSize - basicSample) / ((float)(chunkResolution + 2) / LODnumber);
 
-        float sampleRate = chunkSize / chunkResolution;
-
-        for (int x = 0; x < chunkResolution; x++)
+        for (int x = 0; x < chunkResolution / LODnumber; x++)
         {
-            for (int y = 0; y < chunkResolution; y++)
+            for (int y = 0; y < chunkResolution / LODnumber; y++)
             {
                 for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
                 {
                     float xPosition = (x + offsets[offsetIndex].x) * sampleRate;
-                    float yPosition = (y + offsets[offsetIndex].y) * sampleRate;
+                    float yPosition = (y + offsets[offsetIndex].y) * sampleRate + basicSample;
 
-                    vertexList.Add(new Vector3(xPosition, chunkData[x + offsets[offsetIndex].x, y + offsets[offsetIndex].y], yPosition));
+                    vertexList.Add(new Vector3(
+                        xPosition,
+                        chunkData[(x + offsets[offsetIndex].x) * LODnumber, (y + offsets[offsetIndex].y) * LODnumber],
+                        yPosition
+                    ));
                 }
 
                 for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
@@ -46,33 +51,61 @@ public class MeshConstructor : MonoBehaviour
             }
         }
 
-        // combine vertices
-        Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
 
-        int vertexMapIndex = 0;
-        foreach (Vector3 item in vertexList)
+        for (int x = 0; x < chunkResolution; x++)
         {
-            if (!duplicateMapping.ContainsKey(item))
+            for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
             {
-                duplicateMapping.Add(item, vertexMapIndex++);
+                float xPosition = (x + offsets[offsetIndex].x) * basicSample;
+                float yPosition = chunkSize - basicSample + offsets[offsetIndex].y * basicSample;
+
+                vertexList.Add(new Vector3(
+                    xPosition,
+                    chunkData[(x + offsets[offsetIndex].x), (chunkResolution + offsets[offsetIndex].y)],
+                    yPosition
+                ));
             }
-        }
 
-        List<Vector3> constructVertexList = new List<Vector3>();
-        List<int> constructTriangleList = new List<int>();
-        foreach (int item in triangleList)
-        {
-            constructTriangleList.Add(duplicateMapping[vertexList[item]]);
-        }
+            for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
+            {
+                triangleList.Add(vertexCout + triOrder[tIndex]);
+            }
 
-        foreach (Vector3 item in duplicateMapping.Keys)
-        {
-            constructVertexList.Add(item);
+            vertexCout += 4;
         }
 
 
 
-        MeshBuildData meshData = new MeshBuildData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
+        // combine duplicate vertices
+        //! probably just memory saver if it eats too much cpu time remove it i will have method for calculating smooth normals anyways
+        // Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
+
+        // int vertexMapIndex = 0;
+        // foreach (Vector3 item in vertexList)
+        // {
+        //     if (!duplicateMapping.ContainsKey(item))
+        //     {
+        //         duplicateMapping.Add(item, vertexMapIndex++);
+        //     }
+        // }
+
+        // List<Vector3> constructVertexList = new List<Vector3>();
+        // List<int> constructTriangleList = new List<int>();
+        // foreach (int item in triangleList)
+        // {
+        //     constructTriangleList.Add(duplicateMapping[vertexList[item]]);
+        // }
+
+        // foreach (Vector3 item in duplicateMapping.Keys)
+        // {
+        //     constructVertexList.Add(item);
+        // }
+
+
+
+        // MeshBuildData meshData = new MeshBuildData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
+        MeshBuildData meshData = new MeshBuildData(vertexList.ToArray(), triangleList.ToArray(), position);
+
         return meshData;
     }
 }
