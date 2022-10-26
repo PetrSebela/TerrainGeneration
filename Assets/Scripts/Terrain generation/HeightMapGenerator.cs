@@ -12,7 +12,6 @@ public class HeightMapGenerator
     public HeightMapGenerator(int renderDistance, float chunkSize, int chunkResolution)
     {
         this.renderDistance = renderDistance;
-        // _worldSeed = new Vector3(UnityEngine.Random.Range(-100000, 100000), UnityEngine.Random.Range(-100000, 100000), UnityEngine.Random.Range(-100000, 100000));
         _worldSeed = Vector3.zero;
         _fallOffMap = new FallOffMap(chunkResolution * renderDistance, 0.5f, 1);
         size = renderDistance - 1 * chunkSize;
@@ -51,7 +50,7 @@ public class HeightMapGenerator
         // chunkSize -= 2
         float[,] chunkSamples = new float[chunkResolution + 4, chunkResolution + 4];
 
-        float sampleRate = (float)chunkSize / chunkResolution;
+        float sampleRate = (float)chunkSize / (chunkResolution + 2);
 
         for (int x = 0; x < chunkResolution + 4; x++)
         {

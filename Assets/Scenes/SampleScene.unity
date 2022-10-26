@@ -226,10 +226,10 @@ MonoBehaviour:
   _chunkRenderDistance: 32
   _prerenderDistance: 4
   _chunkPositionList: []
-  _useWater: 1
+  _useWater: 0
   _waterHeight: 0.2
-  _waterChunkRenderDistance: 32
-  _waterChunkSize: 8192
+  _waterChunkRenderDistance: 64
+  _waterChunkSize: 512
   _waterMaterial: {fileID: 2100000, guid: 3dd53825794efdb42b4cf6a2c4ac5bde, type: 2}
   _maxTerrainHeight: 1024
   _tracker: {fileID: 1620735406}

@@ -19,12 +19,14 @@ public class MeshConstructor : MonoBehaviour
     // takes in constant size 2D array and creates mesh with variable leavel of detail
     public static MeshBuildData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber)
     {
-
         List<Vector3> vertexList = new List<Vector3>();
         List<int> triangleList = new List<int>();
         int vertexCout = 0;
-        float basicSample = chunkSize / (float)(chunkResolution);
-        float sampleRate = (chunkSize - basicSample) / ((float)(chunkResolution + 2) / LODnumber);
+
+
+        float basicSample = chunkSize / (float)(chunkResolution + 2);
+        float sampleRate = (chunkSize - 2 * basicSample) / ((float)(chunkResolution) / LODnumber);
+
 
         for (int x = 0; x < chunkResolution / LODnumber; x++)
         {
@@ -32,12 +34,13 @@ public class MeshConstructor : MonoBehaviour
             {
                 for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
                 {
-                    float xPosition = (x + offsets[offsetIndex].x) * sampleRate;
+
+                    float xPosition = (x + offsets[offsetIndex].x) * sampleRate + basicSample;
                     float yPosition = (y + offsets[offsetIndex].y) * sampleRate + basicSample;
 
                     vertexList.Add(new Vector3(
                         xPosition,
-                        chunkData[(x + offsets[offsetIndex].x) * LODnumber, (y + offsets[offsetIndex].y) * LODnumber],
+                        chunkData[(x + offsets[offsetIndex].x) * LODnumber + 2, (y + offsets[offsetIndex].y) * LODnumber + 2],
                         yPosition
                     ));
                 }
@@ -52,16 +55,17 @@ public class MeshConstructor : MonoBehaviour
         }
 
 
-        for (int x = 0; x < chunkResolution; x++)
+
+        for (int x = 0; x < chunkResolution + 1; x++)
         {
             for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
             {
                 float xPosition = (x + offsets[offsetIndex].x) * basicSample;
-                float yPosition = chunkSize - basicSample + offsets[offsetIndex].y * basicSample;
+                float yPosition = offsets[offsetIndex].y * basicSample;
 
                 vertexList.Add(new Vector3(
                     xPosition,
-                    chunkData[(x + offsets[offsetIndex].x), (chunkResolution + offsets[offsetIndex].y)],
+                    chunkData[(x + offsets[offsetIndex].x) + 1, offsets[offsetIndex].y + 1],
                     yPosition
                 ));
             }
@@ -74,6 +78,78 @@ public class MeshConstructor : MonoBehaviour
             vertexCout += 4;
         }
 
+        for (int x = chunkResolution + 1; x > 0; x--)
+        {
+            for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
+            {
+                float xPosition = (x + offsets[offsetIndex].x) * basicSample;
+                float yPosition = (chunkResolution + offsets[offsetIndex].y + 1) * basicSample;
+
+                vertexList.Add(new Vector3(
+                    xPosition,
+                    chunkData[(x + offsets[offsetIndex].x) + 1, offsets[offsetIndex].y + chunkResolution + 2],
+                    yPosition
+                ));
+            }
+
+            for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
+            {
+                triangleList.Add(vertexCout + triOrder[tIndex]);
+            }
+
+            vertexCout += 4;
+        }
+
+
+
+
+
+
+
+
+        for (int y = 1; y < chunkResolution + 2; y++)
+        {
+            for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
+            {
+                float xPosition = offsets[offsetIndex].x * basicSample;
+                float yPosition = (y + offsets[offsetIndex].y) * basicSample;
+
+                vertexList.Add(new Vector3(
+                    xPosition,
+                    chunkData[offsets[offsetIndex].x + 1, y + offsets[offsetIndex].y + 1],
+                    yPosition
+                ));
+            }
+
+            for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
+            {
+                triangleList.Add(vertexCout + triOrder[tIndex]);
+            }
+
+            vertexCout += 4;
+        }
+
+        for (int y = chunkResolution; y >= 0; y--)
+        {
+            for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
+            {
+                float xPosition = (chunkResolution + offsets[offsetIndex].x + 1) * basicSample;
+                float yPosition = (y + offsets[offsetIndex].y) * basicSample;
+
+                vertexList.Add(new Vector3(
+                    xPosition,
+                    chunkData[chunkResolution + offsets[offsetIndex].x + 2, y + offsets[offsetIndex].y + 1],
+                    yPosition
+                ));
+            }
+
+            for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
+            {
+                triangleList.Add(vertexCout + triOrder[tIndex]);
+            }
+
+            vertexCout += 4;
+        }
 
 
         // combine duplicate vertices
