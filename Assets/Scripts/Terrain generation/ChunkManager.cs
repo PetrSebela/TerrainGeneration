@@ -276,7 +276,8 @@ public class ChunkManager : MonoBehaviour
     GameObject CreateTerrainChunk(MeshData meshData, int LODindex)
     {
         Mesh mesh = new Mesh();
-        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        // mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
         mesh.vertices = meshData.vertexList;
         mesh.triangles = meshData.triangleList;
         mesh.RecalculateNormals();
@@ -308,11 +309,9 @@ public class ChunkManager : MonoBehaviour
         if (chunk.GetComponent<MeshCollider>() == null && LODindex == 1)
             chunk.AddComponent<MeshCollider>();
 
+        // Material mat = new Material(_defaultMaterial);
 
-
-        Material mat = new Material(_defaultMaterial);
-        mat.color = Color.white;
-        chunk.GetComponent<MeshRenderer>().material = mat;
+        chunk.GetComponent<MeshRenderer>().material = _defaultMaterial;
         return chunk;
     }
 
