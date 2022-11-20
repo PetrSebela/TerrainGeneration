@@ -35,23 +35,24 @@ public class DebugScript : MonoBehaviour
         {
             deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
             float fps = 1.0f / deltaTime;
-            _fpsDisplay.text = "FPS:" + Mathf.Ceil(fps).ToString();
+            _fpsDisplay.text = "FPS : " + Mathf.Ceil(fps).ToString();
         }
 
 
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, ~LayerMask.NameToLayer("Ground")))
         {
-            _distanceDisplay.text = "Distance:" + hit.distance.ToString();
-            _chunkPositionDisplay.text = "Chunk: " + hit.transform.name;
+            _distanceDisplay.text = "Distance : " + hit.distance.ToString();
+            _chunkPositionDisplay.text = "Chunk : " + hit.transform.name;
         }
         else
         {
-            _distanceDisplay.text = "Distance: 0";
-            _chunkPositionDisplay.text = "Chunk: ";
+            _distanceDisplay.text = "Distance : 0";
+            _chunkPositionDisplay.text = "Chunk : ";
         }
 
-        _velocityDisplay.text = "Speed: " + Mathf.Round(_rb.velocity.magnitude).ToString();
-        _positionDisplay.text = "Posiiton: " + transform.position.ToString();
+        _velocityDisplay.text = "Speed : " + Mathf.Round(_rb.velocity.magnitude).ToString();
+        Vector3 position = transform.position;
+        _positionDisplay.text = "Position : " + new Vector3Int((int)position.x, (int)position.y, (int)position.z).ToString();
     }
 }

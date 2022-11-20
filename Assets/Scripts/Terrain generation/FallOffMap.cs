@@ -46,7 +46,6 @@ public class FallOffMap
 
     public Texture2D GetTexture()
     {
-
         Texture2D texture = new Texture2D(size, size);
         for (int i = 0; i < size; i++)
         {

@@ -1,328 +1,300 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Collections;
 using System.Threading;
 using Unity.Mathematics;
 
 public class ChunkManager : MonoBehaviour
 {
     [Header("Chunk setting")]
-    [SerializeField] private int _chunkResolution;
-    [SerializeField] private float _chunkSize;
-    [SerializeField] private Material _defaultMaterial;
+    [SerializeField] private int chunkResolution;
+    [SerializeField] private float chunkSize;
+    [SerializeField] private Material defaultMaterial;
 
     [Header("World setting")]
-    [SerializeField] private int _chunkRenderDistance;
-    [SerializeField] private int _prerenderDistance;
-
-    [Header("Water")]
-    [SerializeField] private bool _useWater;
-    [SerializeField] private float _waterHeight;
-    [SerializeField] private int _waterChunkRenderDistance;
-    [SerializeField] private float _waterChunkSize;
-    [SerializeField] private Material _waterMaterial;
-
-    private List<Vector3> _waterChunkList = new List<Vector3>();
+    [SerializeField] private int chunkRenderDistance;
 
     [Header("Terrain")]
-    [SerializeField] private float _maxTerrainHeight;
-    [SerializeField] private Transform _tracker;
+    [SerializeField] private float maxTerrainHeight;
+    [SerializeField] private Transform tracker;
 
-    [Header("Trees")]
-    [SerializeField] private int _treesInChunk;
-    [SerializeField] private Range _treeSpawnHeight;
-    [SerializeField] private GameObject _treeModel;
-    [SerializeField] private bool _useTrees;
+    private HeightMapGenerator heightMapGenerator;
+    private Queue<ChunkUpdate> meshQueue = new Queue<ChunkUpdate>();
+    private Dictionary<Vector2, Chunk> chunkDictionary = new Dictionary<Vector2, Chunk>();
+    private Dictionary<Vector3, GameObject> chunkObjectDictionary = new Dictionary<Vector3, GameObject>();
 
-    public Transform _player;
-    private HeightMapGenerator _heightMapGenerator;
-    private Queue<ChunkUpdate> _meshQueue = new Queue<ChunkUpdate>();
-    private Queue<Vector3> _chunkUpdateRequestQueue = new Queue<Vector3>();
+    private bool drawChunkBorders = false;
+    private Thread[] HeighMapThreads;
+    private Thread[] MeshConstructorThreads;
 
-    private Dictionary<Vector3, Chunk> _chunkDictionary = new Dictionary<Vector3, Chunk>();
-    private Dictionary<Vector3, GameObject> _chunkObjectDictionary = new Dictionary<Vector3, GameObject>();
+    public bool prerenderDone = false;
+    public float progress = 0;
 
-    private int _layerMask;
-    private bool _prerenderDone = false;
-    private float totalChunkCount = 0;
+    // ! --- current working with  ---
+    private Dictionary<Vector2, float[,]> heightMapDict = new Dictionary<Vector2, float[,]>();
+    private Queue<Vector2> heightmapGenQueue = new Queue<Vector2>();
+    private Queue<Vector2> chunkUpdateRequestQueue = new Queue<Vector2>();
+    private Vector2 pastChunkChecker;
+    public bool generationComplete = false;
 
-    private bool _drawChunkBorders = false;
-    private Thread[] _threads;
+    [SerializeField] public ComputeShader heightMapShader;
+    SeedGenerator seedGenerator;
 
-    private Vector3 pastChunkChecker;
-
+    // Vector3 -> Vector2
+    // z -> y
+    // V3(x,y,z) -> V2(x,z)
     void Start()
     {
+        seedGenerator = new SeedGenerator(123);
+
         pastChunkChecker = Vector3.one;
+        tracker.position = new Vector3(0, maxTerrainHeight, 0);
+        // heightMapGenerator = new HeightMapGenerator(chunkRenderDistance, chunkSize, chunkResolution);
 
-        _player.position = new Vector3(0, _maxTerrainHeight, 0);
-        _chunkRenderDistance++;
-        _layerMask = LayerMask.GetMask("Ground");
-        _heightMapGenerator = new HeightMapGenerator(_chunkRenderDistance, _chunkSize, _chunkResolution);
-
-        _threads = new Thread[6];
-
-        ThreadStart threadStart = delegate
+        // sampling terrain chunks
+        for (int x = -chunkRenderDistance; x < chunkRenderDistance; x++)
         {
-            UpdateWorld();
+            for (int y = -chunkRenderDistance; y < chunkRenderDistance; y++)
+            {
+                Vector2 sampler = new Vector2(x, y);
+                heightmapGenQueue.Enqueue(sampler);
+            }
+        }
+
+        StartCoroutine(ThreadDispatcher());
+    }
+
+    IEnumerator ThreadDispatcher()
+    {
+        ComputeBuffer heightMapBuffer = new ComputeBuffer((int)Mathf.Pow(64 + 4, 2), sizeof(float));
+        ComputeBuffer offsets = new ComputeBuffer(24, sizeof(float) * 2);
+
+        offsets.SetData(seedGenerator.noiseLayers);
+
+        while (heightmapGenQueue.Count > 0)
+        {
+            Vector2 toGenerate;
+
+            lock (heightmapGenQueue)
+                toGenerate = heightmapGenQueue.Dequeue();
+
+            float[,] heightMap = new float[68, 68];
+
+            heightMapBuffer.SetData(heightMap);
+
+            heightMapShader.SetVector("offset", toGenerate);
+            heightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
+            heightMapShader.SetBuffer(0, "layerOffsets", offsets);
+
+            heightMapShader.Dispatch(0, 17, 17, 1);
+            heightMapBuffer.GetData(heightMap);
+
+            lock (heightMapDict)
+                heightMapDict.Add(toGenerate, heightMap);
+
+            Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), chunkSize, chunkResolution);
+            lock (chunkDictionary)
+                chunkDictionary.Add(toGenerate, chunk);
+
+            if (heightmapGenQueue.Count % 32 == 0)
+                yield return null;
+        }
+
+        heightMapBuffer.Dispose();
+        offsets.Dispose();
+
+        ThreadStart meshConstructorThread = delegate
+        {
+            ConstructChunkMesh_T();
         };
 
-        for (int i = 0; i < 6; i++)
+        MeshConstructorThreads = new Thread[6];
+        //these threads will be running forever
+        for (int i = 0; i < 1; i++)
         {
-            Thread thread = new Thread(threadStart);
+            Thread thread = new Thread(meshConstructorThread);
             thread.Start();
-            _threads[i] = thread;
+            MeshConstructorThreads[i] = thread;
         }
 
-        // rendering water chunks
-        if (_useWater)
+        for (int x = -chunkRenderDistance; x < chunkRenderDistance; x++)
         {
-            for (int x1 = _waterChunkRenderDistance / -2; x1 < _waterChunkRenderDistance / 2; x1++)
+            for (int y = -chunkRenderDistance; y < chunkRenderDistance; y++)
             {
-                for (int y1 = _waterChunkRenderDistance / -2; y1 < _waterChunkRenderDistance / 2; y1++)
-                {
-                    Vector3 sampler = new Vector3(x1, 0, y1);
-                    if (!_waterChunkList.Contains(sampler))
-                    {
-                        CreateWaterChunk(new Vector3(x1 + 0.5f, 0, y1 + 0.5f) * _waterChunkSize + new Vector3(0, _maxTerrainHeight * _waterHeight, 0));
-                        _waterChunkList.Add(new Vector3(x1, 0, y1));
-                    }
-                }
+                Vector2 sampler = new Vector2(x, y);
+                lock (chunkUpdateRequestQueue)
+                    chunkUpdateRequestQueue.Enqueue(sampler);
             }
         }
 
-        // Chunks have their own coordinate system. 1 Chunk (0,0,0) = 1 Unit (0,0,1);  
-        // Vector3 trackerPosition = Vector3.zero;
-    }
-    void FixedUpdate()
-    {
-        Vector3 chunkChecker = new Vector3(Mathf.Round(_tracker.position.x / _chunkSize), 0, Mathf.Round(_tracker.position.z / _chunkSize));
-        if (chunkChecker != pastChunkChecker)
+        while (chunkUpdateRequestQueue.Count > 0)
         {
-            pastChunkChecker = chunkChecker;
-
-            int X = _chunkRenderDistance;
-            int Y = _chunkRenderDistance;
-
-            int x, y, dx, dy;
-            x = y = dx = 0;
-            dy = -1;
-            int t = math.max(X, Y);
-            int maxI = t * t;
-
-            for (int i = 0; i < maxI; i++)
-            {
-                if ((-X / 2 <= x) && (x <= X / 2) && (-Y / 2 <= y) && (y <= Y / 2))
-                {
-                    Vector3 sampler = chunkChecker + new Vector3(x, 0, y);
-                    if (Math.Abs(sampler.x) < _chunkRenderDistance / 2 && Math.Abs(sampler.z) < _chunkRenderDistance / 2)
-                    {
-                        lock (_chunkUpdateRequestQueue)
-                            _chunkUpdateRequestQueue.Enqueue(sampler);
-                    }
-
-                }
-
-                if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y)))
-                {
-                    t = dx;
-                    dx = -dy;
-                    dy = t;
-                }
-
-                x += dx;
-                y += dy;
-            }
+            yield return null;
         }
+
+        generationComplete = true;
+        Debug.Log("World generation and prerender corutine complete");
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.G))
-            _drawChunkBorders = !_drawChunkBorders;
-
-        float progress = ((float)totalChunkCount / ((_chunkRenderDistance * _chunkRenderDistance))) * 100;
-
-        if (_prerenderDone || _meshQueue.Count >= (_prerenderDistance * _prerenderDistance))
+        // generating chunk update requests
+        if (generationComplete == true)
         {
-            _prerenderDone = true;
-
-            int hold = _meshQueue.Count;
-            for (int f = 0; f < hold; f++)
+            Vector2 chunkChecker = new Vector2(Mathf.Round(tracker.position.x / chunkSize), Mathf.Round(tracker.position.z / chunkSize));
+            if (chunkChecker != pastChunkChecker)
             {
-                totalChunkCount++;
-                ChunkUpdate meshData;
-
-                lock (_meshQueue)
-                    meshData = _meshQueue.Dequeue();
-                GameObject chunk = CreateTerrainChunk(meshData.meshData, meshData.LODindex);
-
-                if (_useTrees)
+                pastChunkChecker = chunkChecker;
+                for (int x = -34; x <= 34; x++)
                 {
-                    for (int i = 0; i < _treesInChunk; i++)
+                    for (int y = -34; y <= 34; y++)
                     {
-                        RaycastHit hit;
-                        Vector3 offset = new Vector3(UnityEngine.Random.Range(0, _chunkSize), _maxTerrainHeight * 1.5f, UnityEngine.Random.Range(0, _chunkSize));
-                        if (Physics.Raycast(new Vector3(meshData.position.x, 0, meshData.position.z) * _chunkSize + offset, Vector3.down, out hit, Mathf.Infinity, _layerMask))
-                        {
-                            if (hit.point.y >= _maxTerrainHeight * _waterHeight && hit.point.y >= _treeSpawnHeight.from * _maxTerrainHeight && hit.point.y <= _treeSpawnHeight.to * _maxTerrainHeight && Vector3.Angle(hit.normal, Vector3.up) < 25f)
-                            {
-                                if (Unity.Mathematics.noise.snoise(new float2(hit.point.x * 0.00025f, hit.point.z * 0.00025f)) >= UnityEngine.Random.Range(-0.9f, 0.9f))
-                                {
-                                    GameObject tree = Instantiate(_treeModel);
-                                    tree.transform.position = hit.point;
-                                    tree.transform.parent = chunk.transform;
-                                    float scale = UnityEngine.Random.Range(3.1f, 5f);
-                                    tree.transform.localScale = new Vector3(scale, scale, scale);
-                                    tree.transform.localScale = new Vector3(3.5f, 3.5f, 3.5f);
-                                    tree.isStatic = true;
-                                }
-                            }
-                        }
+                        Vector2 sampler = chunkChecker + new Vector2(x, y);
+                        if (Math.Abs(sampler.x) < chunkRenderDistance && Math.Abs(sampler.y) < chunkRenderDistance)
+                            lock (chunkUpdateRequestQueue)
+                                chunkUpdateRequestQueue.Enqueue(sampler);
                     }
                 }
             }
         }
+        else
+            progress = (float)heightMapDict.Count / math.pow(chunkRenderDistance * 2, 2);
+        // if (Input.GetKeyDown(KeyCode.G))
+        //     drawChunkBorders = !drawChunkBorders;
+
+
+        int hold = meshQueue.Count;
+
+        for (int f = 0; f < hold; f++)
+        {
+            ChunkUpdate meshData;
+
+            lock (meshQueue)
+                meshData = meshQueue.Dequeue();
+            GameObject chunk = CreateTerrainChunk(meshData.meshData, meshData.LODindex);
+        }
     }
 
-
-    // this method is running in threading 
-    void UpdateWorld()
+    void ConstructChunkMesh_T()
     {
         while (true)
         {
-            Vector3? toGenerateNull = null;
+            Vector2? toGenerateNull = null;
 
-            lock (_chunkUpdateRequestQueue)
+            lock (chunkUpdateRequestQueue)
             {
-                if (_chunkUpdateRequestQueue.Count != 0)
-                    toGenerateNull = _chunkUpdateRequestQueue.Dequeue();
+                if (chunkUpdateRequestQueue.Count != 0)
+                    toGenerateNull = chunkUpdateRequestQueue.Dequeue();
             }
 
             if (toGenerateNull != null)
             {
-                Vector3 toGenerate = (Vector3)toGenerateNull;
+                Vector2 toGenerate = (Vector2)toGenerateNull;
+                // lock (chunkUpdateRequestQueue)
+                //     toGenerate = chunkUpdateRequestQueue.Dequeue();
 
-
-                if (!_chunkDictionary.ContainsKey(toGenerate))
-                {
-                    float[,] heightMap = _heightMapGenerator.SampleChunkData(toGenerate, _chunkResolution, _chunkSize, _maxTerrainHeight);
-                    Chunk chunk = new Chunk(heightMap, toGenerate, _chunkSize, _chunkResolution);
-                    lock (_chunkDictionary)
-                        _chunkDictionary.Add(toGenerate, chunk);
-                }
-
-                // getting LOD index
-                // subtracting pastChunkCheckt in order to be everything centered around [0,0]
                 toGenerate -= pastChunkChecker;
 
                 int LODindex;
-
-                if (Math.Abs(toGenerate.x) >= 5 || Math.Abs(toGenerate.z) >= 5)
+                if (Math.Abs(toGenerate.x) >= 32 || Math.Abs(toGenerate.y) >= 32)
+                    LODindex = 32;
+                else if (Math.Abs(toGenerate.x) >= 24 || Math.Abs(toGenerate.y) >= 24)
+                    LODindex = 16;
+                else if (Math.Abs(toGenerate.x) >= 12 || Math.Abs(toGenerate.y) >= 12)
                     LODindex = 8;
-                else if (Math.Abs(toGenerate.x) >= 4 || Math.Abs(toGenerate.z) >= 4)
+                else if (Math.Abs(toGenerate.x) >= 6 || Math.Abs(toGenerate.y) >= 6)
                     LODindex = 4;
-                else if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.z) >= 3)
+                else if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.y) >= 3)
                     LODindex = 2;
                 else
                     LODindex = 1;
 
                 // getting border vector
                 Vector2 borderVector = Vector2.zero;
-                int[] borderNumbers = new int[] { 2, 3, 4 };
+                // distance - 1
+                // int[] borderNumbers = new int[] { 2, 3, 4, 5, 8 };
+                int[] borderNumbers = new int[] { 2, 5, 11, 23, 31 };
 
                 for (int i = 0; i < borderNumbers.Length; i++)
                 {
-                    if (toGenerate.z == borderNumbers[i] && toGenerate.x <= borderNumbers[i] && toGenerate.x >= -borderNumbers[i])
+                    if (toGenerate.y == borderNumbers[i] && toGenerate.x <= borderNumbers[i] && toGenerate.x >= -borderNumbers[i])
                         borderVector.x = (borderVector.x == 0) ? 1 : borderVector.x;
 
-                    if (toGenerate.z == -borderNumbers[i] && toGenerate.x <= borderNumbers[i] && toGenerate.x >= -borderNumbers[i])
+                    if (toGenerate.y == -borderNumbers[i] && toGenerate.x <= borderNumbers[i] && toGenerate.x >= -borderNumbers[i])
                         borderVector.x = (borderVector.x == 0) ? -1 : borderVector.x;
 
-                    if (toGenerate.x == borderNumbers[i] && toGenerate.z <= borderNumbers[i] && toGenerate.z >= -borderNumbers[i])
+                    if (toGenerate.x == borderNumbers[i] && toGenerate.y <= borderNumbers[i] && toGenerate.y >= -borderNumbers[i])
                         borderVector.y = (borderVector.y == 0) ? 1 : borderVector.y;
 
-                    if (toGenerate.x == -borderNumbers[i] && toGenerate.z <= borderNumbers[i] && toGenerate.z >= -borderNumbers[i])
+                    if (toGenerate.x == -borderNumbers[i] && toGenerate.y <= borderNumbers[i] && toGenerate.y >= -borderNumbers[i])
                         borderVector.y = (borderVector.y == 0) ? -1 : borderVector.y;
                 }
 
                 toGenerate += pastChunkChecker;
 
-
-
-                if (_chunkDictionary[toGenerate].CurrentLODindex != LODindex || _chunkDictionary[toGenerate].BorderVector != borderVector)
+                if (chunkDictionary[toGenerate].CurrentLODindex != LODindex || chunkDictionary[toGenerate].borderVector != borderVector)
                 {
-                    MeshData meshData = _chunkDictionary[toGenerate].GetMeshData(LODindex, borderVector);
-                    lock (_meshQueue)
+                    MeshData meshData = chunkDictionary[toGenerate].GetMeshData(LODindex, borderVector);
+                    lock (meshQueue)
                     {
-                        ChunkUpdate chunkUpdate = new ChunkUpdate(toGenerate, meshData, LODindex);
-                        _meshQueue.Enqueue(chunkUpdate);
+                        ChunkUpdate chunkUpdate = new ChunkUpdate(new Vector3(toGenerate.x, 0, toGenerate.y), meshData, LODindex);
+                        meshQueue.Enqueue(chunkUpdate);
                     }
                 }
             }
         }
     }
 
-    void CreateWaterChunk(Vector3 position)
-    {
-        GameObject waterChunk = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        waterChunk.transform.localScale = new Vector3(_waterChunkSize / 10, 1, _waterChunkSize / 10);
-        waterChunk.transform.position = position;
-        waterChunk.GetComponent<MeshRenderer>().material = _waterMaterial;
-        waterChunk.layer = LayerMask.NameToLayer("Water");
-        Destroy(waterChunk.GetComponent<MeshCollider>());
-    }
-
     GameObject CreateTerrainChunk(MeshData meshData, int LODindex)
     {
-        Mesh mesh = new Mesh();
-        // mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-        mesh.vertices = meshData.vertexList;
-        mesh.triangles = meshData.triangleList;
-        mesh.RecalculateNormals();
-
         GameObject chunk;
-        if (!_chunkObjectDictionary.ContainsKey(meshData.position))
+        if (chunkObjectDictionary.ContainsKey(meshData.position))
+        {
+            chunk = chunkObjectDictionary[meshData.position];
+            Mesh mesh = chunk.GetComponent<MeshFilter>().mesh;
+            mesh.Clear();
+            mesh.vertices = meshData.vertexList;
+            mesh.triangles = meshData.triangleList;
+            mesh.RecalculateNormals();
+            // chunk.GetComponent<MeshCollider>().sharedMesh = mesh;
+        }
+        else
         {
             chunk = new GameObject();
             chunk.layer = LayerMask.NameToLayer("Ground");
             chunk.isStatic = true;
             chunk.transform.parent = this.transform;
-            chunk.transform.position = meshData.position * _chunkSize;
+            chunk.transform.position = meshData.position * chunkSize;
             chunk.transform.name = meshData.position.ToString();
 
             MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
+
+            Mesh mesh = new Mesh();
+            mesh.vertices = meshData.vertexList;
+            mesh.triangles = meshData.triangleList;
+            mesh.RecalculateNormals();
+
             meshFilter.mesh = mesh;
-            _chunkObjectDictionary.Add(meshData.position, chunk);
-        }
-        else
-        {
-            chunk = _chunkObjectDictionary[meshData.position];
-            chunk.GetComponent<MeshFilter>().mesh = mesh;
+            // MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
+
+            chunkObjectDictionary.Add(meshData.position, chunk);
         }
 
-        if (chunk.GetComponent<MeshCollider>() != null && LODindex > 1)
-            Destroy(chunk.GetComponent<MeshCollider>());
-
-        if (chunk.GetComponent<MeshCollider>() == null && LODindex == 1)
-            chunk.AddComponent<MeshCollider>();
-
-        // Material mat = new Material(_defaultMaterial);
-
-        chunk.GetComponent<MeshRenderer>().material = _defaultMaterial;
+        chunk.GetComponent<MeshRenderer>().material = defaultMaterial;
         return chunk;
     }
 
     void OnDrawGizmos()
     {
-        if (_drawChunkBorders)
+        if (drawChunkBorders)
         {
-            Vector3 chunkDimensions = new Vector3(_chunkSize, _maxTerrainHeight, _chunkSize);
+            Vector3 chunkDimensions = new Vector3(chunkSize, maxTerrainHeight, chunkSize);
             try
             {
-                foreach (var item in _chunkDictionary.Values)
+                foreach (var item in chunkDictionary.Values)
                 {
                     switch (item.CurrentLODindex)
                     {
@@ -342,42 +314,12 @@ public class ChunkManager : MonoBehaviour
                             Gizmos.color = new Color(0, 0, 0, 0.25f);
                             break;
                     }
-                    Gizmos.DrawWireCube(item.Position * _chunkSize + chunkDimensions / 2, chunkDimensions);
-                    Gizmos.DrawCube(item.Position * _chunkSize + chunkDimensions / 2, chunkDimensions);
+                    Gizmos.DrawWireCube(item.position * chunkSize + chunkDimensions / 2, chunkDimensions);
+                    Gizmos.DrawCube(item.position * chunkSize + chunkDimensions / 2, chunkDimensions);
                 }
             }
             catch { }
         }
-    }
-}
-
-[System.Serializable]
-public struct NoiseLayer
-{
-    public string name;
-    public float scale;
-    public float weight;
-    [HideInInspector] public Vector2 offset;
-
-    public NoiseLayer(string name, float scale, float weight)
-    {
-        this.name = name;
-        this.scale = scale;
-        this.weight = weight;
-        this.offset = Vector2.zero;
-    }
-}
-
-[System.Serializable]
-public struct Range
-{
-    public float from;
-    public float to;
-
-    public Range(float from, float to)
-    {
-        this.from = from;
-        this.to = to;
     }
 }
 

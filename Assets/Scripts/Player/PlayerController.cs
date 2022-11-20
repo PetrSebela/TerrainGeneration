@@ -35,9 +35,10 @@ public class PlayerController : MonoBehaviour
     private Vector3 _inputs = new Vector3(0, 0, 0);
     private Vector3 _wishDirection = new Vector3(0, 0, 0);
     private Rigidbody _rb;
-
+    [SerializeField] private ChunkManager chunkManager;
     void Start()
     {
+        Application.targetFrameRate = 144;
         _rb = GetComponent<Rigidbody>();
         _rb.drag = _movementDrag;
         Cursor.lockState = CursorLockMode.Locked;
@@ -47,45 +48,53 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _inputs.x = Input.GetAxisRaw("Horizontal");
-        _inputs.y = Input.GetAxisRaw("Vertical");
-        _inputs.z = 0;
-        if (Input.GetKey(_moveUpKey))
-            _inputs.z++;
-        if (Input.GetKey(_moveDownKey))
-            _inputs.z--;
+        if (chunkManager.generationComplete)
+        {
+            _inputs.x = Input.GetAxisRaw("Horizontal");
+            _inputs.y = Input.GetAxisRaw("Vertical");
+            _inputs.z = 0;
 
-        _wishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
+            if (Input.GetKey(_moveUpKey))
+                _inputs.z++;
+            if (Input.GetKey(_moveDownKey))
+                _inputs.z--;
 
-
-        _mouseMovement.x = Input.GetAxisRaw("Mouse X");
-        _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
-        
+            _wishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
 
 
-        if(Input.GetKey(KeyCode.I)){
-            _mouseMovement.y += 1;
+            _mouseMovement.x = Input.GetAxisRaw("Mouse X");
+            _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
+
+
+
+            if (Input.GetKey(KeyCode.I))
+            {
+                _mouseMovement.y += 1;
+            }
+            if (Input.GetKey(KeyCode.K))
+            {
+                _mouseMovement.y -= 1;
+            }
+
+            if (Input.GetKey(KeyCode.L))
+            {
+                _mouseMovement.x += 1;
+            }
+
+            if (Input.GetKey(KeyCode.J))
+            {
+                _mouseMovement.x -= 1;
+            }
+
+
+            _cameraRotation.y += _mouseMovement.x * _mouseSens;
+            _cameraRotation.x -= _mouseMovement.y * _mouseSens;
+
+            _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
+
+            _cam.localRotation = Quaternion.Euler(_cameraRotation.x, 0, 0);
+            _orientation.localRotation = Quaternion.Euler(0, _cameraRotation.y, 0);
         }
-        if(Input.GetKey(KeyCode.K)){
-            _mouseMovement.y -= 1;
-        }
-
-        if(Input.GetKey(KeyCode.L)){
-            _mouseMovement.x += 1;
-        }
-
-        if(Input.GetKey(KeyCode.J)){
-            _mouseMovement.x -= 1;
-        }
-
-
-        _cameraRotation.y += _mouseMovement.x * _mouseSens;
-        _cameraRotation.x -= _mouseMovement.y * _mouseSens;
-
-        _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
-
-        _cam.localRotation = Quaternion.Euler(_cameraRotation.x, 0, 0);
-        _orientation.localRotation = Quaternion.Euler(0, _cameraRotation.y, 0);
     }
 
     void FixedUpdate()
