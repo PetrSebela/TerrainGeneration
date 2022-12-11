@@ -5,35 +5,32 @@ using UnityEngine;
 public class Chunk
 {
     public float[,] heightMap;
-    public int CurrentLODindex;
+    public int currentLODindex;
     public Vector3 position;
     public Vector2 borderVector;
     public MeshData currentMeshData;
-    public float chunkSize;
-    public int chunkResolution;
+    public Matrix4x4[] treesTransforms;
 
-    public Chunk(float[,] heightMap, Vector3 position, float chunkSize, int chunkResolution)
+    public Chunk(float[,] heightMap, Vector3 position, float chunkSize, int chunkResolution, Matrix4x4[] treesTransforms)
     {
         this.heightMap = heightMap;
         this.position = position;
-        this.chunkSize = chunkSize;
-        this.chunkResolution = chunkResolution;
+        this.treesTransforms = treesTransforms;
     }
 
-    public MeshData GetMeshData(int LODindex, Vector2 borderVector)
+    public MeshData GetMeshData(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings)
     {
         this.borderVector = borderVector;
-        CurrentLODindex = LODindex;
+        currentLODindex = LODindex;
 
         currentMeshData = MeshConstructor.ConstructTerrain(
             heightMap,
             position,
-            chunkSize,
-            chunkResolution,
-            CurrentLODindex,
+            chunkSettings.size,
+            chunkSettings.maxResolution,
+            currentLODindex,
             this.borderVector
         );
-
         return currentMeshData;
     }
 }

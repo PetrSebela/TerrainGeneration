@@ -14,22 +14,7 @@ This project is currently in sub beta state, so lot of features are missing.
 - exposed setting for terrain generation
 
 ## Generation pipeline
-
-```mermaid
-flowchart TD
-    Generate --> B
-
-```
-
-```mermaid
-sequenceDiagram
-    participant Main Thread
-    participant Threads
-
-    Main Thread ->> Threads: generation request
-
-
-```
+- GPU compatible algorithm
 
 ## Proc-Gen algorithm 
 1. sample heightmap (currently working on)
@@ -43,6 +28,17 @@ sequenceDiagram
 
 4. generate foliege
 
-## TODO
-[ ] Separate renderer and generation tasks
-[ ] Design Proc-gen algorithm
+## TASKS
+- [ ] Implement quadtree algorythm for chunk grouping in order to save batch calls viz subdivision.png
+
+## ProcGen algorithm design task
+- [ ] Mesh instanced trees
+- [ ] Island outline
+- [ ] Paths, houses, power lines, infrastructure
+
+
+## Weekend sprint
+- [ ] Mesh instanced trees
+- [ ] Basic coloring
+- [ ] Start chunk subdivision
+- [ ] REFACTOR

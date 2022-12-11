@@ -17,13 +17,13 @@ public class UpdateUI : MonoBehaviour
     }
     void Update()
     {
-        if (!chunkManager.generationComplete)
+        if (!chunkManager.GenerationComplete)
         {
-            slider.value = chunkManager.progress;
-            percentage.text = (int)(chunkManager.progress * 100) + "%";
+            slider.value = chunkManager.Progress;
+            percentage.text = (int)(chunkManager.Progress * 100) + "%";
         }
 
-        if (chunkManager.generationComplete)
+        if (chunkManager.GenerationComplete)
         {
             image.transform.gameObject.SetActive(false);
             slider.transform.gameObject.SetActive(false);

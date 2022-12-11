@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (chunkManager.generationComplete)
+        if (chunkManager.GenerationComplete)
         {
             _inputs.x = Input.GetAxisRaw("Horizontal");
             _inputs.y = Input.GetAxisRaw("Vertical");
