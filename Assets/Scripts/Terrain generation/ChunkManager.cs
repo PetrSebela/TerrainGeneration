@@ -33,16 +33,19 @@ public class ChunkManager : MonoBehaviour
     public TreeNode HeightMapTree = new TreeNode();
 
 
-    public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
+    public Dictionary<(Vector2,int), Chunk> ChunkDictionary = new Dictionary<(Vector2,int), Chunk>();
     private Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
 
     // Queues
     public Queue<Vector2> HeightmapGenQueue = new Queue<Vector2>();
-    public Queue<Vector2> ChunkUpdateRequestQueue = new Queue<Vector2>();
+    // public Queue<Vector2> ChunkUpdateRequestQueue = new Queue<Vector2>();
+    public Queue<TreeNode> ChunkUpdateRequestQueue = new Queue<TreeNode>();
+
     public Queue<ChunkUpdate> MeshQueue = new Queue<ChunkUpdate>();
 
 
-    public Vector2 PastChunkPosition = Vector2.zero;
+    // Vector2.one so that the chunks update one the player is unlocked
+    public Vector2 PastChunkPosition = Vector2.one;
     public bool GenerationComplete = false;
 
 
@@ -51,6 +54,9 @@ public class ChunkManager : MonoBehaviour
 
     public Dictionary<Vector2, TreeNode> LeafDict = new Dictionary<Vector2, TreeNode>();
 
+    public Vector2[] CellCord = new Vector2[10];
+
+    public MeshBuilder meshBuilder;
 
 
     private Vector2 CurrentCell;
@@ -59,6 +65,7 @@ public class ChunkManager : MonoBehaviour
     // V3(x,y,z) -> V2(x,z)
     void Start()
     {
+        meshBuilder = new MeshBuilder(ChunkSettings);
         SeedGenerator = new SeedGenerator(123);
         Tracker.position = new Vector3(0, MaxTerrainHeight, 0);
 
@@ -100,50 +107,46 @@ public class ChunkManager : MonoBehaviour
             if (currentChunkPosition != PastChunkPosition)
             {
                 PastChunkPosition = currentChunkPosition;
-                for (int x = -34; x <= 34; x++)
-                {
-                    for (int y = -34; y <= 34; y++)
-                    {
-                        Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                        if (Math.Abs(sampler.x) < ChunkRenderDistance && Math.Abs(sampler.y) < ChunkRenderDistance)
-                            lock (ChunkUpdateRequestQueue)
-                                ChunkUpdateRequestQueue.Enqueue(sampler);
-                    }
-                }
-            }
+                // for (int x = -34; x <= 34; x++)
+                // {
+                //     for (int y = -34; y <= 34; y++)
+                //     {
+                //         Vector2 sampler = currentChunkPosition + new Vector2(x, y);
+                //         if (Math.Abs(sampler.x) < ChunkRenderDistance && Math.Abs(sampler.y) < ChunkRenderDistance)
+                //             lock (ChunkUpdateRequestQueue)
+                //                 ChunkUpdateRequestQueue.Enqueue(sampler);
+                //     }
+                // }
 
-
-
-            Vector2 rootPosition = new Vector2(
-                Mathf.Floor(currentChunkPosition.x / HighestChunkGrouping) * HighestChunkGrouping,
-                Mathf.Floor(currentChunkPosition.y / HighestChunkGrouping) * HighestChunkGrouping
-            );
-
-            CurrentCell = rootPosition;
-            if (currentChunkPosition != PastChunkPosition)
-            {
                 TreeNode layerParent = HeightMapTree;
                 TreeNode tmp;
+                int k = 0;
                 for (int i = HighestChunkGrouping; i >= 1; i /= 2)
                 {
+                    if (Math.Abs(currentChunkPosition.x) >= ChunkRenderDistance && Math.Abs(currentChunkPosition.y) >= ChunkRenderDistance){
+                        continue;
+                    }
                     Vector2 layerPosition = new Vector2(
                         Mathf.Floor(currentChunkPosition.x / i) * i,
                         Mathf.Floor(currentChunkPosition.y / i) * i
                     );
+                    
+                    Debug.Log(layerPosition);
+                    CellCord[k++] = layerPosition;
+
                     tmp = layerParent.Children[layerPosition];
 
-                    foreach (var item in layerParent.Children.Values)
+                    foreach (var branch in layerParent.Children.Values)
                     {
-                        if (item != tmp)
+                        if (branch != tmp)
                         {
-                            // send to renderer
+                            ChunkUpdateRequestQueue.Enqueue(branch);
                         }
                     }
                     layerParent = tmp;
                 }
-                Debug.Log(layerParent.Position);
+                // Debug.Log(layerParent.Position);
             }
-
 
             // Rendering chunks
             int hold = MeshQueue.Count;
@@ -152,13 +155,13 @@ public class ChunkManager : MonoBehaviour
                 ChunkUpdate updateMeshData;
                 lock (MeshQueue)
                     updateMeshData = MeshQueue.Dequeue();
-                UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
+                UpdateChunk(updateMeshData.meshData);
             }
 
             // Drawing trees
             foreach (Chunk chunkInstance in ChunkDictionary.Values)
             {
-                if (chunkInstance.currentLODindex <= 4)
+                if (chunkInstance.nodeDepth > 4)
                 {
                     Graphics.DrawMeshInstanced(TreeMesh, 0, TreeMaterial, chunkInstance.treesTransforms);
                 }
@@ -168,12 +171,18 @@ public class ChunkManager : MonoBehaviour
             Progress = (float)HeightMapDict.Count / math.pow(ChunkRenderDistance * 2, 2);
     }
 
-    GameObject UpdateChunk(MeshData meshData, int LODindex)
+    GameObject UpdateChunk(MeshData meshData)
     {
         GameObject chunk;
-        if (ChunkObjectDictionary.ContainsKey(meshData.position))
+        Vector3 key = new Vector3(
+            meshData.basedOn.Position.x,
+            meshData.basedOn.NodeDepth(),
+            meshData.basedOn.Position.y
+        );
+
+        if (ChunkObjectDictionary.ContainsKey(key))
         {
-            chunk = ChunkObjectDictionary[meshData.position];
+            chunk = ChunkObjectDictionary[key];
             Mesh mesh = chunk.GetComponent<MeshFilter>().mesh;
             mesh.Clear();
             mesh.vertices = meshData.vertexList;
@@ -187,8 +196,8 @@ public class ChunkManager : MonoBehaviour
             chunk.layer = LayerMask.NameToLayer("Ground");
             chunk.isStatic = true;
             chunk.transform.parent = this.transform;
-            chunk.transform.position = meshData.position * ChunkSettings.size;
-            chunk.transform.name = meshData.position.ToString();
+            chunk.transform.position = new Vector3(meshData.basedOn.Position.x, 0, meshData.basedOn.Position.y) * ChunkSettings.size;
+            chunk.transform.name = key.ToString();
 
             MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
             MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
@@ -201,7 +210,7 @@ public class ChunkManager : MonoBehaviour
 
             meshFilter.mesh = mesh;
 
-            ChunkObjectDictionary.Add(meshData.position, chunk);
+            ChunkObjectDictionary.Add(key, chunk);
         }
 
         chunk.GetComponent<MeshRenderer>().material = DefaultMaterial;
@@ -212,48 +221,53 @@ public class ChunkManager : MonoBehaviour
     {
         if (DrawChunkBorders && GenerationComplete)
         {
+            for (int i = 0; i < CellCord.Length; i++)
+            {
+                
+            }
             foreach (var item in HeightMapTree.Children)
             {
-                Vector2 flatPosition = item.Value.Position;
-                Vector3 spacePosition = new Vector3(flatPosition.x, 0, flatPosition.y) * ChunkSettings.size;
-                spacePosition += new Vector3(HighestChunkGrouping * ChunkSettings.size / 2, 0, HighestChunkGrouping * ChunkSettings.size / 2);
+                // Vector2 flatPosition = item.Value.Position;
+                // Vector3 spacePosition = new Vector3(flatPosition.x, 0, flatPosition.y) * ChunkSettings.size;
+                // spacePosition += new Vector3(HighestChunkGrouping * ChunkSettings.size / 2, 0, HighestChunkGrouping * ChunkSettings.size / 2);
 
-                if (flatPosition == CurrentCell)
+                
+                Gizmos.color = Color.blue;                
+                int index = 0;
+                for (int i = HighestChunkGrouping; i >= 1; i /= 2)
                 {
-                    Gizmos.color = Color.yellow;
+                    Vector3 spacePosition = new Vector3(CellCord[index].x, 0, CellCord[index].y) * ChunkSettings.size;
+                    spacePosition += new Vector3(i * ChunkSettings.size / 2, 0, i * ChunkSettings.size / 2);
+   
                     Gizmos.DrawWireCube(
                         spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
+                        new Vector3(i * ChunkSettings.size, MaxTerrainHeight, i * ChunkSettings.size)
+                    );                    
+                    index++;
+                }
+                // if (flatPosition == CurrentCell)
+                // {
+                //     Gizmos.color = Color.yellow;
+                //     Gizmos.DrawWireCube(
+                //         spacePosition,
+                //         new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+                //     );
 
-                    Gizmos.color *= new Color(1, 1, 1, 0.25f);
-                    Gizmos.DrawCube(
-                        spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
-                }
-                else
-                {
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawWireCube(
-                        spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
-                }
+                //     Gizmos.color *= new Color(1, 1, 1, 0.25f);
+                //     Gizmos.DrawCube(
+                //         spacePosition,
+                //         new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+                //     );
+                // }
+                // else
+                // {
+                //     Gizmos.color = Color.black;
+                //     Gizmos.DrawWireCube(
+                //         spacePosition,
+                //         new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+                //     );
+                // }
             }
         }
-    }
-}
-
-public struct ChunkUpdate
-{
-    public Vector3 position;
-    public int LODindex;
-    public MeshData meshData;
-    public ChunkUpdate(Vector3 position, MeshData meshData, int LODindex)
-    {
-        this.position = position;
-        this.meshData = meshData;
-        this.LODindex = LODindex;
     }
 }

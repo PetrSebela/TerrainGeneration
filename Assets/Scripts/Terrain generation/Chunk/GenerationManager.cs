@@ -60,7 +60,7 @@ public static class GenerationManager
 
             Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), chunkManager.ChunkSettings.size, chunkManager.ChunkSettings.maxResolution, treesTranformMatrix);
             // lock (chunkManager.ChunkDictionary)
-            chunkManager.ChunkDictionary.Add(toGenerate, chunk);
+            // chunkManager.ChunkDictionary.Add(toGenerate, chunk);
             chunkManager.LeafDict[toGenerate].Data = chunk;
 
             // releases corutine execution in order to run other stuff
@@ -83,15 +83,15 @@ public static class GenerationManager
             thread.Start();
         }
 
-        for (int x = -chunkManager.ChunkRenderDistance; x < chunkManager.ChunkRenderDistance; x++)
-        {
-            for (int y = -chunkManager.ChunkRenderDistance; y < chunkManager.ChunkRenderDistance; y++)
-            {
-                Vector2 sampler = new Vector2(x, y);
-                lock (chunkManager.ChunkUpdateRequestQueue)
-                    chunkManager.ChunkUpdateRequestQueue.Enqueue(sampler);
-            }
-        }
+        // for (int x = -chunkManager.ChunkRenderDistance; x < chunkManager.ChunkRenderDistance; x++)
+        // {
+        //     for (int y = -chunkManager.ChunkRenderDistance; y < chunkManager.ChunkRenderDistance; y++)
+        //     {
+        //         Vector2 sampler = new Vector2(x, y);
+        //         lock (chunkManager.ChunkUpdateRequestQueue)
+        //             chunkManager.ChunkUpdateRequestQueue.Enqueue(sampler);
+        //     }
+        // }
 
         while (chunkManager.ChunkUpdateRequestQueue.Count > 0)
         {

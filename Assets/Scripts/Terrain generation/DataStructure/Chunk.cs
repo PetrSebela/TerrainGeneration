@@ -5,7 +5,7 @@ using UnityEngine;
 public class Chunk
 {
     public float[,] heightMap;
-    public int currentLODindex;
+    public int nodeDepth;
     public Vector3 position;
     public Vector2 borderVector;
     public MeshData currentMeshData;
@@ -18,19 +18,20 @@ public class Chunk
         this.treesTransforms = treesTransforms;
     }
 
-    public MeshData GetMeshData(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings)
-    {
-        this.borderVector = borderVector;
-        currentLODindex = LODindex;
-
-        currentMeshData = MeshConstructor.ConstructTerrain(
-            heightMap,
-            position,
-            chunkSettings.size,
-            chunkSettings.maxResolution,
-            currentLODindex,
-            this.borderVector
-        );
-        return currentMeshData;
-    }
+    // public MeshData GetMeshData(ChunkSettings chunkSettings,int nodeDepth) //(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings)
+    // {
+    //     // this.borderVector = borderVector;
+    //     // currentLODindex = LODindex;
+    //     this.nodeDepth = nodeDepth;
+        
+    //     currentMeshData = MeshConstructor.ConstructTerrain(
+    //         heightMap,
+    //         position,
+    //         chunkSettings.size,
+    //         chunkSettings.maxResolution,
+    //         nodeDepth,
+    //         this.borderVector
+    //     );
+    //     return currentMeshData;
+    // }
 }

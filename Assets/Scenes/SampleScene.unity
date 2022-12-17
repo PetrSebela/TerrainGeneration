@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -361,7 +361,7 @@ MonoBehaviour:
     maxResolution: 64
     treesPerChunk: 0
   DefaultMaterial: {fileID: 2100000, guid: 5dd27e6c488fef842bd751749c3148c5, type: 2}
-  ChunkRenderDistance: 64
+  ChunkRenderDistance: 32
   HighestChunkGrouping: 32
   MaxTerrainHeight: 768
   Tracker: {fileID: 1620735406}
@@ -373,6 +373,17 @@ MonoBehaviour:
   PastChunkPosition: {x: 0, y: 0}
   GenerationComplete: 0
   HeightMapShader: {fileID: 7200000, guid: 8cb3cddeba4fadc4082d75678edd296c, type: 3}
+  CellCord:
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
