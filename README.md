@@ -37,8 +37,7 @@ This project is currently in sub beta state, so lot of features are missing.
 - [ ] Paths, houses, power lines, infrastructure
 
 
-## Weekend sprint
-- [ ] Mesh instanced trees
-- [ ] Basic coloring
-- [ ] Start chunk subdivision
-- [ ] REFACTOR
+# IDEAS
+## Reducing GPU call count
+- scrap quad tree division, keep generation as it is but group existing meshes into one based on LOD index and neighbours. 
+- Sort of like static batching but custom and working (Unity's is broken).

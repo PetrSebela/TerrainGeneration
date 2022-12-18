@@ -33,7 +33,7 @@ public static class GenerationManager
             lock (chunkManager.HeightMapDict)
                 chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
-            // generating trees
+            //! TREE GENERATION
             // this solution is only temporary 
             // I will probably refactor fucking everything
             Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
@@ -59,9 +59,7 @@ public static class GenerationManager
             }
 
             Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), chunkManager.ChunkSettings.size, chunkManager.ChunkSettings.maxResolution, treesTranformMatrix);
-            // lock (chunkManager.ChunkDictionary)
             chunkManager.ChunkDictionary.Add(toGenerate, chunk);
-            chunkManager.LeafDict[toGenerate].Data = chunk;
 
             // releases corutine execution in order to run other stuff
             if (chunkManager.HeightmapGenQueue.Count % 32 == 0)

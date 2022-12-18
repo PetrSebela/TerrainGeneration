@@ -30,12 +30,11 @@ public class ChunkManager : MonoBehaviour
     // Dictionaries 
     //! Replacing dictionary for tree structure
     public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
-    public TreeNode HeightMapTree = new TreeNode();
 
 
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
     private Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
-
+    private Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
     // Queues
     public Queue<Vector2> HeightmapGenQueue = new Queue<Vector2>();
     public Queue<Vector2> ChunkUpdateRequestQueue = new Queue<Vector2>();
@@ -48,10 +47,6 @@ public class ChunkManager : MonoBehaviour
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
-
-    public Dictionary<Vector2, TreeNode> LeafDict = new Dictionary<Vector2, TreeNode>();
-
-
 
     private Vector2 CurrentCell;
     // Vector3 -> Vector2
@@ -72,22 +67,11 @@ public class ChunkManager : MonoBehaviour
             }
         }
 
-        // populating tree with empty childs
-        for (int x = -ChunkRenderDistance / HighestChunkGrouping; x < ChunkRenderDistance / HighestChunkGrouping; x++)
-        {
-            for (int y = -ChunkRenderDistance / HighestChunkGrouping; y < ChunkRenderDistance / HighestChunkGrouping; y++)
-            {
-                TreeNode p = HeightMapTree.AddChild(new Vector2(x, y) * HighestChunkGrouping);
-                p.Spread(HighestChunkGrouping / 2, LeafDict);
-            }
-        }
-
         StartCoroutine(GenerationManager.GenerationCorutine(this));
     }
 
     void Update()
     {
-
         if (Input.GetKeyDown(KeyCode.G))
             DrawChunkBorders = !DrawChunkBorders;
 
@@ -95,7 +79,6 @@ public class ChunkManager : MonoBehaviour
         if (GenerationComplete)
         {
             // Selecting which chunks to update
-            // This will be replace with quad tree division
             Vector2 currentChunkPosition = new Vector2(Mathf.Round(Tracker.position.x / ChunkSettings.size), Mathf.Round(Tracker.position.z / ChunkSettings.size));
             if (currentChunkPosition != PastChunkPosition)
             {
@@ -113,38 +96,6 @@ public class ChunkManager : MonoBehaviour
             }
 
 
-
-            Vector2 rootPosition = new Vector2(
-                Mathf.Floor(currentChunkPosition.x / HighestChunkGrouping) * HighestChunkGrouping,
-                Mathf.Floor(currentChunkPosition.y / HighestChunkGrouping) * HighestChunkGrouping
-            );
-
-            CurrentCell = rootPosition;
-            if (currentChunkPosition != PastChunkPosition)
-            {
-                TreeNode layerParent = HeightMapTree;
-                TreeNode tmp;
-                for (int i = HighestChunkGrouping; i >= 1; i /= 2)
-                {
-                    Vector2 layerPosition = new Vector2(
-                        Mathf.Floor(currentChunkPosition.x / i) * i,
-                        Mathf.Floor(currentChunkPosition.y / i) * i
-                    );
-                    tmp = layerParent.Children[layerPosition];
-
-                    foreach (var item in layerParent.Children.Values)
-                    {
-                        if (item != tmp)
-                        {
-                            // send to renderer
-                        }
-                    }
-                    layerParent = tmp;
-                }
-                Debug.Log(layerParent.Position);
-            }
-
-
             // Rendering chunks
             int hold = MeshQueue.Count;
             for (int f = 0; f < hold; f++)
@@ -155,13 +106,10 @@ public class ChunkManager : MonoBehaviour
                 UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
             }
 
-            // Drawing trees
-            foreach (Chunk chunkInstance in ChunkDictionary.Values)
+            // Rendering trees trees
+            foreach (Chunk chunkInstance in TreeChunkDictionary.Values)
             {
-                if (chunkInstance.currentLODindex <= 4)
-                {
-                    Graphics.DrawMeshInstanced(TreeMesh, 0, TreeMaterial, chunkInstance.treesTransforms);
-                }
+                Graphics.DrawMeshInstanced(TreeMesh, 0, TreeMaterial, chunkInstance.treesTransforms);
             }
         }
         else
@@ -170,6 +118,18 @@ public class ChunkManager : MonoBehaviour
 
     GameObject UpdateChunk(MeshData meshData, int LODindex)
     {
+
+
+        Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
+        if (LODindex <= 8 && !TreeChunkDictionary.ContainsKey(key))
+        {
+            TreeChunkDictionary.Add(key, ChunkDictionary[key]);
+        }
+        else if (LODindex > 8 && TreeChunkDictionary.ContainsKey(key))
+        {
+            TreeChunkDictionary.Remove(key);
+        }
+
         GameObject chunk;
         if (ChunkObjectDictionary.ContainsKey(meshData.position))
         {
@@ -204,44 +164,46 @@ public class ChunkManager : MonoBehaviour
             ChunkObjectDictionary.Add(meshData.position, chunk);
         }
 
+
+
         chunk.GetComponent<MeshRenderer>().material = DefaultMaterial;
         return chunk;
     }
 
     void OnDrawGizmos()
     {
-        if (DrawChunkBorders && GenerationComplete)
-        {
-            foreach (var item in HeightMapTree.Children)
-            {
-                Vector2 flatPosition = item.Value.Position;
-                Vector3 spacePosition = new Vector3(flatPosition.x, 0, flatPosition.y) * ChunkSettings.size;
-                spacePosition += new Vector3(HighestChunkGrouping * ChunkSettings.size / 2, 0, HighestChunkGrouping * ChunkSettings.size / 2);
+        // if (DrawChunkBorders && GenerationComplete)
+        // {
+        //     foreach (var item in HeightMapTree.Children)
+        //     {
+        //         Vector2 flatPosition = item.Value.Position;
+        //         Vector3 spacePosition = new Vector3(flatPosition.x, 0, flatPosition.y) * ChunkSettings.size;
+        //         spacePosition += new Vector3(HighestChunkGrouping * ChunkSettings.size / 2, 0, HighestChunkGrouping * ChunkSettings.size / 2);
 
-                if (flatPosition == CurrentCell)
-                {
-                    Gizmos.color = Color.yellow;
-                    Gizmos.DrawWireCube(
-                        spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
+        //         if (flatPosition == CurrentCell)
+        //         {
+        //             Gizmos.color = Color.yellow;
+        //             Gizmos.DrawWireCube(
+        //                 spacePosition,
+        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+        //             );
 
-                    Gizmos.color *= new Color(1, 1, 1, 0.25f);
-                    Gizmos.DrawCube(
-                        spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
-                }
-                else
-                {
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawWireCube(
-                        spacePosition,
-                        new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-                    );
-                }
-            }
-        }
+        //             Gizmos.color *= new Color(1, 1, 1, 0.25f);
+        //             Gizmos.DrawCube(
+        //                 spacePosition,
+        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+        //             );
+        //         }
+        //         else
+        //         {
+        //             Gizmos.color = Color.black;
+        //             Gizmos.DrawWireCube(
+        //                 spacePosition,
+        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
+        //             );
+        //         }
+        //     }
+        // }
     }
 }
 

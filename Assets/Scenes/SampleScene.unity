@@ -359,7 +359,7 @@ MonoBehaviour:
   ChunkSettings:
     size: 64
     maxResolution: 64
-    treesPerChunk: 0
+    treesPerChunk: 4
   DefaultMaterial: {fileID: 2100000, guid: 5dd27e6c488fef842bd751749c3148c5, type: 2}
   ChunkRenderDistance: 64
   HighestChunkGrouping: 32
