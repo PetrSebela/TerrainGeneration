@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Collections;
 using System.Threading;
 using Unity.Mathematics;
+using System.Collections.Generic;
 
 public class ChunkManager : MonoBehaviour
 {
@@ -13,7 +13,7 @@ public class ChunkManager : MonoBehaviour
 
     [Header("World setting")]
     [SerializeField] public int ChunkRenderDistance;
-    [SerializeField] public int HighestChunkGrouping;
+    [SerializeField] public int LODtreeBorder;
 
     [Header("Terrain")]
     [SerializeField] private float MaxTerrainHeight;
@@ -21,6 +21,7 @@ public class ChunkManager : MonoBehaviour
 
     [Header("Tree")]
     [SerializeField] private Mesh TreeMesh;
+
     [SerializeField] private Material TreeMaterial;
 
 
@@ -110,6 +111,7 @@ public class ChunkManager : MonoBehaviour
             foreach (Chunk chunkInstance in TreeChunkDictionary.Values)
             {
                 Graphics.DrawMeshInstanced(TreeMesh, 0, TreeMaterial, chunkInstance.treesTransforms);
+                Graphics.DrawMeshInstanced(TreeMesh, 1, TreeMaterial, chunkInstance.treesTransforms);
             }
         }
         else
@@ -121,11 +123,11 @@ public class ChunkManager : MonoBehaviour
 
 
         Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
-        if (LODindex <= 8 && !TreeChunkDictionary.ContainsKey(key))
+        if (LODindex <= LODtreeBorder && !TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Add(key, ChunkDictionary[key]);
         }
-        else if (LODindex > 8 && TreeChunkDictionary.ContainsKey(key))
+        else if (LODindex > LODtreeBorder && TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Remove(key);
         }
