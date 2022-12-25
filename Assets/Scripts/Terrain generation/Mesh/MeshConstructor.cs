@@ -113,31 +113,31 @@ public class MeshConstructor : MonoBehaviour
         }
         // combine duplicate vertices
         //! probably just memory saver if it eats too much cpu time remove it i will have method for calculating smooth normals anyways
-        // Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
+        Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
 
-        // int vertexMapIndex = 0;
-        // foreach (Vector3 item in vertexList)
-        // {
-        //     if (!duplicateMapping.ContainsKey(item))
-        //     {
-        //         duplicateMapping.Add(item, vertexMapIndex++);
-        //     }
-        // }
+        int vertexMapIndex = 0;
+        foreach (Vector3 item in vertexList)
+        {
+            if (!duplicateMapping.ContainsKey(item))
+            {
+                duplicateMapping.Add(item, vertexMapIndex++);
+            }
+        }
 
-        // List<Vector3> constructVertexList = new List<Vector3>();
-        // List<int> constructTriangleList = new List<int>();
-        // foreach (int item in triangleList)
-        // {
-        //     constructTriangleList.Add(duplicateMapping[vertexList[item]]);
-        // }
+        List<Vector3> constructVertexList = new List<Vector3>();
+        List<int> constructTriangleList = new List<int>();
+        foreach (int item in triangleList)
+        {
+            constructTriangleList.Add(duplicateMapping[vertexList[item]]);
+        }
 
-        // foreach (Vector3 item in duplicateMapping.Keys)
-        // {
-        //     constructVertexList.Add(item);
-        // }
+        foreach (Vector3 item in duplicateMapping.Keys)
+        {
+            constructVertexList.Add(item);
+        }
 
-        // MeshData meshData = new MeshData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
-        MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position);
+        MeshData meshData = new MeshData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
+        // MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position);
         return meshData;
     }
 }

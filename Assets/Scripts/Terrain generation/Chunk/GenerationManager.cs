@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
+using System.Linq;
 
 public static class GenerationManager
 {
@@ -33,6 +34,28 @@ public static class GenerationManager
             lock (chunkManager.HeightMapDict)
                 chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
+            // getting highest point on map
+            float Max = 0;
+            Vector3 HighestPoint = Vector3.zero;
+            
+            for (int y = 0; y < 68; y++)
+            {
+                for (int x = 0; x < 68; x++)
+                {
+                    if(heightMap[x,y] > Max){
+                        Max = heightMap[x,y];
+                        HighestPoint = new Vector3(x,Max,y);
+                    }
+                }
+            }
+            if (HighestPoint.y > chunkManager.HighestPoint.y){
+                chunkManager.HighestPoint = new Vector3(
+                    (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                    HighestPoint.y,
+                    (toGenerate.y * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+            }
+
+
             //! TREE GENERATION
             // this solution is only temporary 
             // I will probably refactor fucking everything
@@ -44,6 +67,13 @@ public static class GenerationManager
 
                 // for some reason i am offseting by (1;1) in mesh constructino process so here is the compensation
                 // THIS CODE SO FUCKED UP
+
+                // check slope
+            
+            
+                if(Vector3.Angle(Vector3.up,new Vector3(xTreeCoord,heightMap[xTreeCoord, zTreeCoord+1],zTreeCoord)) < 0.5){
+
+                }
                 trees[i] = new Vector3(
                     (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
                     heightMap[xTreeCoord, zTreeCoord],

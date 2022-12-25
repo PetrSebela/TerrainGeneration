@@ -27,11 +27,10 @@ public class ChunkManager : MonoBehaviour
 
     public bool DrawChunkBorders = false;
     public float Progress = 0;
-
+    
     // Dictionaries 
     //! Replacing dictionary for tree structure
     public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
-
 
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
     private Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
@@ -44,12 +43,17 @@ public class ChunkManager : MonoBehaviour
 
     public Vector2 PastChunkPosition = Vector2.zero;
     public bool GenerationComplete = false;
+    
 
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
 
     private Vector2 CurrentCell;
+
+    public Vector3 HighestPoint;
+    public GameObject HighestPointMonument;
+    private bool PastGenerationComplete = false;
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
@@ -79,6 +83,12 @@ public class ChunkManager : MonoBehaviour
         // generating chunk update requests
         if (GenerationComplete)
         {
+            // execute only once
+            if (PastGenerationComplete == false){
+                Instantiate(HighestPointMonument,HighestPoint,Quaternion.Euler(-90,-90,0));
+                PastGenerationComplete = true;
+            }
+
             // Selecting which chunks to update
             Vector2 currentChunkPosition = new Vector2(Mathf.Round(Tracker.position.x / ChunkSettings.size), Mathf.Round(Tracker.position.z / ChunkSettings.size));
             if (currentChunkPosition != PastChunkPosition)

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -373,6 +373,9 @@ MonoBehaviour:
   PastChunkPosition: {x: 0, y: 0}
   GenerationComplete: 0
   HeightMapShader: {fileID: 7200000, guid: 8cb3cddeba4fadc4082d75678edd296c, type: 3}
+  HighestPoint: {x: 0, y: 0, z: 0}
+  HighestPointMonument: {fileID: 919132149155446097, guid: 3a62f4d47fffe8641ac2f2d8aa367d1e,
+    type: 3}
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
@@ -1658,8 +1661,8 @@ MonoBehaviour:
   _moveDownKey: 306
   _moveUpKey: 32
   _acceleratedMovement: 304
-  _movementSpeed: 2500
-  _acceleratedMovementSpeed: 12000
+  _movementSpeed: 500
+  _acceleratedMovementSpeed: 17500
   _movementDrag: 6
   chunkManager: {fileID: 100951350}
 --- !u!4 &1620735406
