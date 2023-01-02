@@ -11,11 +11,12 @@ public class Chunk
     public MeshData currentMeshData;
     public Matrix4x4[] treesTransforms;
 
-    public Chunk(float[,] heightMap, Vector3 position, float chunkSize, int chunkResolution, Matrix4x4[] treesTransforms)
+    public Dictionary<Spawable,Matrix4x4[]> treesDictionary = new Dictionary<Spawable, Matrix4x4[]>();
+
+    public Chunk(float[,] heightMap, Vector3 position, float chunkSize, int chunkResolution)
     {
         this.heightMap = heightMap;
         this.position = position;
-        this.treesTransforms = treesTransforms;
     }
 
     public MeshData GetMeshData(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings)
@@ -33,4 +34,12 @@ public class Chunk
         );
         return currentMeshData;
     }
+}
+
+public enum Spawable
+{
+    ConiferTree,
+    DeciduousTree,
+    Rock,
+    Bush 
 }

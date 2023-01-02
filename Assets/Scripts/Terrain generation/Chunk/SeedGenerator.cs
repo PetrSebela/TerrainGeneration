@@ -12,12 +12,18 @@ public class SeedGenerator
         GenerateValues();
     }
 
+    public SeedGenerator(string seed){
+        Random.InitState(seed.GetHashCode());
+        Debug.Log("Internal seed : " + seed.GetHashCode().ToString());
+        GenerateValues();
+    }
+
 
     private void GenerateValues()
     {
         for (int i = 0; i < noiseLayers.Length; i++)
         {
-            noiseLayers[i] = new Vector2(Random.value, Random.value);
+            noiseLayers[i] = new Vector2(Random.value * 1000, Random.value * 1000);
         }
     }
 }

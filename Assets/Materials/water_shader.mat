@@ -38,16 +38,17 @@ Material:
     - _Float: 0
     - _Float_1: 0
     - _Foam_amount: 0
+    - _NormalWeight: 3
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Refraction_speed: 0.0001
     - _Ripple_density: 0.21
     - _Ripple_speed: 2.01
-    - _Water_Depth: 35.89
+    - _Water_Depth: 17.37
     - _Wave_speed: 0.00005
     - _depth: 17.5
     - _strength: 0.0005
-    - _wave_height: 3.98
+    - _wave_height: 0
     - _wavespeed: 0.005
     m_Colors:
     - _IDK_color: {r: 0.6179245, g: 1, b: 0.9966057, a: 0}

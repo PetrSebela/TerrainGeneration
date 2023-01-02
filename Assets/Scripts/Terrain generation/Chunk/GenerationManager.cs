@@ -27,6 +27,7 @@ public static class GenerationManager
             chunkManager.HeightMapShader.SetVector("offset", toGenerate);
             chunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
             chunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
+            chunkManager.HeightMapShader.SetFloat("height",chunkManager.MaxTerrainHeight);
 
             chunkManager.HeightMapShader.Dispatch(0, 17, 17, 1);
             heightMapBuffer.GetData(heightMap);
@@ -34,68 +35,116 @@ public static class GenerationManager
             lock (chunkManager.HeightMapDict)
                 chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
-            // getting highest point on map
-            float Max = 0;
+            // Scanning for valid peaks on heightmap
+            float Max = -Mathf.Infinity;
             Vector3 HighestPoint = Vector3.zero;
             
-            for (int y = 0; y < 68; y++)
+            for (int y = 1; y < 64; y++)
             {
-                for (int x = 0; x < 68; x++)
+                for (int x = 1; x < 64; x++)
                 {
-                    if(heightMap[x,y] > Max){
-                        Max = heightMap[x,y];
-                        HighestPoint = new Vector3(x,Max,y);
+                    float checkedValue = heightMap[x,y];
+                    if( checkedValue > Max &&
+                        checkedValue > heightMap[x,y + 1] &&
+                        checkedValue > heightMap[x,y - 1] &&
+                        checkedValue > heightMap[x + 1,y] &&
+                        checkedValue > heightMap[x - 1,y]){
+                        Max = checkedValue;
+                        HighestPoint = new Vector3(x,checkedValue,y);
                     }
                 }
             }
-            if (HighestPoint.y > chunkManager.HighestPoint.y){
-                chunkManager.HighestPoint = new Vector3(
+            
+
+            if (HighestPoint != Vector3.zero){
+                Vector3 inWorldPosition = new Vector3(
                     (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
                     HighestPoint.y,
                     (toGenerate.y * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+                
+                // finding POI
+                Vector2 comparativePosition = new Vector2(
+                    (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                    (toGenerate.y * chunkManager.ChunkSettings.size) + (((float)(HighestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+ 
+                
+                int closestIndex = 0;
+                float closestDistance = Mathf.Infinity;
+
+                for (int i = 0; i < chunkManager.PeaksPOI.Length; i++)
+                {
+                    float comparedDistance = Vector2.Distance(chunkManager.PeaksPOI[i], comparativePosition);
+                    if (comparedDistance < closestDistance)
+                    {
+                        closestDistance = comparedDistance;
+                        closestIndex = i; 
+                    }
+                }
+                if(HighestPoint.y > chunkManager.Peaks[closestIndex].y){
+                    chunkManager.Peaks[closestIndex] = inWorldPosition;
+                }
             }
 
 
             //! TREE GENERATION
             // this solution is only temporary 
             // I will probably refactor fucking everything
-            Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
-            for (int i = 0; i < chunkManager.ChunkSettings.treesPerChunk; i++)
+            // Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
+            Dictionary<Spawable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawable, List<Matrix4x4>>(){
+                {Spawable.ConiferTree,new List<Matrix4x4>()},
+                {Spawable.DeciduousTree,new List<Matrix4x4>()},
+                {Spawable.Rock,new List<Matrix4x4>()},
+                {Spawable.Bush,new List<Matrix4x4>()},
+            };
+
+            foreach (SpawnableSettings item in chunkManager.spSettings)
             {
-                int xTreeCoord = UnityEngine.Random.Range(1, 64);
-                int zTreeCoord = UnityEngine.Random.Range(1, 64);
+                for (int i = 0; i < item.countInChunk; i++)
+                {
+                    int xTreeCoord = UnityEngine.Random.Range(1, 64);
+                    int zTreeCoord = UnityEngine.Random.Range(1, 64);
+                    float height = heightMap[xTreeCoord, zTreeCoord];
 
-                // for some reason i am offseting by (1;1) in mesh constructino process so here is the compensation
-                // THIS CODE SO FUCKED UP
+                    // Calculate tree base normal
+                    Vector3 p1 = new Vector3(xTreeCoord     , heightMap[xTreeCoord      , zTreeCoord    ], zTreeCoord);
+                    Vector3 p2 = new Vector3(xTreeCoord + 1 , heightMap[xTreeCoord + 1  , zTreeCoord    ], zTreeCoord);
+                    Vector3 p3 = new Vector3(xTreeCoord     , heightMap[xTreeCoord      , zTreeCoord + 1], zTreeCoord + 1);
+                    Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
-                // check slope
-            
-            
-                if(Vector3.Angle(Vector3.up,new Vector3(xTreeCoord,heightMap[xTreeCoord, zTreeCoord+1],zTreeCoord)) < 0.5){
+                    if(item.minHeight < height && height < item.maxHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel)
+                    {
+                        Vector3 position = new Vector3(
+                            (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                            height,
+                            (toGenerate.y * chunkManager.ChunkSettings.size) + (((float)(zTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+                        
+                        Matrix4x4 matrix4X4 = Matrix4x4.TRS(
+                            position, 
+                            Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
+                            Vector3.one * Random.Range(2,4));
 
+                        enviromentalDetail[item.type].Add(matrix4X4);
+                    }
                 }
-                trees[i] = new Vector3(
-                    (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
-                    heightMap[xTreeCoord, zTreeCoord],
-                    (toGenerate.y * chunkManager.ChunkSettings.size) + (((float)(zTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
-                // heightMap[xTreeCoord, zTreeCoord] += 5;
             }
 
-            Matrix4x4[] treesTranformMatrix = new Matrix4x4[chunkManager.ChunkSettings.treesPerChunk];
-            for (int i = 0; i < chunkManager.ChunkSettings.treesPerChunk; i++)
+
+            // Converting list to array
+            Dictionary<Spawable,Matrix4x4[]> enviromentalDetailArray = new Dictionary<Spawable, Matrix4x4[]>();
+
+            foreach (var item in enviromentalDetail.Keys)
             {
-                Matrix4x4 matrix4X4 = Matrix4x4.TRS(trees[i], Quaternion.identity, Vector3.one * 2);
-                treesTranformMatrix[i] = matrix4X4;
-            }
+                enviromentalDetailArray.Add(item, enviromentalDetail[item].ToArray());
+            } 
 
-            Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), chunkManager.ChunkSettings.size, chunkManager.ChunkSettings.maxResolution, treesTranformMatrix);
+            Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), chunkManager.ChunkSettings.size, chunkManager.ChunkSettings.maxResolution);
+            chunk.treesDictionary = enviromentalDetailArray;
             chunkManager.ChunkDictionary.Add(toGenerate, chunk);
 
             // releases corutine execution in order to run other stuff
             if (chunkManager.HeightmapGenQueue.Count % 32 == 0)
                 yield return null;
         }
-
         heightMapBuffer.Dispose();
         offsets.Dispose();
 
@@ -124,6 +173,23 @@ public static class GenerationManager
         while (chunkManager.ChunkUpdateRequestQueue.Count > 0)
         {
             yield return null;
+        }
+
+
+        // generating water
+        if (chunkManager.UseWater)
+        {
+            float worldSize = chunkManager.ChunkRenderDistance * chunkManager.ChunkSettings.size;
+            for (float x1 = -worldSize; x1 < worldSize; x1 += 100)
+            {
+                for (float y1 = -worldSize; y1 < worldSize; y1 += 100)
+                {
+                    GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                    plane.transform.position = new Vector3(x1,0,y1) + new Vector3(0,chunkManager.waterLevel,0);
+                    plane.transform.localScale = Vector3.one * 10;
+                    plane.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;
+                }
+            }
         }
 
         chunkManager.GenerationComplete = true;

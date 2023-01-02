@@ -28,13 +28,23 @@ public class PlayerController : MonoBehaviour
     private float _acceleratedMovementSpeed = 25;
     [SerializeField]
     private float _movementDrag = 6;
+    
+    [SerializeField]
+    private Camera camera;
 
+    [SerializeField]
 
+    private int zoomFOV;
+    [SerializeField]
+    private int normalFOV;
     private Vector2 _mouseMovement;
     private Vector2 _cameraRotation;
     private Vector3 _inputs = new Vector3(0, 0, 0);
     private Vector3 _wishDirection = new Vector3(0, 0, 0);
     private Rigidbody _rb;
+
+    public bool IsPaused = false;
+    public GameObject PauseMenu;
     [SerializeField] private ChunkManager chunkManager;
     void Start()
     {
@@ -48,8 +58,28 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (chunkManager.GenerationComplete)
+        if (Input.GetKeyDown(KeyCode.Escape) && chunkManager.GenerationComplete){
+            IsPaused = !IsPaused;
+            Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = !Cursor.visible;
+            PauseMenu.SetActive(IsPaused);
+        }
+
+        if (chunkManager.GenerationComplete && !IsPaused)
         {
+            if (Input.GetKeyDown(KeyCode.C)){
+                camera.fieldOfView = zoomFOV;
+            }
+            if (Input.GetKeyUp(KeyCode.C)){
+                camera.fieldOfView = normalFOV;
+            }
+
+            if (Input.GetKeyDown(KeyCode.F)){
+                chunkManager.FullRender = ! chunkManager.FullRender;
+            }
+
+
+
             _inputs.x = Input.GetAxisRaw("Horizontal");
             _inputs.y = Input.GetAxisRaw("Vertical");
             _inputs.z = 0;
