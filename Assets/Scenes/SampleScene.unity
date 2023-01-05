@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -492,26 +492,29 @@ MonoBehaviour:
     maxResolution: 64
     treesPerChunk: 12
   DefaultMaterial: {fileID: 2100000, guid: a90de7c954770fa47b72e8e716ee1547, type: 2}
-  ChunkRenderDistance: 32
-  LODtreeBorder: 4
-  MaxTerrainHeight: 768
+  ChunkRenderDistance: 16
+  LODTreeBorder: 4
+  MaxTerrainHeight: 256
   Tracker: {fileID: 1620735406}
   spSettings:
   - type: 0
-    minHeight: 250
-    maxHeight: 500
+    HeightRange:
+      Min: 150
+      Max: 450
+    SizeVariation:
+      Min: 2.5
+      Max: 5
     maxSlope: 35
-    countInChunk: 8
+    countInChunk: 16
   - type: 1
-    minHeight: -500
-    maxHeight: 250
+    HeightRange:
+      Min: -500
+      Max: 250
+    SizeVariation:
+      Min: 1
+      Max: 2
     maxSlope: 15
-    countInChunk: 8
-  - type: 3
-    minHeight: 350
-    maxHeight: 1000
-    maxSlope: 45
-    countInChunk: 3
+    countInChunk: 16
   TreeMesh: {fileID: -2432090755550338912, guid: 533bcbb36ea9a76e683712344c0d4fb1,
     type: 3}
   TreeMesh2: {fileID: -2432090755550338912, guid: 319cfaef40df6b2488fa80214fe0fd11,
@@ -527,6 +530,7 @@ MonoBehaviour:
   UseWater: 1
   WaterMaterial: {fileID: 2100000, guid: 3dd53825794efdb42b4cf6a2c4ac5bde, type: 2}
   waterLevel: 0
+  waterAcceptableDiviation: 2.5
   DrawChunkBorders: 1
   Progress: 0
   PastChunkPosition: {x: 0, y: 0}
@@ -815,7 +819,7 @@ Transform:
   m_GameObject: {fileID: 410087039}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -2355,7 +2359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ddeff58bb8c73546bc690cd6f7590cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mouseSens: 2
+  _mouseSens: 50
   _cam: {fileID: 330585546}
   _orientation: {fileID: 1193693647}
   _moveDownKey: 306

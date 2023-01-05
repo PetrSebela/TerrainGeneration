@@ -11,7 +11,7 @@ public class ChunkManager : MonoBehaviour
 
     [Header("World setting")]
     [SerializeField] public int ChunkRenderDistance;
-    [SerializeField] public int LODtreeBorder;
+    [SerializeField] public int LODTreeBorder;
 
     [Header("Terrain")]
     public float MaxTerrainHeight;
@@ -36,6 +36,7 @@ public class ChunkManager : MonoBehaviour
     public bool UseWater = true;
     public Material WaterMaterial;
     public float waterLevel;
+    public float waterAcceptableDiviation;
 
     public bool DrawChunkBorders = false;
     public float Progress = 0;
@@ -75,13 +76,22 @@ public class ChunkManager : MonoBehaviour
     public GameObject Monument;
     private bool PastGenerationComplete = false;
 
+    private bool FullRenderToggle = false;
+
+
+    // testing
+
+    Dictionary<Spawnable,List<List<Matrix4x4>>> coupled = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+    Dictionary<Spawnable,int> coupledCount = new Dictionary<Spawnable, int>();
+
+
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
     void Start()
     {
         SeedGenerator = new SeedGenerator(123);
-        SeedGenerator = new SeedGenerator("ahoj");
+        // SeedGenerator = new SeedGenerator("ahoj");
         Tracker.position = new Vector3(0, MaxTerrainHeight, 0);
         
         Peaks = new Vector3[NumOfPeaks];
@@ -113,16 +123,21 @@ public class ChunkManager : MonoBehaviour
             DrawChunkBorders = !DrawChunkBorders;
 
         // generating chunk update requests
-        if (GenerationComplete)
+        if (GenerationComplete )
         {
-            // execute only once
+            // This section only executes once on the beginning of simulation loop
+            // It is used to spawn permanent structures such as gates
+            float st = Time.realtimeSinceStartup;
+
             if (PastGenerationComplete == false){
+                // Tori gates at the peaks
                 foreach (Vector3 pos in Peaks)
                 {
                     float angle = Mathf.Rad2Deg*Mathf.Atan(pos.x/pos.z) - 90;
                     Instantiate(HighestPointMonument,pos,Quaternion.Euler(0,angle - 90,0));
                 }
 
+                // Central monument
                 float height = ChunkDictionary[Vector2.zero].heightMap[1,1];
                 if(height < waterLevel)
                     height = waterLevel;
@@ -132,6 +147,12 @@ public class ChunkManager : MonoBehaviour
             }
 
             // Selecting which chunks to update
+            Dictionary<Vector2,Chunk> activeDictionary = TreeChunkDictionary;
+
+            if(FullRender){
+                activeDictionary = ChunkDictionary;
+            }
+            
             Vector2 currentChunkPosition = new Vector2(Mathf.Round(Tracker.position.x / ChunkSettings.size), Mathf.Round(Tracker.position.z / ChunkSettings.size));
             if (currentChunkPosition != PastChunkPosition)
             {
@@ -141,15 +162,39 @@ public class ChunkManager : MonoBehaviour
                     for (int y = -34; y <= 34; y++)
                     {
                         Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                        if (Math.Abs(sampler.x) < ChunkRenderDistance && Math.Abs(sampler.y) < ChunkRenderDistance)
+                        if( sampler.x >= -ChunkRenderDistance && sampler.x < ChunkRenderDistance && sampler.y >= -ChunkRenderDistance && sampler.y < ChunkRenderDistance)
                             lock (ChunkUpdateRequestQueue)
                                 ChunkUpdateRequestQueue.Enqueue(sampler);
+                    }
+                }
+                
+                // computing topology for batching
+                coupled.Clear();
+                coupledCount.Clear();
+
+                foreach (Chunk chunkInstance in activeDictionary.Values)
+                {
+                    foreach (Spawnable spawnableType in chunkInstance.treesDictionary.Keys)
+                    {
+                        if(!coupled.ContainsKey(spawnableType)){
+                            coupled.Add(spawnableType,new List<List<Matrix4x4>>());
+                            coupledCount.Add(spawnableType,0);
+                        }
+
+                        foreach (Matrix4x4 item in chunkInstance.treesDictionary[spawnableType])
+                        {
+                            if(coupledCount[spawnableType] % 1023 == 0){
+                                coupled[spawnableType].Add(new List<Matrix4x4>());
+                            }
+                            coupled[spawnableType][(int) coupledCount[spawnableType] / 1023].Add(item);
+                            coupledCount[spawnableType]++;
+                        }
                     }
                 }
             }
 
 
-            // Rendering chunks
+            // Rendering and chunks
             int hold = MeshQueue.Count;
             for (int f = 0; f < hold; f++)
             {
@@ -160,47 +205,94 @@ public class ChunkManager : MonoBehaviour
             }
 
 
-           Dictionary<Vector2,Chunk> activeDictionary = TreeChunkDictionary;
+           
 
-            if(FullRender){
-                activeDictionary = ChunkDictionary;
-            }
+            // Dictionary<Spawnable,List<List<Matrix4x4>>> coupled = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+            // Dictionary<Spawnable,int> coupledCount = new Dictionary<Spawnable, int>();
 
-            // Rendering trees trees
-            foreach (Chunk chunkInstance in activeDictionary.Values)
-            {
-                foreach (var spawnableType in chunkInstance.treesDictionary.Keys)
-                {
-                    if (chunkInstance.treesDictionary[spawnableType].Length > 0)
+            // Rendering trees, busher, rocks, etc....
+            // I will definitely put some sort of batching system in place
+            // foreach (Chunk chunkInstance in activeDictionary.Values)
+            // {
+            //     foreach (Spawnable spawnableType in chunkInstance.treesDictionary.Keys)
+            //     {
+                    // switch (spawnableType)
+                    // {
+                    //     case Spawnable.ConiferTree:
+                    //         Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         break;
+
+                    //     case Spawnable.DeciduousTree:
+                    //         Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         break;
+
+                    //     case Spawnable.Rock:
+                    //         Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         break;
+
+                    //     case Spawnable.Bush:
+                    //         Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
+                    //         break;                           
+                        
+                    //     case Spawnable.Grass:
+                    //         break;
+
+                    //     default:
+                    //         break;
+                    // }    
+
+                    // if(!coupled.ContainsKey(spawnableType)){
+                    //     coupled.Add(spawnableType, new List<List<Matrix4x4>>());
+                    //     coupledCount.Add(spawnableType, 0);
+                    // }
+
+                    // foreach (Matrix4x4 item in chunkInstance.treesDictionary[spawnableType])
+                    // {
+                    //     if(coupledCount[spawnableType] % 1023 == 0){
+                    //         coupled[spawnableType].Add(new List<Matrix4x4>());
+                    //     }
+                    //     coupled[spawnableType][(int)coupledCount[spawnableType]/1023].Add(item);
+                    //     coupledCount[spawnableType]++;
+                    // }
+            //     }
+            // }
+
+            foreach (Spawnable type in coupled.Keys){
+                foreach (List<Matrix4x4> list in coupled[type]){
+                    switch (type)
                     {
-                        switch (spawnableType)
-                        {
-                            case Spawable.ConiferTree:
-                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                break;
+                        case Spawnable.ConiferTree:
+                            Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, list.ToArray());
+                            Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, list.ToArray());
+                            break;
 
-                            case Spawable.DeciduousTree:
-                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                break;
+                        case Spawnable.DeciduousTree:
+                            Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, list.ToArray());
+                            Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, list.ToArray());
+                            break;
 
-                            case Spawable.Rock:
-                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                break;
+                        case Spawnable.Rock:
+                            Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, list.ToArray());
+                            break;
 
-                            case Spawable.Bush:
-                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
+                        case Spawnable.Bush:
+                            Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, list.ToArray());
+                            Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, list.ToArray());
+                            break;                           
+                        
+                        case Spawnable.Grass:
+                            break;
 
-                                break;                           
-
-                            default:
-                                break;
-                        }                        
-                    }
+                        default:
+                            break;
+                    }    
                 }
             }
+            Debug.Log(Time.realtimeSinceStartup - st);
+
         }
         else
             Progress = (float)HeightMapDict.Count / math.pow(ChunkRenderDistance * 2, 2);
@@ -208,14 +300,12 @@ public class ChunkManager : MonoBehaviour
 
     GameObject UpdateChunk(MeshData meshData, int LODindex)
     {
-
-
         Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
-        if (LODindex <= LODtreeBorder && !TreeChunkDictionary.ContainsKey(key))
+        if (LODindex <= LODTreeBorder && !TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Add(key, ChunkDictionary[key]);
         }
-        else if (LODindex > LODtreeBorder && TreeChunkDictionary.ContainsKey(key))
+        else if (LODindex > LODTreeBorder && TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Remove(key);
         }
@@ -322,17 +412,17 @@ public class ChunkManager : MonoBehaviour
 
 [Serializable]
 public struct SpawnableSettings{
-    public Spawable type;
-    public float minHeight;
-    public float maxHeight;
+    public Spawnable type;
+    public Range HeightRange;
+    public Range SizeVariation;
     public float maxSlope;
     public int countInChunk;
 
-    public SpawnableSettings(Spawable type, float minHeight, float maxHeight, float maxSlope, int countInChunk)
+    public SpawnableSettings(Spawnable type, Range heightRange, Range sizeVariation, float maxSlope, int countInChunk)
     {
+        this.HeightRange = heightRange;
+        this.SizeVariation = sizeVariation;
         this.type = type;
-        this.minHeight = minHeight;
-        this.maxHeight = maxHeight;
         this.maxSlope = maxSlope;
         this.countInChunk = countInChunk;
     }

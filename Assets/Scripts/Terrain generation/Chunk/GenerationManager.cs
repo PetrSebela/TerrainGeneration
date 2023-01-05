@@ -90,11 +90,11 @@ public static class GenerationManager
             // this solution is only temporary 
             // I will probably refactor fucking everything
             // Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
-            Dictionary<Spawable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawable, List<Matrix4x4>>(){
-                {Spawable.ConiferTree,new List<Matrix4x4>()},
-                {Spawable.DeciduousTree,new List<Matrix4x4>()},
-                {Spawable.Rock,new List<Matrix4x4>()},
-                {Spawable.Bush,new List<Matrix4x4>()},
+            Dictionary<Spawnable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawnable, List<Matrix4x4>>(){
+                {Spawnable.ConiferTree,new List<Matrix4x4>()},
+                {Spawnable.DeciduousTree,new List<Matrix4x4>()},
+                {Spawnable.Rock,new List<Matrix4x4>()},
+                {Spawnable.Bush,new List<Matrix4x4>()},
             };
 
             foreach (SpawnableSettings item in chunkManager.spSettings)
@@ -111,7 +111,7 @@ public static class GenerationManager
                     Vector3 p3 = new Vector3(xTreeCoord     , heightMap[xTreeCoord      , zTreeCoord + 1], zTreeCoord + 1);
                     Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
-                    if(item.minHeight < height && height < item.maxHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel)
+                    if(item.HeightRange.Min < height && height < item.HeightRange.Max && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel + chunkManager.waterAcceptableDiviation)
                     {
                         Vector3 position = new Vector3(
                             (toGenerate.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
@@ -121,7 +121,7 @@ public static class GenerationManager
                         Matrix4x4 matrix4X4 = Matrix4x4.TRS(
                             position, 
                             Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
-                            Vector3.one * Random.Range(2,4));
+                            Vector3.one * Random.Range(item.SizeVariation.Min,item.SizeVariation.Max));
 
                         enviromentalDetail[item.type].Add(matrix4X4);
                     }
@@ -130,7 +130,7 @@ public static class GenerationManager
 
 
             // Converting list to array
-            Dictionary<Spawable,Matrix4x4[]> enviromentalDetailArray = new Dictionary<Spawable, Matrix4x4[]>();
+            Dictionary<Spawnable,Matrix4x4[]> enviromentalDetailArray = new Dictionary<Spawnable, Matrix4x4[]>();
 
             foreach (var item in enviromentalDetail.Keys)
             {
@@ -185,7 +185,7 @@ public static class GenerationManager
                 for (float y1 = -worldSize; y1 < worldSize; y1 += 100)
                 {
                     GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                    plane.transform.position = new Vector3(x1,0,y1) + new Vector3(0,chunkManager.waterLevel,0);
+                    plane.transform.position = new Vector3(x1,0,y1) + new Vector3(0,chunkManager.waterLevel,0) + new Vector3(50,0,50);
                     plane.transform.localScale = Vector3.one * 10;
                     plane.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;
                 }
