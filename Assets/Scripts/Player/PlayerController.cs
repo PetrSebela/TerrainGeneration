@@ -117,8 +117,8 @@ public class PlayerController : MonoBehaviour
             }
 
 
-            _cameraRotation.y += _mouseMovement.x * _mouseSens * Time.deltaTime;
-            _cameraRotation.x -= _mouseMovement.y * _mouseSens * Time.deltaTime;
+            _cameraRotation.y += _mouseMovement.x * _mouseSens;
+            _cameraRotation.x -= _mouseMovement.y * _mouseSens;
 
             _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
 
