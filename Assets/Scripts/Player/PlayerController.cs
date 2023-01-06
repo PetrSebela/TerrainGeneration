@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
     private float _movementDrag = 6;
     
     [SerializeField]
-    private Camera camera;
+    private new Camera camera;
 
     [SerializeField]
 

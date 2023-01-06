@@ -11,6 +11,8 @@ public static class GenerationManager
         ComputeBuffer heightMapBuffer = new ComputeBuffer((int)Mathf.Pow(64 + 4, 2), sizeof(float));
         ComputeBuffer offsets = new ComputeBuffer(24, sizeof(float) * 2);
 
+        List<Vector2> validWaterChunk = new List<Vector2>();
+
         offsets.SetData(chunkManager.SeedGenerator.noiseLayers);
 
         while (chunkManager.HeightmapGenQueue.Count > 0)
@@ -39,6 +41,21 @@ public static class GenerationManager
             float Max = -Mathf.Infinity;
             Vector3 HighestPoint = Vector3.zero;
             
+
+            float lowestPoint = Mathf.Infinity;
+            for (int y = 1; y < 64; y++)
+            {
+                for (int x = 1; x < 64; x++)
+                {
+                    if(heightMap[x,y] < lowestPoint){
+                        lowestPoint = heightMap[x,y]; 
+                    }
+                }
+            }
+            if (lowestPoint <= 0){
+                validWaterChunk.Add(toGenerate * chunkManager.ChunkSettings.size);
+            }
+
             for (int y = 1; y < 64; y++)
             {
                 for (int x = 1; x < 64; x++)
@@ -179,16 +196,15 @@ public static class GenerationManager
         // generating water
         if (chunkManager.UseWater)
         {
-            float worldSize = chunkManager.ChunkRenderDistance * chunkManager.ChunkSettings.size;
-            for (float x1 = -worldSize; x1 < worldSize; x1 += 100)
+            float size = chunkManager.ChunkSettings.size;
+            float worldSize = chunkManager.ChunkRenderDistance * size;
+            foreach (Vector2 chunk in validWaterChunk)
             {
-                for (float y1 = -worldSize; y1 < worldSize; y1 += 100)
-                {
-                    GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                    plane.transform.position = new Vector3(x1,0,y1) + new Vector3(0,chunkManager.waterLevel,0);
-                    plane.transform.localScale = Vector3.one * 10;
-                    plane.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;
-                }
+                GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                plane.transform.position = new Vector3(chunk.x,0,chunk.y) + new Vector3(size / 2,chunkManager.waterLevel, + size / 2);
+                plane.transform.localScale = Vector3.one / 10 * size;
+                plane.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;
+                
             }
         }
 

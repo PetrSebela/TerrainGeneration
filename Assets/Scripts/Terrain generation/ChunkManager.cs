@@ -115,7 +115,7 @@ public class ChunkManager : MonoBehaviour
         // generating chunk update requests
         if (GenerationComplete)
         {
-            // execute only once
+            // execute only once at the beginning of cycle
             if (PastGenerationComplete == false){
                 foreach (Vector3 pos in Peaks)
                 {
@@ -126,8 +126,10 @@ public class ChunkManager : MonoBehaviour
                 float height = ChunkDictionary[Vector2.zero].heightMap[1,1];
                 if(height < waterLevel)
                     height = waterLevel;
-                GameObject monu = Instantiate(Monument,new Vector3(0,height,0),Quaternion.Euler(0,0,0));
-                monu.transform.localScale = Vector3.one * 3.25f;
+                GameObject monument = Instantiate(Monument,new Vector3(0,height,0),Quaternion.Euler(0,0,0));
+                monument.transform.localScale = Vector3.one * 3.25f;
+                
+                // ending iteration
                 PastGenerationComplete = true;
             }
 
@@ -141,7 +143,7 @@ public class ChunkManager : MonoBehaviour
                     for (int y = -34; y <= 34; y++)
                     {
                         Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                        if (Math.Abs(sampler.x) < ChunkRenderDistance && Math.Abs(sampler.y) < ChunkRenderDistance)
+                        if (sampler.x >= -ChunkRenderDistance && sampler.x < ChunkRenderDistance && sampler.y >= -ChunkRenderDistance && sampler.y < ChunkRenderDistance)
                             lock (ChunkUpdateRequestQueue)
                                 ChunkUpdateRequestQueue.Enqueue(sampler);
                     }
@@ -149,7 +151,7 @@ public class ChunkManager : MonoBehaviour
             }
 
 
-            // Rendering chunks
+            // Updating and redrawing chunks
             int hold = MeshQueue.Count;
             for (int f = 0; f < hold; f++)
             {
@@ -258,13 +260,19 @@ public class ChunkManager : MonoBehaviour
 
         chunk.GetComponent<MeshRenderer>().material = DefaultMaterial;
         if(LODindex == 1){
-            MeshCollider collider = chunk.AddComponent<MeshCollider>();
-            collider.sharedMesh = chunk.GetComponent<MeshFilter>().mesh;
+            if(chunk.GetComponent<MeshCollider>()){
+                chunk.GetComponent<MeshCollider>().enabled = true;
+            }
+            else{
+                MeshCollider collider = chunk.AddComponent<MeshCollider>();
+                collider.sharedMesh = chunk.GetComponent<MeshFilter>().mesh;
+            }
         }
         else{
+            
             MeshCollider collider = chunk.GetComponent<MeshCollider>();
             if(collider != null){
-                Destroy(collider);
+                collider.enabled = false;
             }
         }
         return chunk;
