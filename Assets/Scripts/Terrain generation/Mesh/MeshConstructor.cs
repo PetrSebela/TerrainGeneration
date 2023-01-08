@@ -17,7 +17,7 @@ public class MeshConstructor : MonoBehaviour
     };
 
     // takes in constant size 2D array and creates mesh with variable leavel of detail
-    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber, Vector2 borderWith)
+    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber, Vector2 borderWith, float noiseMin, float noiseMax, float maxHeight)
     {
         float[,] _chunkData = (float[,])chunkData.Clone();
 
@@ -95,10 +95,9 @@ public class MeshConstructor : MonoBehaviour
                     float height = _chunkData[(x + offsets[offsetIndex].x) * LODnumber + 1, (y + offsets[offsetIndex].y) * LODnumber + 1];
 
 
-
                     vertexList.Add(new Vector3(
                         xPosition,
-                        height,
+                        -maxHeight/3 + (height - noiseMin) * (maxHeight - -maxHeight/3) / (noiseMax - noiseMin),
                         yPosition
                     ));
                 }

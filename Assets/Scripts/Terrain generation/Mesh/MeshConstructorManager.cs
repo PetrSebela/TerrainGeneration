@@ -61,7 +61,7 @@ public static class MeshConstructorManager
 
                 if (chunkManager.ChunkDictionary[toGenerate].currentLODindex != LODindex || chunkManager.ChunkDictionary[toGenerate].borderVector != borderVector)
                 {
-                    MeshData meshData = chunkManager.ChunkDictionary[toGenerate].GetMeshData(LODindex, borderVector, chunkManager.ChunkSettings);
+                    MeshData meshData = chunkManager.ChunkDictionary[toGenerate].GetMeshData(LODindex, borderVector, chunkManager.ChunkSettings, chunkManager);
                     lock (chunkManager.MeshQueue)
                     {
                         ChunkUpdate chunkUpdate = new ChunkUpdate(new Vector3(toGenerate.x, 0, toGenerate.y), meshData, LODindex);

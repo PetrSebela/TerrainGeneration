@@ -59,6 +59,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape) && chunkManager.GenerationComplete){
+            _inputs = Vector3.zero;
             IsPaused = !IsPaused;
             Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = !Cursor.visible;

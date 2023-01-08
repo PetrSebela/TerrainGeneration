@@ -7,10 +7,10 @@ public class ChunkManager : MonoBehaviour
 {
     [Header("Chunk setting")]
     public ChunkSettings ChunkSettings;
-    [SerializeField] private Material DefaultMaterial;
+    [SerializeField] public Material DefaultMaterial;
 
     [Header("World setting")]
-    [SerializeField] public int ChunkRenderDistance;
+    [SerializeField] public int WorldSize;
     [SerializeField] public int LODtreeBorder;
 
     [Header("Terrain")]
@@ -45,10 +45,9 @@ public class ChunkManager : MonoBehaviour
     public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
 
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
-    private Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
-    private Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
+    public Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
+    public Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
     // Queues
-    public Queue<Vector2> HeightmapGenQueue = new Queue<Vector2>();
     public Queue<Vector2> ChunkUpdateRequestQueue = new Queue<Vector2>();
     public Queue<ChunkUpdate> MeshQueue = new Queue<ChunkUpdate>();
 
@@ -63,25 +62,41 @@ public class ChunkManager : MonoBehaviour
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
 
-    private Vector2 CurrentCell;
-
-    public Vector3 HighestPoint;
-
     public Vector3[] Peaks;
     public int NumOfPeaks;
     public Vector2[] PeaksPOI;
     public GameObject HighestPointMonument;
 
     public GameObject Monument;
-    private bool PastGenerationComplete = false;
+
+    public SimulationSettings simulationSettings;
+
+    public float globalNoiseLowest = Mathf.Infinity;
+    public float globalNoiseHighest = -Mathf.Infinity;
+
+    public int enviromentProgress = 0;
+
 
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
     void Start()
     {
-        SeedGenerator = new SeedGenerator(123);
-        SeedGenerator = new SeedGenerator("ahoj");
+        MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
+        WorldSize = simulationSettings.worldSize;
+        int seed = 0;
+        if(int.TryParse(simulationSettings.seed, out seed)){
+            Debug.Log(seed);
+            GenerateWorld(seed);
+        }
+        else{
+            Debug.Log(simulationSettings.seed.GetHashCode());
+            GenerateWorld(simulationSettings.seed.GetHashCode());
+        }
+    }
+
+    void GenerateWorld(int seed){
+        SeedGenerator = new SeedGenerator(seed);
         Tracker.position = new Vector3(0, MaxTerrainHeight, 0);
         
         Peaks = new Vector3[NumOfPeaks];
@@ -90,21 +105,12 @@ public class ChunkManager : MonoBehaviour
         for (int i = 0; i < NumOfPeaks; i++)
         {
             float angle = 360 / NumOfPeaks * i;
-            float x = math.cos(angle) * (ChunkRenderDistance / 2 * ChunkSettings.size);
-            float y = math.sin(angle) * (ChunkRenderDistance / 2 * ChunkSettings.size);
+            float x = math.cos(angle) * (WorldSize / 2 * ChunkSettings.size);
+            float y = math.sin(angle) * (WorldSize / 2 * ChunkSettings.size);
             PeaksPOI[i] = new Vector2(x,y);
         }
-        // sampling terrain chunks
-        for (int x = -ChunkRenderDistance; x < ChunkRenderDistance; x++)
-        {
-            for (int y = -ChunkRenderDistance; y < ChunkRenderDistance; y++)
-            {
-                Vector2 sampler = new Vector2(x, y);
-                HeightmapGenQueue.Enqueue(sampler);
-            }
-        }
-
-        StartCoroutine(GenerationManager.GenerationCorutine(this));        
+        
+        StartCoroutine(GenerationManager.GenerationCorutine(this)); 
     }
 
     void Update()
@@ -114,25 +120,7 @@ public class ChunkManager : MonoBehaviour
 
         // generating chunk update requests
         if (GenerationComplete)
-        {
-            // execute only once at the beginning of cycle
-            if (PastGenerationComplete == false){
-                foreach (Vector3 pos in Peaks)
-                {
-                    float angle = Mathf.Rad2Deg*Mathf.Atan(pos.x/pos.z) - 90;
-                    Instantiate(HighestPointMonument,pos,Quaternion.Euler(0,angle - 90,0));
-                }
-
-                float height = ChunkDictionary[Vector2.zero].heightMap[1,1];
-                if(height < waterLevel)
-                    height = waterLevel;
-                GameObject monument = Instantiate(Monument,new Vector3(0,height,0),Quaternion.Euler(0,0,0));
-                monument.transform.localScale = Vector3.one * 3.25f;
-                
-                // ending iteration
-                PastGenerationComplete = true;
-            }
-
+        {         
             // Selecting which chunks to update
             Vector2 currentChunkPosition = new Vector2(Mathf.Round(Tracker.position.x / ChunkSettings.size), Mathf.Round(Tracker.position.z / ChunkSettings.size));
             if (currentChunkPosition != PastChunkPosition)
@@ -143,7 +131,7 @@ public class ChunkManager : MonoBehaviour
                     for (int y = -34; y <= 34; y++)
                     {
                         Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                        if (sampler.x >= -ChunkRenderDistance && sampler.x < ChunkRenderDistance && sampler.y >= -ChunkRenderDistance && sampler.y < ChunkRenderDistance)
+                        if (sampler.x >= -WorldSize && sampler.x < WorldSize && sampler.y >= -WorldSize && sampler.y < WorldSize)
                             lock (ChunkUpdateRequestQueue)
                                 ChunkUpdateRequestQueue.Enqueue(sampler);
                     }
@@ -162,38 +150,34 @@ public class ChunkManager : MonoBehaviour
             }
 
 
-           Dictionary<Vector2,Chunk> activeDictionary = TreeChunkDictionary;
+            Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
-            if(FullRender){
-                activeDictionary = ChunkDictionary;
-            }
-
-            // Rendering trees trees
+            // Rendering enviromental details
             foreach (Chunk chunkInstance in activeDictionary.Values)
             {
-                foreach (var spawnableType in chunkInstance.treesDictionary.Keys)
+                foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
                 {
-                    if (chunkInstance.treesDictionary[spawnableType].Length > 0)
+                    if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                     {
                         switch (spawnableType)
                         {
                             case Spawable.ConiferTree:
-                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, chunkInstance.detailDictionary[spawnableType]);
                                 break;
 
                             case Spawable.DeciduousTree:
-                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, chunkInstance.treesDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, chunkInstance.detailDictionary[spawnableType]);
                                 break;
 
                             case Spawable.Rock:
-                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, chunkInstance.treesDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, chunkInstance.detailDictionary[spawnableType]);
                                 break;
 
                             case Spawable.Bush:
-                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, chunkInstance.treesDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, chunkInstance.treesDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
 
                                 break;                           
 
@@ -205,13 +189,12 @@ public class ChunkManager : MonoBehaviour
             }
         }
         else
-            Progress = (float)HeightMapDict.Count / math.pow(ChunkRenderDistance * 2, 2);
+            Progress = ((float) HeightMapDict.Count / math.pow(WorldSize * 2, 2) * 0.5f) + (((float)enviromentProgress / (WorldSize * 2)) * 0.5f);
     }
 
     GameObject UpdateChunk(MeshData meshData, int LODindex)
     {
-
-
+        // calculating tree topology
         Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
         if (LODindex <= LODtreeBorder && !TreeChunkDictionary.ContainsKey(key))
         {
@@ -222,43 +205,13 @@ public class ChunkManager : MonoBehaviour
             TreeChunkDictionary.Remove(key);
         }
 
-        GameObject chunk;
-        if (ChunkObjectDictionary.ContainsKey(meshData.position))
-        {
-            chunk = ChunkObjectDictionary[meshData.position];
-            Mesh mesh = chunk.GetComponent<MeshFilter>().mesh;
-            mesh.Clear();
-            mesh.vertices = meshData.vertexList;
-            mesh.triangles = meshData.triangleList;
-            mesh.RecalculateNormals();
-        }
-
-        else
-        {
-            chunk = new GameObject();
-            chunk.layer = LayerMask.NameToLayer("Ground");
-            chunk.isStatic = true;
-            chunk.transform.parent = this.transform;
-            chunk.transform.position = meshData.position * ChunkSettings.size;
-            chunk.transform.name = meshData.position.ToString();
-
-            MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
-            MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
-            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
-
-            Mesh mesh = new Mesh();
-            mesh.vertices = meshData.vertexList;
-            mesh.triangles = meshData.triangleList;
-            mesh.RecalculateNormals();
-
-            meshFilter.mesh = mesh;
-
-            ChunkObjectDictionary.Add(meshData.position, chunk);
-        }
-
-
-
-        chunk.GetComponent<MeshRenderer>().material = DefaultMaterial;
+        GameObject chunk = ChunkObjectDictionary[meshData.position];
+        Mesh mesh = chunk.GetComponent<MeshFilter>().mesh;
+        mesh.Clear();
+        mesh.vertices = meshData.vertexList;
+        mesh.triangles = meshData.triangleList;
+        mesh.RecalculateNormals();
+        // collider manipulation
         if(LODindex == 1){
             if(chunk.GetComponent<MeshCollider>()){
                 chunk.GetComponent<MeshCollider>().enabled = true;
@@ -292,39 +245,6 @@ public class ChunkManager : MonoBehaviour
         }
         Gizmos.color = Color.blue;
         Gizmos.DrawLine(new Vector3(0,-1000,0),new Vector3(0,2500,0));
-
-        // if (DrawChunkBorders && GenerationComplete)
-        // {
-        //     foreach (var item in HeightMapTree.Children)
-        //     {
-        //         Vector2 flatPosition = item.Value.Position;
-        //         Vector3 spacePosition = new Vector3(flatPosition.x, 0, flatPosition.y) * ChunkSettings.size;
-        //         spacePosition += new Vector3(HighestChunkGrouping * ChunkSettings.size / 2, 0, HighestChunkGrouping * ChunkSettings.size / 2);
-
-        //         if (flatPosition == CurrentCell)
-        //         {
-        //             Gizmos.color = Color.yellow;
-        //             Gizmos.DrawWireCube(
-        //                 spacePosition,
-        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-        //             );
-
-        //             Gizmos.color *= new Color(1, 1, 1, 0.25f);
-        //             Gizmos.DrawCube(
-        //                 spacePosition,
-        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-        //             );
-        //         }
-        //         else
-        //         {
-        //             Gizmos.color = Color.black;
-        //             Gizmos.DrawWireCube(
-        //                 spacePosition,
-        //                 new Vector3(HighestChunkGrouping * ChunkSettings.size, MaxTerrainHeight, HighestChunkGrouping * ChunkSettings.size)
-        //             );
-        //         }
-        //     }
-        // }
     }
 }
 

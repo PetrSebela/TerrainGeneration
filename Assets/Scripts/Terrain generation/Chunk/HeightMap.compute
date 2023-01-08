@@ -124,8 +124,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float t = max(abs(x / worldSize ),abs(y / worldSize));
 
-    heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -height * 2 - height;
+    heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -1;
 
-
-    // heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) ) + 3 ) * -height;
+    // heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -height * 2 - height;
 }

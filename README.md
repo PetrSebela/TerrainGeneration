@@ -28,6 +28,33 @@ This project is currently in sub beta state, so lot of features are missing.
 
 4. generate foliege
 
+## How it works (order of execution)
+( ChunkManager )
+    ( start ) -> ( Generate World )
+    - variables setup
+    - calls ( Generation Manager ) coturine
+        ( Generation Manager )
+            - runs through every possible chunk
+                - generates heightmap and enviromental details
+
+            - starts ( Mesh Construction Manager ) in separate thread
+                - runs forever
+
+            ( Mesh Constructor Manager )
+                - check if update requestQueue has any requests
+                    - if yes, it calculates needed data and calls ( GesMeshData )
+                    ( Get Mesh Data )
+                        - internaly calls ( MeshConstructor.ConstructTerrain ) and bundles some data with it
+                        ( MeshConstructor.ConstructTerrain )
+                            - Constructs mesh
+                    - after that it enques ChunkUpdate in [ MeshQueue ]
+
+            - puts some data into requestQueue and waits till ( Mesh Constructor Manager ) finised procesing all data
+            - instantiates all chunks and puts them into [ ChunkObjectDictionary ]
+            - spawns water chunks
+    ( update )
+    - start only ( Generation Manager ) finishes 
+
 ## TASKS
 - [ ] Implement quadtree algorythm for chunk grouping in order to save batch calls viz subdivision.png
 

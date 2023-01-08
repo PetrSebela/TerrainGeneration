@@ -9,17 +9,19 @@ public class Chunk
     public Vector3 position;
     public Vector2 borderVector;
     public MeshData currentMeshData;
-    public Matrix4x4[] treesTransforms;
+    public Dictionary<Spawable,Matrix4x4[]> detailDictionary = new Dictionary<Spawable, Matrix4x4[]>();
+    public float localMaximum;
+    public float localMinimum;
 
-    public Dictionary<Spawable,Matrix4x4[]> treesDictionary = new Dictionary<Spawable, Matrix4x4[]>();
-
-    public Chunk(float[,] heightMap, Vector3 position, float chunkSize, int chunkResolution)
+    public Chunk(float[,] heightMap, Vector3 position, float localMinimum, float localMaximum)
     {
         this.heightMap = heightMap;
         this.position = position;
+        this.localMaximum = localMaximum;
+        this.localMinimum = localMinimum;
     }
 
-    public MeshData GetMeshData(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings)
+    public MeshData GetMeshData(int LODindex, Vector2 borderVector, ChunkSettings chunkSettings, ChunkManager chunkManager)
     {
         this.borderVector = borderVector;
         currentLODindex = LODindex;
@@ -30,7 +32,10 @@ public class Chunk
             chunkSettings.size,
             chunkSettings.maxResolution,
             currentLODindex,
-            this.borderVector
+            this.borderVector,
+            chunkManager.globalNoiseLowest,
+            chunkManager.globalNoiseHighest,
+            chunkManager.MaxTerrainHeight
         );
         return currentMeshData;
     }
