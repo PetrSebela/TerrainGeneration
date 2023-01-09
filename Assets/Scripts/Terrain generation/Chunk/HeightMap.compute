@@ -90,7 +90,7 @@ float snoise(float2 v)
 
 RWStructuredBuffer<float> heightMap;
 float3 offset;
-float height;
+float size;
 RWStructuredBuffer<float2> layerOffsets;
 RWStructuredBuffer<float3> treeBuffer;
 
@@ -122,9 +122,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float y = id.y + offset.y * 64;
     float worldSize = 64 * 64;
 
-    float t = max(abs(x / worldSize ),abs(y / worldSize));
+    float t = max(1 - sqrt(x*x + y*y) / (size * 64), 0);
 
-    heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -1;
+    heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -1 * t - 0.01;
 
     // heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -height * 2 - height;
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
+using System.IO;
 
 public class SceneDirector : MonoBehaviour
 {
@@ -11,6 +12,17 @@ public class SceneDirector : MonoBehaviour
     [SerializeField] private Dropdown maxHeightField;
     [SerializeField] private Dropdown worldSize;
     [SerializeField] private TMP_InputField seedField;
+
+    public void Start(){
+        Debug.Log("loading files");
+        DirectoryInfo dir = new DirectoryInfo(Application.dataPath + "/../SavedWorlds/");
+        FileInfo[] info = dir.GetFiles("*.world");
+
+        foreach (FileInfo file in info)
+        {
+            Debug.Log(file);
+        }
+    }
 
     public void BeginSimulation(){
         simulationSettings.maxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);

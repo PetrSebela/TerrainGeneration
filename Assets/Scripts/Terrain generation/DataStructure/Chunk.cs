@@ -2,16 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Chunk
 {
-    public float[,] heightMap;
-    public int currentLODindex;
-    public Vector3 position;
-    public Vector2 borderVector;
-    public MeshData currentMeshData;
-    public Dictionary<Spawable,Matrix4x4[]> detailDictionary = new Dictionary<Spawable, Matrix4x4[]>();
-    public float localMaximum;
-    public float localMinimum;
+    [SerializeField] public float[,] heightMap;
+    [SerializeField] public int currentLODindex;
+    [SerializeField] public Vector3 position;
+    [SerializeField] public Vector2 borderVector;
+    [SerializeField] public MeshData currentMeshData;
+    [SerializeField] public Dictionary<Spawable,Matrix4x4[]> detailDictionary = new Dictionary<Spawable, Matrix4x4[]>();
+    [SerializeField] public float localMaximum;
+    [SerializeField] public float localMinimum;
 
     public Chunk(float[,] heightMap, Vector3 position, float localMinimum, float localMaximum)
     {
@@ -35,7 +36,8 @@ public class Chunk
             this.borderVector,
             chunkManager.globalNoiseLowest,
             chunkManager.globalNoiseHighest,
-            chunkManager.MaxTerrainHeight
+            chunkManager.MaxTerrainHeight,
+            chunkManager
         );
         return currentMeshData;
     }

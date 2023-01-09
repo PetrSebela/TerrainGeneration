@@ -155,29 +155,31 @@ public class ChunkManager : MonoBehaviour
             // Rendering enviromental details
             foreach (Chunk chunkInstance in activeDictionary.Values)
             {
+                
                 foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
                 {
                     if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                     {
+                        Matrix4x4[] detailArray = chunkInstance.detailDictionary[spawnableType];
                         switch (spawnableType)
                         {
                             case Spawable.ConiferTree:
-                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, detailArray);
+                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, detailArray);
                                 break;
 
                             case Spawable.DeciduousTree:
-                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, detailArray);
+                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, detailArray);
                                 break;
 
                             case Spawable.Rock:
-                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, detailArray);
                                 break;
 
                             case Spawable.Bush:
-                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, chunkInstance.detailDictionary[spawnableType]);
-                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, chunkInstance.detailDictionary[spawnableType]);
+                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, detailArray);
+                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, detailArray);
 
                                 break;                           
 
@@ -211,6 +213,7 @@ public class ChunkManager : MonoBehaviour
         mesh.vertices = meshData.vertexList;
         mesh.triangles = meshData.triangleList;
         mesh.RecalculateNormals();
+
         // collider manipulation
         if(LODindex == 1){
             if(chunk.GetComponent<MeshCollider>()){

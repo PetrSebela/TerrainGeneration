@@ -30,7 +30,7 @@ public static class GenerationManager
                 chunkManager.HeightMapShader.SetVector("offset", toGenerate);
                 chunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
                 chunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
-                chunkManager.HeightMapShader.SetFloat("height",chunkManager.MaxTerrainHeight);
+                chunkManager.HeightMapShader.SetFloat("size",chunkManager.WorldSize);
 
                 chunkManager.HeightMapShader.Dispatch(0, 17, 17, 1);
                 heightMapBuffer.GetData(heightMap);
@@ -83,8 +83,9 @@ public static class GenerationManager
             for (int yChunk = -chunkManager.WorldSize; yChunk < chunkManager.WorldSize; yChunk++)
             {
                 Vector2 key = new Vector2(xChunk,yChunk);
+                Chunk chunk = chunkManager.ChunkDictionary[key];
                 //! Water chunks
-                if(nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].localMinimum) < chunkManager.waterLevel){
+                if(nosieConverter.GetRealHeight(chunk.localMinimum) < chunkManager.waterLevel){
                     validWaterChunk.Add(key * chunkManager.ChunkSettings.size);
                 }
 
@@ -105,12 +106,12 @@ public static class GenerationManager
                     {
                         int xTreeCoord = UnityEngine.Random.Range(1, 64);
                         int zTreeCoord = UnityEngine.Random.Range(1, 64);
-                        float height = nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].heightMap[xTreeCoord, zTreeCoord]);
+                        float height = nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord, zTreeCoord]);
 
                         // Calculate tree base normal
-                        Vector3 p1 = new Vector3(xTreeCoord     , nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].heightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p2 = new Vector3(xTreeCoord + 1 , nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].heightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p3 = new Vector3(xTreeCoord     , nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].heightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
+                        Vector3 p1 = new Vector3(xTreeCoord     , nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
+                        Vector3 p2 = new Vector3(xTreeCoord + 1 , nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
+                        Vector3 p3 = new Vector3(xTreeCoord     , nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
                         if(item.minHeight < height && height < item.maxHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel + 3)
@@ -136,7 +137,7 @@ public static class GenerationManager
                 {
                     enviromentalDetailArray.Add(item, enviromentalDetail[item].ToArray());
                 } 
-                chunkManager.ChunkDictionary[key].detailDictionary = enviromentalDetailArray;
+                chunk.detailDictionary = enviromentalDetailArray;
 
 
                 //! Monuments 
@@ -146,19 +147,19 @@ public static class GenerationManager
                 {
                     for (int x = 1; x < 64; x++)
                     {                    
-                        float checkedValue = nosieConverter.GetRealHeight(chunkManager.ChunkDictionary[key].heightMap[x,y]);
+                        float checkedValue = nosieConverter.GetRealHeight(chunk.heightMap[x,y]);
                         if( checkedValue > highestValue &&
-                            checkedValue > chunkManager.ChunkDictionary[key].heightMap[x,y + 1] &&
-                            checkedValue > chunkManager.ChunkDictionary[key].heightMap[x,y - 1] &&
-                            checkedValue > chunkManager.ChunkDictionary[key].heightMap[x + 1,y] &&
-                            checkedValue > chunkManager.ChunkDictionary[key].heightMap[x - 1,y]){
+                            checkedValue > chunk.heightMap[x,y + 1] &&
+                            checkedValue > chunk.heightMap[x,y - 1] &&
+                            checkedValue > chunk.heightMap[x + 1,y] &&
+                            checkedValue > chunk.heightMap[x - 1,y]){
                             highestValue = checkedValue;
                             highestPoint = new Vector3(x,checkedValue,y);
                         }
                     }
                 }
 
-                if (chunkManager.ChunkDictionary[key].localMaximum != 0){
+                if (chunk.localMaximum != 0){
                     Vector3 inWorldPosition = new Vector3(
                         (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
                         highestPoint.y,
