@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -34,5 +35,9 @@ public class PauseMenu : MonoBehaviour
         catch{
             Debug.Log("file error");
         }
+    }
+
+    public void BackToMenu(){
+        SceneManager.LoadScene("MainMenu");
     }
 }

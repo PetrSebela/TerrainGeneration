@@ -20,29 +20,25 @@ public static class GenerationManager
             for (int yChunk = -chunkManager.WorldSize; yChunk < chunkManager.WorldSize; yChunk++)
             {
                 Vector2 toGenerate = new Vector2(xChunk, yChunk);
-
                 // !Terrain shape
                 // create height map chunk where it overlaps another chunks by 1 on each axis in negative direction
                 float[,] heightMap = new float[68, 68];
-                heightMapBuffer.SetData(heightMap);
+                float highestValue = -Mathf.Infinity;
+                float lowestValue = Mathf.Infinity;
 
                 // preparing compute shader
+                heightMapBuffer.SetData(heightMap);
                 chunkManager.HeightMapShader.SetVector("offset", toGenerate);
                 chunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
                 chunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
                 chunkManager.HeightMapShader.SetFloat("size",chunkManager.WorldSize);
-
                 chunkManager.HeightMapShader.Dispatch(0, 17, 17, 1);
                 heightMapBuffer.GetData(heightMap);
 
-                chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
-                // !Enviroment details
+                // chunkManager.HeightMapDict.Add(toGenerate, heightMap);
+
                 // Finding lowest and highest point
-                // Vector3 highestPoint = Vector3.zero;                
-                float highestValue = -Mathf.Infinity;
-                float lowestValue = Mathf.Infinity;
-
                 for (int y = 1; y < 64; y++)
                 {
                     for (int x = 1; x < 64; x++)
@@ -63,11 +59,10 @@ public static class GenerationManager
                 }
                 if(highestValue > chunkManager.globalNoiseHighest){
                     chunkManager.globalNoiseHighest = highestValue;
-                }        
+                }     
 
                 Chunk chunk = new Chunk(heightMap, new Vector3(toGenerate.x, 0, toGenerate.y), lowestValue, highestValue);
                 chunkManager.ChunkDictionary.Add(toGenerate, chunk);
-
             }
             yield return null;
         }
@@ -102,6 +97,7 @@ public static class GenerationManager
 
                 foreach (SpawnableSettings item in chunkManager.spSettings)
                 {
+                    List<Matrix4x4> listReference = enviromentalDetail[item.type];
                     for (int i = 0; i < item.countInChunk; i++)
                     {
                         int xTreeCoord = UnityEngine.Random.Range(1, 64);
@@ -124,9 +120,9 @@ public static class GenerationManager
                             Matrix4x4 matrix4X4 = Matrix4x4.TRS(
                                 position, 
                                 Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
-                                Vector3.one * Random.Range(2,4));
+                                Vector3.one * Random.Range(item.minScale,item.maxScale));
 
-                            enviromentalDetail[item.type].Add(matrix4X4);
+                            listReference.Add(matrix4X4);
                         }
                     }
                 }
@@ -242,7 +238,7 @@ public static class GenerationManager
             mesh.RecalculateNormals();
 
             meshFilter.mesh = mesh;
-            chunk.GetComponent<MeshRenderer>().material = chunkManager.DefaultMaterial;
+            chunk.GetComponent<MeshRenderer>().material = chunkManager.TerrainMaterial;
             chunkManager.ChunkObjectDictionary.Add(update.meshData.position, chunk);
         }
 
@@ -282,6 +278,10 @@ public static class GenerationManager
         monument.transform.localScale = Vector3.one * 3.25f;
 
         chunkManager.GenerationComplete = true;
+
+
+        chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-10,chunkManager.MaxTerrainHeight));
+
         Debug.Log("Chunk Prerender Generation Finished");
         // Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
         Debug.Log("World generation and prerender corutine complete");

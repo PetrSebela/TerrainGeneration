@@ -214,13 +214,13 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: 16
-      m_Image: {fileID: 0}
     - m_Text: 32
       m_Image: {fileID: 0}
     - m_Text: 48
       m_Image: {fileID: 0}
     - m_Text: 64
+      m_Image: {fileID: 0}
+    - m_Text: 128
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2323,7 +2323,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 200
+  m_Text: 400
 --- !u!222 &1030151723
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2423,11 +2423,11 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: 200
-      m_Image: {fileID: 0}
-    - m_Text: 300
-      m_Image: {fileID: 0}
     - m_Text: 400
+      m_Image: {fileID: 0}
+    - m_Text: 600
+      m_Image: {fileID: 0}
+    - m_Text: 800
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2542,7 +2542,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 16
+  m_Text: 32
 --- !u!222 &1139550198
 CanvasRenderer:
   m_ObjectHideFlags: 0

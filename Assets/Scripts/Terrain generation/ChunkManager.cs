@@ -7,7 +7,7 @@ public class ChunkManager : MonoBehaviour
 {
     [Header("Chunk setting")]
     public ChunkSettings ChunkSettings;
-    [SerializeField] public Material DefaultMaterial;
+    [SerializeField] public Material TerrainMaterial;
 
     [Header("World setting")]
     [SerializeField] public int WorldSize;
@@ -75,6 +75,7 @@ public class ChunkManager : MonoBehaviour
     public float globalNoiseHighest = -Mathf.Infinity;
 
     public int enviromentProgress = 0;
+    
 
 
     // Vector3 -> Vector2
@@ -165,7 +166,7 @@ public class ChunkManager : MonoBehaviour
                         {
                             case Spawable.ConiferTree:
                                 Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, detailArray);
-                                Graphics.DrawMeshInstanced(TreeMesh2, 0, CrownMaterial, detailArray);
+                                Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, detailArray);
                                 break;
 
                             case Spawable.DeciduousTree:
@@ -191,7 +192,7 @@ public class ChunkManager : MonoBehaviour
             }
         }
         else
-            Progress = ((float) HeightMapDict.Count / math.pow(WorldSize * 2, 2) * 0.5f) + (((float)enviromentProgress / (WorldSize * 2)) * 0.5f);
+            Progress = ((float) ChunkDictionary.Count / math.pow(WorldSize * 2, 2) * 0.5f) + (((float)enviromentProgress / (WorldSize * 2)) * 0.5f);
     }
 
     GameObject UpdateChunk(MeshData meshData, int LODindex)
@@ -256,16 +257,22 @@ public struct SpawnableSettings{
     public Spawable type;
     public float minHeight;
     public float maxHeight;
+
+    public float minScale;
+    public float maxScale;
+
     public float maxSlope;
     public int countInChunk;
 
-    public SpawnableSettings(Spawable type, float minHeight, float maxHeight, float maxSlope, int countInChunk)
+    public SpawnableSettings(Spawable type, float minHeight, float maxHeight, float maxSlope, int countInChunk, float minScale, float maxScale)
     {
         this.type = type;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
         this.maxSlope = maxSlope;
         this.countInChunk = countInChunk;
+        this.minScale = minScale;
+        this.maxScale = maxScale;
     }
 }
 

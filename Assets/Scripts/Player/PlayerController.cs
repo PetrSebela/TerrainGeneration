@@ -46,6 +46,9 @@ public class PlayerController : MonoBehaviour
     public bool IsPaused = false;
     public GameObject PauseMenu;
     [SerializeField] private ChunkManager chunkManager;
+    
+    private bool useGravityController = false;
+
     void Start()
     {
         Application.targetFrameRate = 144;
@@ -64,6 +67,17 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = !Cursor.visible;
             PauseMenu.SetActive(IsPaused);
+        }
+
+        if(Input.GetKeyDown(KeyCode.X) && chunkManager.GenerationComplete){
+            useGravityController = !useGravityController;
+            _rb.useGravity = useGravityController;
+            // if(useGravityController){
+            //     _rb.drag = 1;
+            // }
+            // else{
+            //     _rb.drag = _movementDrag;
+            // }
         }
 
         if (chunkManager.GenerationComplete && !IsPaused)
@@ -139,6 +153,5 @@ public class PlayerController : MonoBehaviour
             _rb.AddForce(_wishDirection.normalized * _acceleratedMovementSpeed, ForceMode.Acceleration);
         else
             _rb.AddForce(_wishDirection.normalized * _movementSpeed, ForceMode.Acceleration);
-
     }
 }
