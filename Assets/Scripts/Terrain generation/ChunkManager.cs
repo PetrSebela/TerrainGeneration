@@ -76,6 +76,12 @@ public class ChunkManager : MonoBehaviour
 
     public int enviromentProgress = 0;
     
+    public Dictionary<Spawnable,List<List<Matrix4x4>>> FullTreeList = new Dictionary<Spawnable,List<List<Matrix4x4>>>(){
+        {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
+        {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
+        {Spawnable.Rock,new List<List<Matrix4x4>>()},
+        {Spawnable.Bush,new List<List<Matrix4x4>>()},
+    };
 
 
     // Vector3 -> Vector2
@@ -153,32 +159,66 @@ public class ChunkManager : MonoBehaviour
 
             Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
+            if(!FullRender)
             // Rendering enviromental details
-            foreach (Chunk chunkInstance in activeDictionary.Values)
-            {
-                
-                foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
+                foreach (Chunk chunkInstance in activeDictionary.Values)
                 {
-                    if (chunkInstance.detailDictionary[spawnableType].Length > 0)
+                    
+                    foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
                     {
-                        Matrix4x4[] detailArray = chunkInstance.detailDictionary[spawnableType];
-                        switch (spawnableType)
+                        if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                         {
-                            case Spawable.ConiferTree:
+                            Matrix4x4[] detailArray = chunkInstance.detailDictionary[spawnableType];
+                            switch (spawnableType)
+                            {
+                                case Spawnable.ConiferTree:
+                                    Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, detailArray);
+                                    Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, detailArray);
+                                    break;
+
+                                case Spawnable.DeciduousTree:
+                                    Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, detailArray);
+                                    Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, detailArray);
+                                    break;
+
+                                case Spawnable.Rock:
+                                    Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, detailArray);
+                                    break;
+
+                                case Spawnable.Bush:
+                                    Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, detailArray);
+                                    Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, detailArray);
+
+                                    break;                           
+
+                                default:
+                                    break;
+                            }                        
+                        }
+                    }
+                }
+            else{
+                foreach(Spawnable spawnableType in FullTreeList.Keys){
+                    foreach (List<Matrix4x4> array in FullTreeList[spawnableType])
+                    {
+                    Matrix4x4[] detailArray = array.ToArray();
+                    switch (spawnableType)
+                        {
+                            case Spawnable.ConiferTree:
                                 Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, detailArray);
                                 Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, detailArray);
                                 break;
 
-                            case Spawable.DeciduousTree:
+                            case Spawnable.DeciduousTree:
                                 Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, detailArray);
                                 Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, detailArray);
                                 break;
 
-                            case Spawable.Rock:
+                            case Spawnable.Rock:
                                 Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, detailArray);
                                 break;
 
-                            case Spawable.Bush:
+                            case Spawnable.Bush:
                                 Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, detailArray);
                                 Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, detailArray);
 
@@ -186,8 +226,8 @@ public class ChunkManager : MonoBehaviour
 
                             default:
                                 break;
-                        }                        
-                    }
+                        } 
+                    } 
                 }
             }
         }
@@ -254,7 +294,7 @@ public class ChunkManager : MonoBehaviour
 
 [Serializable]
 public struct SpawnableSettings{
-    public Spawable type;
+    public Spawnable type;
     public float minHeight;
     public float maxHeight;
 
@@ -264,7 +304,7 @@ public struct SpawnableSettings{
     public float maxSlope;
     public int countInChunk;
 
-    public SpawnableSettings(Spawable type, float minHeight, float maxHeight, float maxSlope, int countInChunk, float minScale, float maxScale)
+    public SpawnableSettings(Spawnable type, float minHeight, float maxHeight, float maxSlope, int countInChunk, float minScale, float maxScale)
     {
         this.type = type;
         this.minHeight = minHeight;

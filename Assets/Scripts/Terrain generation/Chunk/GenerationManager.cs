@@ -73,6 +73,13 @@ public static class GenerationManager
 
         //! Enviromental detail
         NoiseConverter nosieConverter = new NoiseConverter(chunkManager.globalNoiseLowest,chunkManager.globalNoiseHighest,-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight);
+        Dictionary<Spawnable,int> spawnableCounter = new Dictionary<Spawnable, int>(){
+            {Spawnable.ConiferTree,0},
+            {Spawnable.DeciduousTree,0},
+            {Spawnable.Rock,0},
+            {Spawnable.Bush,0}
+        };
+
         for (int xChunk = -chunkManager.WorldSize; xChunk < chunkManager.WorldSize; xChunk++)
         {
             for (int yChunk = -chunkManager.WorldSize; yChunk < chunkManager.WorldSize; yChunk++)
@@ -88,15 +95,16 @@ public static class GenerationManager
                 // this solution is only temporary 
                 // I will probably refactor fucking everything
                 // Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
-                Dictionary<Spawable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawable, List<Matrix4x4>>(){
-                    {Spawable.ConiferTree,new List<Matrix4x4>()},
-                    {Spawable.DeciduousTree,new List<Matrix4x4>()},
-                    {Spawable.Rock,new List<Matrix4x4>()},
-                    {Spawable.Bush,new List<Matrix4x4>()},
+                Dictionary<Spawnable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawnable, List<Matrix4x4>>(){
+                    {Spawnable.ConiferTree,new List<Matrix4x4>()},
+                    {Spawnable.DeciduousTree,new List<Matrix4x4>()},
+                    {Spawnable.Rock,new List<Matrix4x4>()},
+                    {Spawnable.Bush,new List<Matrix4x4>()},
                 };
 
                 foreach (SpawnableSettings item in chunkManager.spSettings)
                 {
+                    
                     List<Matrix4x4> listReference = enviromentalDetail[item.type];
                     for (int i = 0; i < item.countInChunk; i++)
                     {
@@ -123,11 +131,16 @@ public static class GenerationManager
                                 Vector3.one * Random.Range(item.minScale,item.maxScale));
 
                             listReference.Add(matrix4X4);
+                            
+                            if(spawnableCounter[item.type] % 1023 == 0){
+                                chunkManager.FullTreeList[item.type].Add(new List<Matrix4x4>());
+                            }
+                            chunkManager.FullTreeList[item.type][spawnableCounter[item.type]++ / 1023].Add(matrix4X4);
                         }
                     }
                 }
                 // Converting list to array
-                Dictionary<Spawable,Matrix4x4[]> enviromentalDetailArray = new Dictionary<Spawable, Matrix4x4[]>();
+                Dictionary<Spawnable,Matrix4x4[]> enviromentalDetailArray = new Dictionary<Spawnable, Matrix4x4[]>();
 
                 foreach (var item in enviromentalDetail.Keys)
                 {

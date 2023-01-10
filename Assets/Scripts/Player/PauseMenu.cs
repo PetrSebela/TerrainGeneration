@@ -5,11 +5,22 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.IO;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.UI;
 public class PauseMenu : MonoBehaviour
 {
+    public Dropdown resolutionDropdown;
+    private Dictionary<string,Vector2Int> resolutionMap = new Dictionary<string, Vector2Int>(){
+        {"1920x1080",new Vector2Int(1920,1080)},
+        {"1366x768",new Vector2Int(1366,768)},
+        {"1280x720",new Vector2Int(1280,720)},
+    };
     public SimulationSettings simulationSettings;
     public ChunkManager chunkManager;
+
+    public void Start(){
+        // resolutionDropdown.value = "1920x1080";
+    }
+
     public void QuitSimulation(){
         Debug.Log("Quitting");
         Application.Quit();
@@ -39,5 +50,11 @@ public class PauseMenu : MonoBehaviour
 
     public void BackToMenu(){
         SceneManager.LoadScene("MainMenu");
+    }
+
+    public void ChangeResolution(){
+        Debug.Log("Resolution change");
+        Vector2Int res = resolutionMap[resolutionDropdown.options[resolutionDropdown.value].text];
+        Screen.SetResolution(res.x, res.y, FullScreenMode.FullScreenWindow);
     }
 }

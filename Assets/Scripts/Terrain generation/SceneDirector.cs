@@ -14,6 +14,7 @@ public class SceneDirector : MonoBehaviour
     [SerializeField] private TMP_InputField seedField;
 
     public void Start(){
+        Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
         Debug.Log("loading files");
         DirectoryInfo dir = new DirectoryInfo(Application.dataPath + "/../SavedWorlds/");
         FileInfo[] info = dir.GetFiles("*.world");

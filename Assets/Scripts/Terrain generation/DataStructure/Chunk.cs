@@ -10,7 +10,7 @@ public class Chunk
     [SerializeField] public Vector3 position;
     [SerializeField] public Vector2 borderVector;
     [SerializeField] public MeshData currentMeshData;
-    [SerializeField] public Dictionary<Spawable,Matrix4x4[]> detailDictionary = new Dictionary<Spawable, Matrix4x4[]>();
+    [SerializeField] public Dictionary<Spawnable,Matrix4x4[]> detailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
     [SerializeField] public float localMaximum;
     [SerializeField] public float localMinimum;
 
@@ -43,7 +43,7 @@ public class Chunk
     }
 }
 
-public enum Spawable
+public enum Spawnable
 {
     ConiferTree,
     DeciduousTree,
