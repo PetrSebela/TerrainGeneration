@@ -131,11 +131,6 @@ public static class GenerationManager
                                 Vector3.one * Random.Range(item.minScale,item.maxScale));
 
                             listReference.Add(matrix4X4);
-                            
-                            if(spawnableCounter[item.type] % 1023 == 0){
-                                chunkManager.FullTreeList[item.type].Add(new List<Matrix4x4>());
-                            }
-                            chunkManager.FullTreeList[item.type][spawnableCounter[item.type]++ / 1023].Add(matrix4X4);
                         }
                     }
                 }
@@ -148,6 +143,7 @@ public static class GenerationManager
                 } 
                 chunk.detailDictionary = enviromentalDetailArray;
 
+                chunkManager.LowDetail.Add(chunk);
 
                 //! Monuments 
                 float highestValue = -Mathf.Infinity;
@@ -252,17 +248,26 @@ public static class GenerationManager
 
             meshFilter.mesh = mesh;
             chunk.GetComponent<MeshRenderer>().material = chunkManager.TerrainMaterial;
-            chunkManager.ChunkObjectDictionary.Add(update.meshData.position, chunk);
+            
+            if(update.LODindex == 1){
+                MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
+                meshCollider.sharedMesh = mesh;
+            }
+
+            chunkManager.ChunkObjectDictionary.Add(update.position,chunk);
         }
 
-        for (int x = -11; x < 11; x++)
+        // Filling Tree Dictionary
+        for (int x = -6; x < 6; x++)
         {
-            for (int y = -11; y < 11; y++)
+            for (int y = -6; y < 6; y++)
             {
                 Vector2 key = new Vector2(x,y);
                 chunkManager.TreeChunkDictionary.Add(key, chunkManager.ChunkDictionary[key]);
+                chunkManager.LowDetail.Remove(chunkManager.ChunkDictionary[key]);
             }
         }
+
 
         // generating water
         if (chunkManager.UseWater)
@@ -291,7 +296,6 @@ public static class GenerationManager
         monument.transform.localScale = Vector3.one * 3.25f;
 
         chunkManager.GenerationComplete = true;
-
 
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-10,chunkManager.MaxTerrainHeight));
 

@@ -56,6 +56,9 @@ public class ChunkManager : MonoBehaviour
     public bool GenerationComplete = false;
 
     public bool FullRender = false;
+
+    public Mesh lowDetailMesh;
+    public bool RenderEnviroment = true;
     
 
 
@@ -83,6 +86,7 @@ public class ChunkManager : MonoBehaviour
         {Spawnable.Bush,new List<List<Matrix4x4>>()},
     };
 
+    public List<Chunk> LowDetail = new List<Chunk>();
 
     // Vector3 -> Vector2
     // z -> y
@@ -91,19 +95,19 @@ public class ChunkManager : MonoBehaviour
     {
         MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
         WorldSize = simulationSettings.worldSize;
-        int seed = 0;
-        if(int.TryParse(simulationSettings.seed, out seed)){
-            Debug.Log(seed);
-            GenerateWorld(seed);
-        }
-        else{
-            Debug.Log(simulationSettings.seed.GetHashCode());
-            GenerateWorld(simulationSettings.seed.GetHashCode());
-        }
+        string seed = simulationSettings.seed;
+        GenerateWorld(seed);
     }
 
-    void GenerateWorld(int seed){
-        SeedGenerator = new SeedGenerator(seed);
+    void GenerateWorld(string seed){
+        int seedInt;
+        if(int.TryParse(simulationSettings.seed, out seedInt)){
+            SeedGenerator = new SeedGenerator(seedInt);
+        }
+        else{
+            SeedGenerator = new SeedGenerator(seed);
+        }
+
         Tracker.position = new Vector3(0, MaxTerrainHeight, 0);
         
         Peaks = new Vector3[NumOfPeaks];
@@ -156,19 +160,18 @@ public class ChunkManager : MonoBehaviour
                 UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
             }
 
+            if(RenderEnviroment){
+                Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
-            Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
-
-            if(!FullRender)
-            // Rendering enviromental details
+                // Rendering enviromental details
                 foreach (Chunk chunkInstance in activeDictionary.Values)
-                {
-                    
+                {   
                     foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
                     {
                         if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                         {
                             Matrix4x4[] detailArray = chunkInstance.detailDictionary[spawnableType];
+
                             switch (spawnableType)
                             {
                                 case Spawnable.ConiferTree:
@@ -188,7 +191,6 @@ public class ChunkManager : MonoBehaviour
                                 case Spawnable.Bush:
                                     Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, detailArray);
                                     Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, detailArray);
-
                                     break;                           
 
                                 default:
@@ -197,42 +199,26 @@ public class ChunkManager : MonoBehaviour
                         }
                     }
                 }
-            else{
-                foreach(Spawnable spawnableType in FullTreeList.Keys){
-                    foreach (List<Matrix4x4> array in FullTreeList[spawnableType])
+                
+                foreach (Chunk chunkInstance in LowDetail)
+                {   
+                    foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
                     {
-                    Matrix4x4[] detailArray = array.ToArray();
-                    switch (spawnableType)
+                        if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                         {
-                            case Spawnable.ConiferTree:
-                                Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, detailArray);
-                                Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, detailArray);
-                                break;
-
-                            case Spawnable.DeciduousTree:
-                                Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, detailArray);
-                                Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, detailArray);
-                                break;
-
-                            case Spawnable.Rock:
-                                Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, detailArray);
-                                break;
-
-                            case Spawnable.Bush:
-                                Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, detailArray);
-                                Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, detailArray);
-
-                                break;                           
-
-                            default:
-                                break;
-                        } 
-                    } 
+                            Graphics.DrawMeshInstanced(lowDetailMesh, 0, BarkMaterial, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                        }
+                    }
                 }
             }
         }
-        else
-            Progress = ((float) ChunkDictionary.Count / math.pow(WorldSize * 2, 2) * 0.5f) + (((float)enviromentProgress / (WorldSize * 2)) * 0.5f);
+        else{
+            float worldChunkArea = math.pow(WorldSize * 2, 2);
+            Progress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
+                        (float)enviromentProgress / (WorldSize * 2)  + 
+                        (float)ChunkObjectDictionary.Count / worldChunkArea) / 3;
+
+        }
     }
 
     GameObject UpdateChunk(MeshData meshData, int LODindex)
@@ -242,10 +228,12 @@ public class ChunkManager : MonoBehaviour
         if (LODindex <= LODtreeBorder && !TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Add(key, ChunkDictionary[key]);
+            LowDetail.Remove(ChunkDictionary[key]);
         }
         else if (LODindex > LODtreeBorder && TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Remove(key);
+            LowDetail.Add(ChunkDictionary[key]);
         }
 
         GameObject chunk = ChunkObjectDictionary[meshData.position];
