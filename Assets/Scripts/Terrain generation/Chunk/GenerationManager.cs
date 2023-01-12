@@ -258,9 +258,9 @@ public static class GenerationManager
         }
 
         // Filling Tree Dictionary
-        for (int x = -6; x < 6; x++)
+        for (int x = -5; x < 5; x++)
         {
-            for (int y = -6; y < 6; y++)
+            for (int y = -5; y < 5; y++)
             {
                 Vector2 key = new Vector2(x,y);
                 chunkManager.TreeChunkDictionary.Add(key, chunkManager.ChunkDictionary[key]);

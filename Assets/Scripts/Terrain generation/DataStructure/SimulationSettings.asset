@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38cb47c9c31cea4a919bd78c1abe73d, type: 3}
   m_Name: SimulationSettings
   m_EditorClassIdentifier: 
-  maxHeight: 0
+  maxHeight: 600
+  seed: 
+  worldSize: 32

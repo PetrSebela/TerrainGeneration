@@ -5,45 +5,42 @@ using System.Collections.Generic;
 
 public class ChunkManager : MonoBehaviour
 {
-    [Header("Chunk setting")]
+    [Header("Simulation setting")]
     public ChunkSettings ChunkSettings;
-    [SerializeField] public Material TerrainMaterial;
-
-    [Header("World setting")]
     [SerializeField] public int WorldSize;
     [SerializeField] public int LODtreeBorder;
-
-    [Header("Terrain")]
-    public float MaxTerrainHeight;
     [SerializeField] private Transform Tracker;
+    public float MaxTerrainHeight;
 
-    [Header("Tree")]
+    [Header("Enviroment")]
     [SerializeField] public List<SpawnableSettings> spSettings = new List<SpawnableSettings>();
     [SerializeField] private Mesh TreeMesh;
     [SerializeField] private Mesh TreeMesh2;
     [SerializeField] private Mesh RockMesh;
     [SerializeField] private Mesh BushMesh;
+    [SerializeField] private Mesh LowDetailBase;
 
-
+    
+    [Header("Materials")]
     [SerializeField] private Material CrownMaterial;
     [SerializeField] private Material BarkMaterial;
 
     [SerializeField] private Material RockMaterial;
 
     [SerializeField] private Material BushMaterial;
+    [SerializeField] public Material TerrainMaterial;
 
-    [Header("Water")]
+    [SerializeField] private Material LowDetailMaterialBase;
+
+
+    [Header("Water settings")]
     public bool UseWater = true;
     public Material WaterMaterial;
     public float waterLevel;
 
-    public bool DrawChunkBorders = false;
-    public float Progress = 0;
     
-    // Dictionaries 
-    //! Replacing dictionary for tree structure
-    public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
-
+    [Header("Exposed variables")]
+    // public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
     public Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
     public Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
@@ -54,30 +51,24 @@ public class ChunkManager : MonoBehaviour
 
     public Vector2 PastChunkPosition = Vector2.zero;
     public bool GenerationComplete = false;
-
     public bool FullRender = false;
-
-    public Mesh lowDetailMesh;
     public bool RenderEnviroment = true;
-    
-
+    public bool DrawChunkBorders = false;
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
-
-    public Vector3[] Peaks;
     public int NumOfPeaks;
+    public Vector3[] Peaks;
     public Vector2[] PeaksPOI;
     public GameObject HighestPointMonument;
-
     public GameObject Monument;
-
     public SimulationSettings simulationSettings;
-
     public float globalNoiseLowest = Mathf.Infinity;
     public float globalNoiseHighest = -Mathf.Infinity;
-
     public int enviromentProgress = 0;
+    public float Progress = 0;
+
+
     
     public Dictionary<Spawnable,List<List<Matrix4x4>>> FullTreeList = new Dictionary<Spawnable,List<List<Matrix4x4>>>(){
         {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
@@ -206,7 +197,19 @@ public class ChunkManager : MonoBehaviour
                     {
                         if (chunkInstance.detailDictionary[spawnableType].Length > 0)
                         {
-                            Graphics.DrawMeshInstanced(lowDetailMesh, 0, BarkMaterial, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                            switch (spawnableType)
+                            {
+                                case Spawnable.ConiferTree:
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, LowDetailMaterialBase, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    break;
+
+                                case Spawnable.DeciduousTree:
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, LowDetailMaterialBase, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    break;
+
+                                default:
+                                    break;
+                            }
                         }
                     }
                 }
