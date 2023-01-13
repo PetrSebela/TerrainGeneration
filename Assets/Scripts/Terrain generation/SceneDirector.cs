@@ -38,4 +38,8 @@ public class SceneDirector : MonoBehaviour
             SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
         }        
     }
+
+    public void QuitApplication(){
+        Application.Quit();
+    }
 }

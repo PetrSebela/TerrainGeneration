@@ -263,6 +263,10 @@ public class ChunkManager : MonoBehaviour
                 collider.enabled = false;
             }
         }
+        // if (LODindex == 32){
+        //     LowDetail.Remove(ChunkDictionary[meshData.position]);
+        // }
+
         return chunk;
     }
 

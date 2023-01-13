@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 public class PauseMenu : MonoBehaviour
 {
     public Dropdown resolutionDropdown;
@@ -16,9 +17,12 @@ public class PauseMenu : MonoBehaviour
     };
     public SimulationSettings simulationSettings;
     public ChunkManager chunkManager;
+    public TMP_Text SeedDisplay;
 
     public void Start(){
-        // resolutionDropdown.value = "1920x1080";
+        // Currently on seed :
+        SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
+        // this.transform.parent.
     }
 
     public void QuitSimulation(){

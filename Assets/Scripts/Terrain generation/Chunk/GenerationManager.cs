@@ -253,6 +253,10 @@ public static class GenerationManager
                 MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
                 meshCollider.sharedMesh = mesh;
             }
+            
+            // if (update.LODindex == 32){
+            //     chunkManager.LowDetail.Remove(chunkManager.ChunkDictionary[update.position]);
+            // }
 
             chunkManager.ChunkObjectDictionary.Add(update.position,chunk);
         }
