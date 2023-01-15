@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
     private float _movementDrag = 6;
     
     [SerializeField]
-    private new Camera camera;
+    private Camera cam;
 
     [SerializeField]
 
@@ -83,10 +83,10 @@ public class PlayerController : MonoBehaviour
         if (chunkManager.GenerationComplete && !IsPaused)
         {
             if (Input.GetKeyDown(KeyCode.C)){
-                camera.fieldOfView = zoomFOV;
+                cam.fieldOfView = zoomFOV;
             }
             if (Input.GetKeyUp(KeyCode.C)){
-                camera.fieldOfView = normalFOV;
+                cam.fieldOfView = normalFOV;
             }
 
             if (Input.GetKeyDown(KeyCode.F)){

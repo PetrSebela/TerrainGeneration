@@ -118,7 +118,7 @@ public static class GenerationManager
                         Vector3 p3 = new Vector3(xTreeCoord     , nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
-                        if(item.minHeight < height && height < item.maxHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel + 3)
+                        if(item.minHeight * chunkManager.MaxTerrainHeight  < height && height < item.maxHeight * chunkManager.MaxTerrainHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel + 3)
                         {
                             Vector3 position = new Vector3(
                                 (key.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
@@ -293,11 +293,11 @@ public static class GenerationManager
             Transform.Instantiate(chunkManager.HighestPointMonument,pos,Quaternion.Euler(0,angle - 90,0));
         }
 
-        float zeroHeight = chunkManager.ChunkDictionary[Vector2.zero].heightMap[1,1];
-        if(zeroHeight < chunkManager.waterLevel)
-            zeroHeight = chunkManager.waterLevel;
-        GameObject monument = Transform.Instantiate(chunkManager.Monument,new Vector3(0,zeroHeight,0),Quaternion.Euler(0,0,0));
-        monument.transform.localScale = Vector3.one * 3.25f;
+        // float zeroHeight = chunkManager.ChunkDictionary[Vector2.zero].heightMap[1,1];
+        // if(zeroHeight < chunkManager.waterLevel)
+        //     zeroHeight = chunkManager.waterLevel;
+        // GameObject monument = Transform.Instantiate(chunkManager.Monument,new Vector3(0,zeroHeight,0),Quaternion.Euler(0,0,0));
+        // monument.transform.localScale = Vector3.one * 3.25f;
 
         chunkManager.GenerationComplete = true;
 

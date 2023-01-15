@@ -11,6 +11,7 @@ public class PauseMenu : MonoBehaviour
 {
     public Dropdown resolutionDropdown;
     private Dictionary<string,Vector2Int> resolutionMap = new Dictionary<string, Vector2Int>(){
+        {"2560x1440",new Vector2Int(2560,1440)},
         {"1920x1080",new Vector2Int(1920,1080)},
         {"1366x768",new Vector2Int(1366,768)},
         {"1280x720",new Vector2Int(1280,720)},

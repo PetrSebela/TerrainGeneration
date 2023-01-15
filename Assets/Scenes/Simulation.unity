@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -497,45 +497,31 @@ MonoBehaviour:
   MaxTerrainHeight: 256
   spSettings:
   - type: 2
-    minHeight: 250
-    maxHeight: 500
+    minHeight: 0
+    maxHeight: 1
     minScale: 0.5
     maxScale: 1
     maxSlope: 35
     countInChunk: 12
   - type: 3
-    minHeight: 250
-    maxHeight: 500
+    minHeight: 0.605
+    maxHeight: 1
     minScale: 0.5
     maxScale: 1
     maxSlope: 35
     countInChunk: 64
   - type: 0
-    minHeight: 250
-    maxHeight: 500
+    minHeight: 0.491
+    maxHeight: 0.955
     minScale: 5
     maxScale: 10
     maxSlope: 35
     countInChunk: 32
   - type: 1
-    minHeight: 15
-    maxHeight: 250
-    minScale: 4
-    maxScale: 7
-    maxSlope: 27.5
-    countInChunk: 16
-  - type: 2
-    minHeight: 15
-    maxHeight: 250
-    minScale: 0.5
-    maxScale: 1.2
-    maxSlope: 27.5
-    countInChunk: 16
-  - type: 3
-    minHeight: 15
-    maxHeight: 250
-    minScale: 0.5
-    maxScale: 1.2
+    minHeight: 0
+    maxHeight: 0.55
+    minScale: 9
+    maxScale: 15
     maxSlope: 27.5
     countInChunk: 16
   TreeMesh: {fileID: -2432090755550338912, guid: 533bcbb36ea9a76e683712344c0d4fb1,
@@ -575,7 +561,19 @@ MonoBehaviour:
   globalNoiseHighest: -Infinity
   enviromentProgress: 0
   Progress: 0
+  baseMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c, type: 2}
   LowDetail: []
+  Texture2DList:
+  - {fileID: 2800000, guid: ce714dc281c69754c804ea9403e1c381, type: 3}
+  - {fileID: 2800000, guid: b9ecfa11653fe4849889473bead3284a, type: 3}
+  - {fileID: 2800000, guid: bf1f73867977fcb4da5c54a5118b0c98, type: 3}
+  - {fileID: 2800000, guid: 59f05c93a8f042a4e982dade7d0cfeb6, type: 3}
+  materials: []
+  terrainTexture: {fileID: 0}
+  hardness: 5
+  offset: 0.969
+  gradStart: 0.857
+  gradEnd: 0.888
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
@@ -2703,6 +2701,8 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
+    - m_Text: 2560x1440
+      m_Image: {fileID: 0}
     - m_Text: 1920x1080
       m_Image: {fileID: 0}
     - m_Text: 1366x768
@@ -3685,7 +3685,7 @@ MonoBehaviour:
   _movementSpeed: 500
   _acceleratedMovementSpeed: 17500
   _movementDrag: 6
-  camera: {fileID: 330585545}
+  cam: {fileID: 330585545}
   zoomFOV: 20
   normalFOV: 60
   IsPaused: 0

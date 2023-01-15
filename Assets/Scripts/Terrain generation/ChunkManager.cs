@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class ChunkManager : MonoBehaviour
 {
@@ -68,8 +69,6 @@ public class ChunkManager : MonoBehaviour
     public int enviromentProgress = 0;
     public float Progress = 0;
 
-
-    
     public Dictionary<Spawnable,List<List<Matrix4x4>>> FullTreeList = new Dictionary<Spawnable,List<List<Matrix4x4>>>(){
         {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
         {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
@@ -77,13 +76,102 @@ public class ChunkManager : MonoBehaviour
         {Spawnable.Bush,new List<List<Matrix4x4>>()},
     };
 
+
+    [Header("LowDetailModels")]
+    public Material baseMaterial;
     public List<Chunk> LowDetail = new List<Chunk>();
+    public Texture2D[] Texture2DList;
+    public Material[] materials;    
+
+    public Texture2D terrainTexture;
+    public float hardness;
+    [Range(0,1)]
+    public float offset;
+
+    [Range(0,1)]
+    public float gradStart;
+    
+    [Range(0,1)]
+    public float gradEnd;
+
 
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
+
+    float EaseInOut(float p, float s, float e){
+        if(p < s){
+            return 0f;
+        }
+        else if( p > e){
+            return 1f;
+        }
+        else{
+            return Mathf.SmoothStep(0,1,Mathf.InverseLerp(s,e,p));
+        }   
+    }
+
+    Color MixColors(Color color1 , Color color2, float alpha){
+        return alpha * color1 + (1 - alpha) * color2;
+    }
     void Start()
     {
+
+        //! Mapping low res textures
+        materials = new Material[Texture2DList.Length];
+        for (int i = 0; i < Texture2DList.Length; i++)
+        {
+            Material mat = new Material(baseMaterial);
+            mat.SetTexture("_BaseMap",Texture2DList[i]);
+            materials[i] = mat;
+        }
+
+        //! Terrain texture
+        int size = 64;
+        terrainTexture = new Texture2D(size,size);
+
+        Color grass = new Color(112 / 255f, 159/ 255f, 33/255f);
+        Color stone = new Color(156 / 255f, 158 / 255f, 156 / 255f);
+        Color lightStone = new Color(190 / 255f, 190 / 255f, 190 / 255f);
+
+
+        for (float x = 0; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                terrainTexture.SetPixel((int)x,(int)y,grass);
+            }
+        }
+
+        terrainTexture.Apply();
+
+        // conputing slope
+        for (float x = 10; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                float normlizedX = (x/size);
+                float sl = EaseInOut(normlizedX,0.75f,0.8f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(lightStone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+            }
+        }
+        terrainTexture.Apply();
+
+        // conputing slope
+        for (float x = 10; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                float normlizedX = (x/size);
+                float sl = EaseInOut(normlizedX,0.65f,0.75f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(stone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+            }
+        }
+        
+        terrainTexture.Apply();
+        TerrainMaterial.SetTexture("_Texture2D",terrainTexture);
+
+        //! Simulation setup
         MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
         WorldSize = simulationSettings.worldSize;
         string seed = simulationSettings.seed;
@@ -200,11 +288,19 @@ public class ChunkManager : MonoBehaviour
                             switch (spawnableType)
                             {
                                 case Spawnable.ConiferTree:
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, LowDetailMaterialBase, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], chunkInstance.detailDictionary[spawnableType]);                 
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], chunkInstance.detailDictionary[spawnableType]);                 
                                     break;
 
                                 case Spawnable.DeciduousTree:
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, LowDetailMaterialBase, chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                    // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);
+
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], chunkInstance.detailDictionary[spawnableType]);                 
+                                    Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], chunkInstance.detailDictionary[spawnableType]);
                                     break;
 
                                 default:
@@ -290,9 +386,11 @@ public class ChunkManager : MonoBehaviour
 [Serializable]
 public struct SpawnableSettings{
     public Spawnable type;
+    [Range(0,1)]
     public float minHeight;
+    
+    [Range(0,1)]
     public float maxHeight;
-
     public float minScale;
     public float maxScale;
 
@@ -301,6 +399,14 @@ public struct SpawnableSettings{
 
     public SpawnableSettings(Spawnable type, float minHeight, float maxHeight, float maxSlope, int countInChunk, float minScale, float maxScale)
     {
+        if(minHeight > maxHeight){
+            maxHeight = minHeight;
+        }
+
+        if ( maxHeight < minHeight){
+            maxHeight = minHeight;
+        }
+        
         this.type = type;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
