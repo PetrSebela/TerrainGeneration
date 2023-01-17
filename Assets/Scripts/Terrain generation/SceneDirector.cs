@@ -9,8 +9,8 @@ using System.IO;
 public class SceneDirector : MonoBehaviour
 {
     [SerializeField] private SimulationSettings simulationSettings;
-    [SerializeField] private Dropdown maxHeightField;
-    [SerializeField] private Dropdown worldSize;
+    [SerializeField] private TMP_Dropdown maxHeightField;
+    [SerializeField] private TMP_Dropdown worldSize;
     [SerializeField] private TMP_InputField seedField;
 
     public void Start(){

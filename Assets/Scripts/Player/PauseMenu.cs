@@ -19,11 +19,12 @@ public class PauseMenu : MonoBehaviour
     public SimulationSettings simulationSettings;
     public ChunkManager chunkManager;
     public TMP_Text SeedDisplay;
+    public TMP_Text FOVdisplay;
+    public Camera cam;
 
     public void Start(){
-        // Currently on seed :
         SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
-        // this.transform.parent.
+        resolutionDropdown.value = resolutionDropdown.options.FindIndex(option => option.text == Screen.width + "x" + Screen.height);
     }
 
     public void QuitSimulation(){
@@ -61,5 +62,14 @@ public class PauseMenu : MonoBehaviour
         Debug.Log("Resolution change");
         Vector2Int res = resolutionMap[resolutionDropdown.options[resolutionDropdown.value].text];
         Screen.SetResolution(res.x, res.y, FullScreenMode.FullScreenWindow);
+    }
+
+    public void CopySeedToClipboard(){
+        GUIUtility.systemCopyBuffer = chunkManager.SeedGenerator.seed.ToString();
+    }
+
+    public void UpdateFOV(Slider slider){
+        FOVdisplay.text = slider.value.ToString();
+        cam.fieldOfView = slider.value;
     }
 }

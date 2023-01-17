@@ -139,31 +139,68 @@ public class ChunkManager : MonoBehaviour
         {
             for (float y = 0; y < size; y++)
             {
-                terrainTexture.SetPixel((int)x,(int)y,grass);
+                terrainTexture.SetPixel((int)x,(int)y,new Color(1,1,1));
             }
         }
 
         terrainTexture.Apply();
 
-        // conputing slope
-        for (float x = 10; x < size; x++)
+        // snow 
+        for (float x = 0; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                float normlized = (y/size);
+                float sl = EaseInOut(normlized,0.9f,0.91f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(new Color(1,1,1), terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+            }
+        }
+        terrainTexture.Apply();
+
+        // dark grass
+        for (float x = 0; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                float normlized = (y/size);
+                float sl = EaseInOut(normlized,0.89f,0.9f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(grass * 0.8f, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+            }
+        }
+        terrainTexture.Apply();
+
+        // grass
+        for (float x = 0; x < size; x++)
+        {
+            for (float y = 0; y < size; y++)
+            {
+                float normlized = (y/size);
+                float sl = EaseInOut(normlized,0.5f,0.6f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(grass, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+            }
+        }
+        terrainTexture.Apply();
+
+
+        // conputing light slope
+        for (float x = 1; x < size; x++)
         {
             for (float y = 0; y < size; y++)
             {
                 float normlizedX = (x/size);
-                float sl = EaseInOut(normlizedX,0.75f,0.8f);
+                float sl = EaseInOut(normlizedX,0.7f,0.8f);
                 terrainTexture.SetPixel((int)x,(int)y,MixColors(lightStone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         terrainTexture.Apply();
 
         // conputing slope
-        for (float x = 10; x < size; x++)
+        for (float x = 1; x < size; x++)
         {
             for (float y = 0; y < size; y++)
             {
                 float normlizedX = (x/size);
-                float sl = EaseInOut(normlizedX,0.65f,0.75f);
+                float sl = EaseInOut(normlizedX,0.65f,0.7f);
                 terrainTexture.SetPixel((int)x,(int)y,MixColors(stone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
@@ -239,6 +276,33 @@ public class ChunkManager : MonoBehaviour
                 UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
             }
 
+            //! Updating enviroment batches
+            Dictionary<Spawnable,List<List<Matrix4x4>>> batches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
+                {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
+                {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
+            };
+
+            Dictionary<Spawnable,int> batchCounter = new Dictionary<Spawnable, int>(){
+                {Spawnable.ConiferTree,0},
+                {Spawnable.DeciduousTree,0},
+            };
+
+            foreach (Chunk chunk in LowDetail)
+            {
+                foreach(Spawnable type in new Spawnable[]{Spawnable.ConiferTree,Spawnable.DeciduousTree}){
+                    
+                    foreach (Matrix4x4 item in chunk.detailDictionary[type])
+                    {
+                        if(batchCounter[type] % 1023 == 0){
+                            batches[type].Add(new List<Matrix4x4>());
+                        }
+
+                        batches[type][(int)(batchCounter[type] / 1023)].Add(item);
+                        batchCounter[type]++;
+                    }
+                }
+            }
+
             if(RenderEnviroment){
                 Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
@@ -279,33 +343,34 @@ public class ChunkManager : MonoBehaviour
                     }
                 }
                 
-                foreach (Chunk chunkInstance in LowDetail)
+                // foreach (Chunk chunkInstance in LowDetail)
+                // {   
+                //     foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
+                //     {
+                foreach (Spawnable spawnableType in batches.Keys)
                 {   
-                    foreach (var spawnableType in chunkInstance.detailDictionary.Keys)
+                    foreach (List<Matrix4x4> envList in batches[spawnableType])
                     {
-                        if (chunkInstance.detailDictionary[spawnableType].Length > 0)
+                        switch (spawnableType)
                         {
-                            switch (spawnableType)
-                            {
-                                case Spawnable.ConiferTree:
-                                    // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
-                                    // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                            case Spawnable.ConiferTree:
+                                // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
 
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], chunkInstance.detailDictionary[spawnableType]);                 
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], chunkInstance.detailDictionary[spawnableType]);                 
-                                    break;
+                                Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], envList);                 
+                                Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], envList);                 
+                                break;
 
-                                case Spawnable.DeciduousTree:
-                                    // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
-                                    // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);
+                            case Spawnable.DeciduousTree:
+                                // Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);                 
+                                // Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], chunkInstance.detailDictionary[spawnableType],chunkInstance.detailDictionary[spawnableType].Length, new MaterialPropertyBlock(), UnityEngine.Rendering.ShadowCastingMode.Off);
 
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], chunkInstance.detailDictionary[spawnableType]);                 
-                                    Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], chunkInstance.detailDictionary[spawnableType]);
-                                    break;
+                                Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], envList);                 
+                                Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], envList);
+                                break;
 
-                                default:
-                                    break;
-                            }
+                            default:
+                                break;
                         }
                     }
                 }
@@ -314,8 +379,7 @@ public class ChunkManager : MonoBehaviour
         else{
             float worldChunkArea = math.pow(WorldSize * 2, 2);
             Progress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
-                        (float)enviromentProgress / (WorldSize * 2)  + 
-                        (float)ChunkObjectDictionary.Count / worldChunkArea) / 3;
+                        (float)enviromentProgress / (WorldSize * 2)) / 2;
 
         }
     }
