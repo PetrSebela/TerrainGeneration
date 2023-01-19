@@ -43,6 +43,7 @@ public class ChunkManager : MonoBehaviour
     [Header("Exposed variables")]
     // public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
+    public Dictionary<Vector2, Mesh> MeshDictionary = new Dictionary<Vector2, Mesh>();
     public Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
     public Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
     // Queues
@@ -140,7 +141,14 @@ public class ChunkManager : MonoBehaviour
             float y = math.sin(angle) * (WorldSize / 2 * ChunkSettings.size);
             PeaksPOI[i] = new Vector2(x,y);
         }
-        
+
+        for (int x = -WorldSize; x < WorldSize; x++)
+        {
+            for (int z = -WorldSize; z < WorldSize; z++)
+            {
+                MeshDictionary.Add(new Vector2(x,z) * ChunkSettings.size,new Mesh());
+            }
+        }
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 
     }
 
@@ -181,6 +189,35 @@ public class ChunkManager : MonoBehaviour
                 updateMeshData = MeshQueue.Dequeue();
             UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
         }
+
+
+        List<Mesh> meshList = new List<Mesh>();
+        int vertCounter = 0;
+        int meshIndex = -1;
+
+        for (int x = -WorldSize; x < WorldSize; x++)
+        {
+            for (int z = -WorldSize; z < WorldSize; z++)
+            {
+                if (vertCounter % 65535 == 0){
+                    vertCounter -= 65535;
+                    meshList.Add(new Mesh());
+                    meshIndex += 1;
+                }    
+
+                Mesh mesh = MeshDictionary[new Vector2(x,z) * ChunkSettings.size];
+
+                if(vertCounter + mesh.vertexCount < 65535){
+                    meshList[meshIndex].CombineMeshes(mesh);
+                }
+                else{
+
+                }
+
+                vertCounter += mesh.vertexCount;
+            }
+        }
+
 
         //! Updating enviroment batches
         Dictionary<Spawnable,List<List<Matrix4x4>>> batches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
@@ -284,12 +321,16 @@ public class ChunkManager : MonoBehaviour
             LowDetail.Add(ChunkDictionary[key]);
         }
 
+
         GameObject chunk = ChunkObjectDictionary[meshData.position];
         Mesh mesh = chunk.GetComponent<MeshFilter>().mesh;
         mesh.Clear();
+
         mesh.vertices = meshData.vertexList;
         mesh.triangles = meshData.triangleList;
-        mesh.RecalculateNormals();
+        mesh.normals = meshData.normals;
+
+        MeshDictionary[key] = mesh;
 
         // collider manipulation
         if(LODindex == 1){
