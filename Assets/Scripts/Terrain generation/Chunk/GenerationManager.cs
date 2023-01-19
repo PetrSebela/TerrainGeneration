@@ -35,7 +35,6 @@ public static class GenerationManager
                 chunkManager.HeightMapShader.Dispatch(0, 17, 17, 1);
                 heightMapBuffer.GetData(heightMap);
 
-
                 // chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
                 // Finding lowest and highest point
@@ -72,7 +71,7 @@ public static class GenerationManager
 
 
         //! Enviromental detail
-        NoiseConverter nosieConverter = new NoiseConverter(chunkManager.globalNoiseLowest,chunkManager.globalNoiseHighest,-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight);
+        NoiseConverter nosieConverter = new NoiseConverter(chunkManager.globalNoiseLowest,chunkManager.globalNoiseHighest,-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight,chunkManager.terrainCurve);
         Dictionary<Spawnable,int> spawnableCounter = new Dictionary<Spawnable, int>(){
             {Spawnable.ConiferTree,0},
             {Spawnable.DeciduousTree,0},
@@ -153,29 +152,26 @@ public static class GenerationManager
                     for (int x = 1; x < 64; x++)
                     {                    
                         float checkedValue = nosieConverter.GetRealHeight(chunk.heightMap[x,y]);
-                        if( checkedValue > highestValue &&
+                        bool isPeak = checkedValue > highestValue &&
                             checkedValue > chunk.heightMap[x,y + 1] &&
                             checkedValue > chunk.heightMap[x,y - 1] &&
                             checkedValue > chunk.heightMap[x + 1,y] &&
-                            checkedValue > chunk.heightMap[x - 1,y]){
+                            checkedValue > chunk.heightMap[x - 1,y];
+                        
+                        if(isPeak) {
                             highestValue = checkedValue;
                             highestPoint = new Vector3(x,checkedValue,y);
                         }
                     }
                 }
 
-                if (chunk.localMaximum != 0){
-                    Vector3 inWorldPosition = new Vector3(
-                        (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
-                        highestPoint.y,
-                        (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
-                    
+                if (chunk.localMaximum != 0){                    
                     // finding POI
                     Vector2 comparativePosition = new Vector2(
                         (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
-                        (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+                        (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size)
+                    );
 
-                    
                     int closestIndex = 0;
                     float closestDistance = Mathf.Infinity;
 
@@ -188,7 +184,14 @@ public static class GenerationManager
                             closestIndex = i; 
                         }
                     }
+
                     if(highestPoint.y > chunkManager.Peaks[closestIndex].y){
+                        Vector3 inWorldPosition = new Vector3(
+                            (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                            highestPoint.y,
+                            (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size)
+                        );
+
                         chunkManager.Peaks[closestIndex] = inWorldPosition;
                     }
                 }
@@ -198,19 +201,7 @@ public static class GenerationManager
         }
         Debug.Log("Enviroment Generation Finished");
 
-
         //! Constructing chunks
-        ThreadStart meshConstructorThread = delegate
-        {
-            MeshConstructorManager.ConstructChunkMesh_T(chunkManager);
-        };
-
-        //these threads will be running forever
-        for (int i = 0; i < 1; i++)
-        {
-            Thread thread = new Thread(meshConstructorThread);
-            thread.Start();
-        }
 
         for (int x = -chunkManager.WorldSize; x < chunkManager.WorldSize; x++)
         {
@@ -221,6 +212,18 @@ public static class GenerationManager
                     chunkManager.ChunkUpdateRequestQueue.Enqueue(sampler);
             }
         }
+
+        ThreadStart meshConstructorThread = delegate{
+            MeshConstructorManager.ConstructChunkMesh_T(chunkManager);
+        };
+
+
+        for (int i = 0; i < 1; i++)
+        {
+            Thread thread = new Thread(meshConstructorThread);
+            thread.Start();
+        }
+
 
         while (chunkManager.ChunkUpdateRequestQueue.Count > 0)
         {
@@ -254,10 +257,6 @@ public static class GenerationManager
                 meshCollider.sharedMesh = mesh;
             }
             
-            // if (update.LODindex == 32){
-            //     chunkManager.LowDetail.Remove(chunkManager.ChunkDictionary[update.position]);
-            // }
-
             chunkManager.ChunkObjectDictionary.Add(update.position,chunk);
         }
 
@@ -271,7 +270,6 @@ public static class GenerationManager
                 chunkManager.LowDetail.Remove(chunkManager.ChunkDictionary[key]);
             }
         }
-
 
         // generating water
         if (chunkManager.UseWater)
@@ -304,7 +302,7 @@ public static class GenerationManager
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-10,chunkManager.MaxTerrainHeight));
 
         Debug.Log("Chunk Prerender Generation Finished");
-        // Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
+        Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
         Debug.Log("World generation and prerender corutine complete");
     }
 }
@@ -314,11 +312,13 @@ class NoiseConverter{
     float high1;
     float min2;
     float high2;
-    public NoiseConverter(float min1,float high1, float min2, float high2){
+    AnimationCurve terrainCurve;
+    public NoiseConverter(float min1,float high1, float min2, float high2, AnimationCurve terrainCurve){
         this.min1 = min1;
         this.high1 = high1;
         this.min2 = min2;
         this.high2 = high2;
+        this.terrainCurve = terrainCurve;
     }
 
     public float GetRealHeight(float value){

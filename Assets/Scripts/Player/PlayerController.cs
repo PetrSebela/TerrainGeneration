@@ -58,10 +58,12 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && chunkManager.GenerationComplete){
+        if (!chunkManager.GenerationComplete)
+            return;
+        
+        if (Input.GetKeyDown(KeyCode.Escape)){
             _inputs = Vector3.zero;
             IsPaused = !IsPaused;
             Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
@@ -69,77 +71,71 @@ public class PlayerController : MonoBehaviour
             PauseMenu.SetActive(IsPaused);
         }
 
-        if(Input.GetKeyDown(KeyCode.X) && chunkManager.GenerationComplete){
+        if(Input.GetKeyDown(KeyCode.X)){
             useGravityController = !useGravityController;
             _rb.useGravity = useGravityController;
-            // if(useGravityController){
-            //     _rb.drag = 1;
-            // }
-            // else{
-            //     _rb.drag = _movementDrag;
-            // }
         }
 
-        if (chunkManager.GenerationComplete && !IsPaused)
+        if (IsPaused)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.C)){
+            cam.fieldOfView = zoomFOV;
+        }
+        if (Input.GetKeyUp(KeyCode.C)){
+            cam.fieldOfView = normalFOV;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F)){
+            chunkManager.FullRender = ! chunkManager.FullRender;
+        }
+
+
+
+        _inputs.x = Input.GetAxisRaw("Horizontal");
+        _inputs.y = Input.GetAxisRaw("Vertical");
+        _inputs.z = 0;
+
+        if (Input.GetKey(_moveUpKey))
+            _inputs.z++;
+        if (Input.GetKey(_moveDownKey))
+            _inputs.z--;
+
+        _wishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
+
+
+        _mouseMovement.x = Input.GetAxisRaw("Mouse X");
+        _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
+
+
+
+        if (Input.GetKey(KeyCode.I))
         {
-            if (Input.GetKeyDown(KeyCode.C)){
-                cam.fieldOfView = zoomFOV;
-            }
-            if (Input.GetKeyUp(KeyCode.C)){
-                cam.fieldOfView = normalFOV;
-            }
-
-            if (Input.GetKeyDown(KeyCode.F)){
-                chunkManager.FullRender = ! chunkManager.FullRender;
-            }
-
-
-
-            _inputs.x = Input.GetAxisRaw("Horizontal");
-            _inputs.y = Input.GetAxisRaw("Vertical");
-            _inputs.z = 0;
-
-            if (Input.GetKey(_moveUpKey))
-                _inputs.z++;
-            if (Input.GetKey(_moveDownKey))
-                _inputs.z--;
-
-            _wishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
-
-
-            _mouseMovement.x = Input.GetAxisRaw("Mouse X");
-            _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
-
-
-
-            if (Input.GetKey(KeyCode.I))
-            {
-                _mouseMovement.y += 1;
-            }
-            if (Input.GetKey(KeyCode.K))
-            {
-                _mouseMovement.y -= 1;
-            }
-
-            if (Input.GetKey(KeyCode.L))
-            {
-                _mouseMovement.x += 1;
-            }
-
-            if (Input.GetKey(KeyCode.J))
-            {
-                _mouseMovement.x -= 1;
-            }
-
-
-            _cameraRotation.y += _mouseMovement.x * _mouseSens;
-            _cameraRotation.x -= _mouseMovement.y * _mouseSens;
-
-            _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
-
-            _cam.localRotation = Quaternion.Euler(_cameraRotation.x, 0, 0);
-            _orientation.localRotation = Quaternion.Euler(0, _cameraRotation.y, 0);
+            _mouseMovement.y += 1;
         }
+        if (Input.GetKey(KeyCode.K))
+        {
+            _mouseMovement.y -= 1;
+        }
+
+        if (Input.GetKey(KeyCode.L))
+        {
+            _mouseMovement.x += 1;
+        }
+
+        if (Input.GetKey(KeyCode.J))
+        {
+            _mouseMovement.x -= 1;
+        }
+
+
+        _cameraRotation.y += _mouseMovement.x * _mouseSens;
+        _cameraRotation.x -= _mouseMovement.y * _mouseSens;
+
+        _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
+
+        _cam.localRotation = Quaternion.Euler(_cameraRotation.x, 0, 0);
+        _orientation.localRotation = Quaternion.Euler(0, _cameraRotation.y, 0);
     }
 
     void FixedUpdate()
