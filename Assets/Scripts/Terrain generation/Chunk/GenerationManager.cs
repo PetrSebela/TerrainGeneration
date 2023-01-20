@@ -249,8 +249,10 @@ public static class GenerationManager
             mesh.triangles = update.meshData.triangleList;
             mesh.RecalculateNormals();
 
-            meshFilter.mesh = mesh;
-            chunk.GetComponent<MeshRenderer>().material = chunkManager.TerrainMaterial;
+            chunkManager.MeshDictionary.Add(new Vector2(update.position.x,update.position.z),mesh);
+
+            // meshFilter.mesh = mesh;
+            // chunk.GetComponent<MeshRenderer>().material = chunkManager.TerrainMaterial;
             
             if(update.LODindex == 1){
                 MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
@@ -300,7 +302,7 @@ public static class GenerationManager
         chunkManager.GenerationComplete = true;
 
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-10,chunkManager.MaxTerrainHeight));
-
+        chunkManager.BatchMeshes();
         Debug.Log("Chunk Prerender Generation Finished");
         Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
         Debug.Log("World generation and prerender corutine complete");

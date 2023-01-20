@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHeight: 600
   seed: 
-  worldSize: 32
+  worldSize: 16
