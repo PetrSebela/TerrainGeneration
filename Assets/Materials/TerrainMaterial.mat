@@ -52,11 +52,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _NormalMapNoiseScale: 0.1
+    - _Normal_Influence: 0.366
     - _QueueControl: 0
     - _QueueOffset: 0
     - _noise: 0.1
     - _normalInfluence: 1
-    - _strength: 0.089
+    - _strength: 0.12
     m_Colors:
-    - _HeightRange: {r: -10, g: 600, b: 0, a: 0}
+    - _HeightRange: {r: -133.33333, g: 400, b: 0, a: 0}
   m_BuildTextureStacks: []

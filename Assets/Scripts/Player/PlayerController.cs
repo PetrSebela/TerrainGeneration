@@ -49,8 +49,14 @@ public class PlayerController : MonoBehaviour
     
     private bool useGravityController = false;
 
+    public Camera MapCamera;
+
     void Start()
     {
+        MapCamera.transform.position = new Vector3(0,chunkManager.MaxTerrainHeight + 50,0);
+        MapCamera.orthographicSize = chunkManager.WorldSize * chunkManager.ChunkSettings.size;
+
+
         Application.targetFrameRate = 144;
         _rb = GetComponent<Rigidbody>();
         _rb.drag = _movementDrag;
@@ -91,6 +97,9 @@ public class PlayerController : MonoBehaviour
         }
 
 
+
+
+        // Debug.Log(Input.GetAxis("primary2DAxis"));
 
         _inputs.x = Input.GetAxisRaw("Horizontal");
         _inputs.y = Input.GetAxisRaw("Vertical");

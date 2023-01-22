@@ -71,7 +71,14 @@ public static class GenerationManager
 
 
         //! Enviromental detail
-        NoiseConverter nosieConverter = new NoiseConverter(chunkManager.globalNoiseLowest,chunkManager.globalNoiseHighest,-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight,chunkManager.terrainCurve);
+        NoiseConverter nosieConverter = new NoiseConverter(
+            chunkManager.globalNoiseLowest,
+            chunkManager.globalNoiseHighest,
+            -chunkManager.MaxTerrainHeight/3,
+            chunkManager.MaxTerrainHeight,
+            chunkManager.terrainCurve
+        );
+        
         Dictionary<Spawnable,int> spawnableCounter = new Dictionary<Spawnable, int>(){
             {Spawnable.ConiferTree,0},
             {Spawnable.DeciduousTree,0},
@@ -301,12 +308,15 @@ public static class GenerationManager
 
         chunkManager.GenerationComplete = true;
 
-        chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-10,chunkManager.MaxTerrainHeight));
-        chunkManager.BatchMeshes();
+        chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight));
+        chunkManager.BatchEnviroment();  
+        yield return chunkManager.BatchMeshes();
         Debug.Log("Chunk Prerender Generation Finished");
         Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
         Debug.Log("World generation and prerender corutine complete");
     }
+
+
 }
 
 class NoiseConverter{
@@ -324,6 +334,10 @@ class NoiseConverter{
     }
 
     public float GetRealHeight(float value){
+        float range01 = 0 + (value - min1) * (1 - 0) / (high1 - min1);
+        float modHeight = terrainCurve.Evaluate(range01);
+        float realHeight = min2 + (modHeight - 0) * (high2 - min2) / (1 - 0);
+        return realHeight;
         return min2 + (value - min1) * (high2 - min2) / (high1 - min1);
     }
 }

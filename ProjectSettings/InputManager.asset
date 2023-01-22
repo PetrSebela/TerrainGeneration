@@ -116,7 +116,7 @@ InputManager:
     invert: 0
     type: 1
     axis: 0
-    joyNum: 0
+    joyNum: 2
   - serializedVersion: 3
     m_Name: Mouse Y
     descriptiveName: 
@@ -132,7 +132,7 @@ InputManager:
     invert: 0
     type: 1
     axis: 1
-    joyNum: 0
+    joyNum: 2
   - serializedVersion: 3
     m_Name: Mouse ScrollWheel
     descriptiveName: 
@@ -485,3 +485,4 @@ InputManager:
     type: 2
     axis: 5
     joyNum: 0
+  m_UsePhysicalKeys: 0

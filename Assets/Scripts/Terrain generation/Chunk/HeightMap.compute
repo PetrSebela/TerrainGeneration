@@ -109,7 +109,8 @@ float sampleNoise(float2 coord){
     }
 
     noiseSample = noiseSample / 24;
-    return log(noiseSample * 10 + 0.1);
+    return -noiseSample * 10 + 0.1;
+    // return log(noiseSample * 10 + 0.1);
 }
 
 
@@ -121,7 +122,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     float x = id.x + offset.x * 64;
     float y = id.y + offset.y * 64;
-    float t = pow(max(1 - sqrt(x*x + y*y) / (size * 64), 0),0.5);
+    float t = pow(max(1 - sqrt(x*x + y*y) / (size * 64), 0),0.3);
 
     heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 256 , id.y + offset.y * 64 + s2 * 256 ) )) * -1 * t - 0.01;
 

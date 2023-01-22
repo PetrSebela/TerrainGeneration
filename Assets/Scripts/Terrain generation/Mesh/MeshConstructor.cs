@@ -20,7 +20,13 @@ public class MeshConstructor : MonoBehaviour
     public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber, Vector2 borderWith, float noiseMin, float noiseMax, float maxHeight, ChunkManager chunkManager)
     {
         float[,] _chunkData = (float[,])chunkData.Clone();
-
+        NoiseConverter nosieConverter = new NoiseConverter(
+            chunkManager.globalNoiseLowest,
+            chunkManager.globalNoiseHighest,
+            -chunkManager.MaxTerrainHeight/3,
+            chunkManager.MaxTerrainHeight,
+            chunkManager.terrainCurve
+        );
         // fixing border between chunks with different resolution
         if (borderWith != Vector2.zero)
         {
@@ -92,10 +98,10 @@ public class MeshConstructor : MonoBehaviour
                     float xPosition = (x + offsets[offsetIndex].x) * sampleRate;
                     float yPosition = (y + offsets[offsetIndex].y) * sampleRate;
                     float height = _chunkData[(x + offsets[offsetIndex].x) * LODnumber + 1, (y + offsets[offsetIndex].y) * LODnumber + 1];
-
+                    
                     vertexList.Add(new Vector3(
                         xPosition,
-                        -maxHeight/3 + (height - noiseMin) * (maxHeight - -maxHeight/3) / (noiseMax - noiseMin),
+                        nosieConverter.GetRealHeight(height),
                         yPosition
                     ));
                 }
@@ -138,6 +144,8 @@ public class MeshConstructor : MonoBehaviour
         MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position);
         return meshData;
     }
+
+    
 }
 public class MeshData
 {
