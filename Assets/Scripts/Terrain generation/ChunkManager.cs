@@ -42,7 +42,6 @@ public class ChunkManager : MonoBehaviour
 
     
     [Header("Exposed variables")]
-    // public Dictionary<Vector2, float[,]> HeightMapDict = new Dictionary<Vector2, float[,]>();
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
     public Dictionary<Vector2, Mesh> MeshDictionary = new Dictionary<Vector2, Mesh>();
     public Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
@@ -70,6 +69,9 @@ public class ChunkManager : MonoBehaviour
     public float globalNoiseHighest = -Mathf.Infinity;
     public int enviromentProgress = 0;
     public float Progress = 0;
+    
+    public RawImage MapDisplay;
+    public Texture2D MapTexture;
 
     public Dictionary<Spawnable,List<List<Matrix4x4>>> FullTreeList = new Dictionary<Spawnable,List<List<Matrix4x4>>>(){
         {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
@@ -100,11 +102,6 @@ public class ChunkManager : MonoBehaviour
 
     //! chunk batching
     private Mesh[] combinesMeshes = new Mesh[0];
-    private bool BatchFlag = false;
-    private Dictionary<Spawnable,List<List<Matrix4x4>>> batches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
-        {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
-        {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
-    };
 
     private IEnumerator UpdateCorutine;
     int hold = 0;
@@ -114,8 +111,6 @@ public class ChunkManager : MonoBehaviour
 
     private Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
     private Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
-    
-    private int UpdateCounter = 0;
     private int ProcessIndexer = 2;
     
     // Vector3 -> Vector2
@@ -170,12 +165,15 @@ public class ChunkManager : MonoBehaviour
         if (!GenerationComplete)
             return;
         
-        // Debug.Log(ProcessIndexer);
         hold = MeshQueue.Count;
         switch (ProcessIndexer)
         {
             case 2:
-                Vector2 currentChunkPosition = new Vector2(Mathf.Round(Tracker.position.x / ChunkSettings.size), Mathf.Round(Tracker.position.z / ChunkSettings.size));
+                Vector2 currentChunkPosition = new Vector2(
+                    Mathf.Round(Tracker.position.x / ChunkSettings.size), 
+                    Mathf.Round(Tracker.position.z / ChunkSettings.size)
+                );
+                
                 if (currentChunkPosition != PastChunkPosition)
                 {
                     PastChunkPosition = currentChunkPosition;
@@ -205,53 +203,16 @@ public class ChunkManager : MonoBehaviour
                 break;
     
             case 1:
-                BatchFlag = false;
                 BatchEnviroment();
                 StopCoroutine(UpdateCorutine);
                 UpdateCorutine = BatchMeshes();
                 StartCoroutine(UpdateCorutine);
                 ProcessIndexer = 2;
-                Debug.Log(UpdateCounter++);
                 break;
 
             default:
                 break;
         }
-        
-
-
-        // if(ProcessIndexer == 0){
-        //     for (int f = 0; f < hold; f++)
-        //     {
-        //         ChunkUpdate updateMeshData;
-        //         lock (MeshQueue)
-        //             updateMeshData = MeshQueue.Dequeue();
-        //         UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
-        //     }  
-        //     ProcessIndexer = 1;
-        //     return;
-        // }
-
-        
-
-
-        // //* SECTION - Batching
-        // if(hold > 0){
-        //     BatchFlag = true;
-        // }
-
-        // if(hold == 0 & !BatchFlag)
-        //     return;       
-
-        // if (ProcessIndexer == 1){
-        //     BatchFlag = false;
-        //     BatchEnviroment();
-        //     StopCoroutine(UpdateCorutine);
-        //     UpdateCorutine = BatchMeshes();
-        //     StartCoroutine(UpdateCorutine);
-        //     ProcessIndexer = 2;
-        //     Debug.Log(UpdateCounter++);
-        // }
     }
 
     void Update()
@@ -329,8 +290,9 @@ public class ChunkManager : MonoBehaviour
 
     public void BatchEnviroment(){
         float st = Time.realtimeSinceStartup;
-        LowDetailBatches.Clear();
 
+        //* -- Low resolution asset -- *
+        LowDetailBatches.Clear();
         LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
             {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
             {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
@@ -357,13 +319,13 @@ public class ChunkManager : MonoBehaviour
         }
 
 
-        //  -------------------
+        //* -- High resolution asset -- *
 
         DetailBatches.Clear();
         DetailCounter.Clear();
 
-        var ennviromentEnum = Enum.GetValues(typeof(Spawnable));
-        foreach (Spawnable spawnable in ennviromentEnum)
+        var spawnableEnum = Enum.GetValues(typeof(Spawnable));
+        foreach (Spawnable spawnable in spawnableEnum)
         {
             DetailBatches.Add(spawnable,new List<List<Matrix4x4>>());
             DetailCounter.Add(spawnable,0);
@@ -371,7 +333,7 @@ public class ChunkManager : MonoBehaviour
 
         foreach (Chunk chunk in TreeChunkDictionary.Values)
         {
-            foreach(Spawnable type in ennviromentEnum)
+            foreach(Spawnable type in spawnableEnum)
             {    
                 foreach (Matrix4x4 item in chunk.detailDictionary[type])
                 {
@@ -500,7 +462,13 @@ public struct SpawnableSettings{
     public float maxSlope;
     public int countInChunk;
 
-    public SpawnableSettings(Spawnable type, float minHeight, float maxHeight, float maxSlope, int countInChunk, float minScale, float maxScale)
+    public SpawnableSettings(Spawnable type, 
+    float minHeight, 
+    float maxHeight, 
+    float maxSlope, 
+    int countInChunk, 
+    float minScale, 
+    float maxScale)
     {
         if(minHeight > maxHeight){
             maxHeight = minHeight;

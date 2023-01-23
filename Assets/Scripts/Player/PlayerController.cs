@@ -24,10 +24,20 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     private float _movementSpeed = 5;
+
     [SerializeField]
     private float _acceleratedMovementSpeed = 25;
     [SerializeField]
     private float _movementDrag = 6;
+
+    [SerializeField]
+    private float _movementSpeedGravity = 3;
+    
+    [SerializeField]
+    private float _acceleratedMovementSpeedGravity = 25;
+    
+    [SerializeField]
+    private float _movementDragGravity = 12;    
     
     [SerializeField]
     private Camera cam;
@@ -49,13 +59,12 @@ public class PlayerController : MonoBehaviour
     
     private bool useGravityController = false;
 
-    public Camera MapCamera;
+    public RectTransform mapTranform;
+    
+    public bool FocusOnMap = false;
 
     void Start()
     {
-        MapCamera.transform.position = new Vector3(0,chunkManager.MaxTerrainHeight + 50,0);
-        MapCamera.orthographicSize = chunkManager.WorldSize * chunkManager.ChunkSettings.size;
-
 
         Application.targetFrameRate = 144;
         _rb = GetComponent<Rigidbody>();
@@ -77,9 +86,22 @@ public class PlayerController : MonoBehaviour
             PauseMenu.SetActive(IsPaused);
         }
 
+        if(Input.GetKeyDown(KeyCode.Tab)){
+            FocusOnMap = true;
+            mapTranform.sizeDelta = new Vector2(500,500);
+
+        }
+
+        if(Input.GetKeyUp(KeyCode.Tab)){
+            FocusOnMap = false;
+            mapTranform.sizeDelta = new Vector2(150,150);
+        }
+
+
         if(Input.GetKeyDown(KeyCode.X)){
             useGravityController = !useGravityController;
             _rb.useGravity = useGravityController;
+            _rb.drag = (useGravityController)? _movementDragGravity:_movementDrag;
         }
 
         if (IsPaused)
@@ -154,8 +176,14 @@ public class PlayerController : MonoBehaviour
 
     void MovePlayer()
     {
-        if (Input.GetKey(_acceleratedMovement))
+        if (Input.GetKey(_acceleratedMovement) &&  !useGravityController)
             _rb.AddForce(_wishDirection.normalized * _acceleratedMovementSpeed, ForceMode.Acceleration);
+        else if(Input.GetKey(_acceleratedMovement) &&  useGravityController){
+            _rb.AddForce(_wishDirection.normalized * _acceleratedMovementSpeedGravity, ForceMode.Acceleration);
+        }
+        else if (useGravityController){
+            _rb.AddForce(_wishDirection.normalized * _movementSpeedGravity, ForceMode.Acceleration);
+        }
         else
             _rb.AddForce(_wishDirection.normalized * _movementSpeed, ForceMode.Acceleration);
     }

@@ -100,7 +100,6 @@ public static class GenerationManager
                 //! Enviromental detail
                 // this solution is only temporary 
                 // I will probably refactor fucking everything
-                // Vector3[] trees = new Vector3[chunkManager.ChunkSettings.treesPerChunk];
                 Dictionary<Spawnable,List<Matrix4x4>> enviromentalDetail = new Dictionary<Spawnable, List<Matrix4x4>>(){
                     {Spawnable.ConiferTree,new List<Matrix4x4>()},
                     {Spawnable.DeciduousTree,new List<Matrix4x4>()},
@@ -258,9 +257,6 @@ public static class GenerationManager
 
             chunkManager.MeshDictionary.Add(new Vector2(update.position.x,update.position.z),mesh);
 
-            // meshFilter.mesh = mesh;
-            // chunk.GetComponent<MeshRenderer>().material = chunkManager.TerrainMaterial;
-            
             if(update.LODindex == 1){
                 MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
                 meshCollider.sharedMesh = mesh;
@@ -300,17 +296,15 @@ public static class GenerationManager
             Transform.Instantiate(chunkManager.HighestPointMonument,pos,Quaternion.Euler(0,angle - 90,0));
         }
 
-        // float zeroHeight = chunkManager.ChunkDictionary[Vector2.zero].heightMap[1,1];
-        // if(zeroHeight < chunkManager.waterLevel)
-        //     zeroHeight = chunkManager.waterLevel;
-        // GameObject monument = Transform.Instantiate(chunkManager.Monument,new Vector3(0,zeroHeight,0),Quaternion.Euler(0,0,0));
-        // monument.transform.localScale = Vector3.one * 3.25f;
-
-        chunkManager.GenerationComplete = true;
+        
+        chunkManager.MapTexture = MapTextureGenerator.GenerateMapTexture(chunkManager.ChunkDictionary,Vector2.zero,Vector2.one,Vector2Int.zero,chunkManager.WorldSize,chunkManager.ChunkSettings.maxResolution,chunkManager);
+        chunkManager.MapDisplay.texture = chunkManager.MapTexture;
 
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight));
         chunkManager.BatchEnviroment();  
         yield return chunkManager.BatchMeshes();
+
+        chunkManager.GenerationComplete = true;
         Debug.Log("Chunk Prerender Generation Finished");
         Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));
         Debug.Log("World generation and prerender corutine complete");
@@ -338,6 +332,5 @@ class NoiseConverter{
         float modHeight = terrainCurve.Evaluate(range01);
         float realHeight = min2 + (modHeight - 0) * (high2 - min2) / (1 - 0);
         return realHeight;
-        return min2 + (value - min1) * (high2 - min2) / (high1 - min1);
     }
 }
