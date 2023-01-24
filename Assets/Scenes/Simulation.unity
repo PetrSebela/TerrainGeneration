@@ -4400,7 +4400,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4498,19 +4498,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ddeff58bb8c73546bc690cd6f7590cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mouseSens: 2
   _cam: {fileID: 330585546}
   _orientation: {fileID: 1193693647}
   _moveDownKey: 306
   _moveUpKey: 32
-  _acceleratedMovement: 304
-  _movementSpeed: 500
-  _acceleratedMovementSpeed: 10000
-  _movementDrag: 6
-  _movementSpeedGravity: 125
-  _acceleratedMovementSpeedGravity: 250
-  _movementDragGravity: 12
-  cam: {fileID: 330585545}
+  _mouseSens: 2
+  ControllerType: 0
+  WalkForce: 300
+  AcceleratedWalkScale: 2
+  FlightForce: 800
+  AcceleratedFlightScale: 4
   zoomFOV: 20
   normalFOV: 60
   IsPaused: 0
@@ -5739,6 +5736,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1982252409}
   m_CullTransparentMesh: 1
+--- !u!1 &2002202605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2002202607}
+  - component: {fileID: 2002202606}
+  m_Layer: 0
+  m_Name: SettingManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2002202606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002202605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e52bad3276ab1743a27b1a8dfe75ee9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2002202607
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002202605}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 557.47656, y: 213.7987, z: -460.52563}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2008915091
 GameObject:
   m_ObjectHideFlags: 0

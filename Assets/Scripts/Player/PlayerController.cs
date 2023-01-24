@@ -6,52 +6,44 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Camera")]
     [SerializeField]
-    private float _mouseSens = 1;
-
-    [SerializeField]
     private Transform _cam;
+    
     [SerializeField]
     private Transform _orientation;
 
-    [Header("Movement")]
+    [Header("Key Binds")]
     [SerializeField]
     private KeyCode _moveDownKey;
     [SerializeField]
     private KeyCode _moveUpKey;
     [SerializeField]
-    private KeyCode _acceleratedMovement;
+    private float _mouseSens = 1;
 
+    [Header("Controller settings")]
+    public PlayerControllerType ControllerType = PlayerControllerType.Flight;
 
-    [SerializeField]
-    private float _movementSpeed = 5;
+    [Header("Walking")]
+    public float WalkForce;
+    public float AcceleratedWalkScale;
+    private float WalkingDrag = 12;    
 
-    [SerializeField]
-    private float _acceleratedMovementSpeed = 25;
-    [SerializeField]
-    private float _movementDrag = 6;
-
-    [SerializeField]
-    private float _movementSpeedGravity = 3;
+    [Header("Flight")]
+    public float FlightForce;
+    public float AcceleratedFlightScale;
+    private float FlightDrag = 6;    
     
-    [SerializeField]
-    private float _acceleratedMovementSpeedGravity = 25;
-    
-    [SerializeField]
-    private float _movementDragGravity = 12;    
-    
-    [SerializeField]
     private Camera cam;
+    [Header("Exposed Variables")]
 
     [SerializeField]
-
     private int zoomFOV;
     [SerializeField]
     private int normalFOV;
     private Vector2 _mouseMovement;
-    private Vector2 _cameraRotation;
+    private Vector2 cameraRotation;
     private Vector3 _inputs = new Vector3(0, 0, 0);
-    private Vector3 _wishDirection = new Vector3(0, 0, 0);
-    private Rigidbody _rb;
+    private Vector3 WishDirection = new Vector3(0, 0, 0);
+    private Rigidbody rb;
 
     public bool IsPaused = false;
     public GameObject PauseMenu;
@@ -62,13 +54,17 @@ public class PlayerController : MonoBehaviour
     public RectTransform mapTranform;
     
     public bool FocusOnMap = false;
+    private bool Accelerated = false;
+
+
+
 
     void Start()
     {
 
         Application.targetFrameRate = 144;
-        _rb = GetComponent<Rigidbody>();
-        _rb.drag = _movementDrag;
+        rb = GetComponent<Rigidbody>();
+        rb.drag = FlightDrag;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -86,6 +82,7 @@ public class PlayerController : MonoBehaviour
             PauseMenu.SetActive(IsPaused);
         }
 
+
         if(Input.GetKeyDown(KeyCode.Tab)){
             FocusOnMap = true;
             mapTranform.sizeDelta = new Vector2(500,500);
@@ -99,9 +96,11 @@ public class PlayerController : MonoBehaviour
 
 
         if(Input.GetKeyDown(KeyCode.X)){
+            ControllerType = (ControllerType==PlayerControllerType.Flight)?PlayerControllerType.Ground : PlayerControllerType.Flight;
+
             useGravityController = !useGravityController;
-            _rb.useGravity = useGravityController;
-            _rb.drag = (useGravityController)? _movementDragGravity:_movementDrag;
+            rb.useGravity = useGravityController;
+            rb.drag = (useGravityController)? WalkingDrag:FlightDrag;
         }
 
         if (IsPaused)
@@ -118,11 +117,6 @@ public class PlayerController : MonoBehaviour
             chunkManager.FullRender = ! chunkManager.FullRender;
         }
 
-
-
-
-        // Debug.Log(Input.GetAxis("primary2DAxis"));
-
         _inputs.x = Input.GetAxisRaw("Horizontal");
         _inputs.y = Input.GetAxisRaw("Vertical");
         _inputs.z = 0;
@@ -132,13 +126,10 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(_moveDownKey))
             _inputs.z--;
 
-        _wishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
-
+        WishDirection = _orientation.forward * _inputs.y + _orientation.right * _inputs.x + _orientation.up * _inputs.z;
 
         _mouseMovement.x = Input.GetAxisRaw("Mouse X");
         _mouseMovement.y = Input.GetAxisRaw("Mouse Y");
-
-
 
         if (Input.GetKey(KeyCode.I))
         {
@@ -159,14 +150,18 @@ public class PlayerController : MonoBehaviour
             _mouseMovement.x -= 1;
         }
 
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+            Accelerated = true;
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+            Accelerated = false;
 
-        _cameraRotation.y += _mouseMovement.x * _mouseSens;
-        _cameraRotation.x -= _mouseMovement.y * _mouseSens;
+        cameraRotation.y += _mouseMovement.x * _mouseSens;
+        cameraRotation.x -= _mouseMovement.y * _mouseSens;
 
-        _cameraRotation.x = Mathf.Clamp(_cameraRotation.x, -90f, 90f);
+        cameraRotation.x = Mathf.Clamp(cameraRotation.x, -90f, 90f);
 
-        _cam.localRotation = Quaternion.Euler(_cameraRotation.x, 0, 0);
-        _orientation.localRotation = Quaternion.Euler(0, _cameraRotation.y, 0);
+        _cam.localRotation = Quaternion.Euler(cameraRotation.x, 0, 0);
+        _orientation.localRotation = Quaternion.Euler(0, cameraRotation.y, 0);
     }
 
     void FixedUpdate()
@@ -176,15 +171,34 @@ public class PlayerController : MonoBehaviour
 
     void MovePlayer()
     {
-        if (Input.GetKey(_acceleratedMovement) &&  !useGravityController)
-            _rb.AddForce(_wishDirection.normalized * _acceleratedMovementSpeed, ForceMode.Acceleration);
-        else if(Input.GetKey(_acceleratedMovement) &&  useGravityController){
-            _rb.AddForce(_wishDirection.normalized * _acceleratedMovementSpeedGravity, ForceMode.Acceleration);
+        float force;
+        switch(ControllerType){
+            case PlayerControllerType.Flight:
+                force = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
+                rb.AddForce(WishDirection * force, ForceMode.Acceleration);
+                break;
+            
+            case PlayerControllerType.Ground:
+                force = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
+                RaycastHit hit;
+                if (Physics.Raycast(this.transform.position, Vector3.down, out hit, 3)){
+                    rb.AddForce(Vector3.ProjectOnPlane(WishDirection, hit.normal) * force, ForceMode.Acceleration);
+                    Debug.Log("hit");
+                }
+                else{
+                    rb.AddForce(WishDirection * force, ForceMode.Acceleration);
+                }
+                break;
+            
+            default:
+                break;
         }
-        else if (useGravityController){
-            _rb.AddForce(_wishDirection.normalized * _movementSpeedGravity, ForceMode.Acceleration);
-        }
-        else
-            _rb.AddForce(_wishDirection.normalized * _movementSpeed, ForceMode.Acceleration);
     }
+}
+
+
+public enum PlayerControllerType
+{
+    Flight,
+    Ground
 }

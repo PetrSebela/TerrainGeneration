@@ -360,7 +360,7 @@ public class ChunkManager : MonoBehaviour
             for (int z = -WorldSize; z < WorldSize; z++)
             {
                 Mesh mesh = MeshDictionary[new Vector2(x,z)];
-                if(vertCounter + mesh.vertexCount < 32768){
+                if(vertCounter + mesh.vertexCount < 4294967295){
                     CombineInstance instance = new CombineInstance();
                     instance.mesh = mesh;
                     instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.size,Quaternion.identity,Vector3.one);
@@ -392,11 +392,43 @@ public class ChunkManager : MonoBehaviour
         for (int i = 0; i < mergeList.Count; i++)
         {
             Mesh mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             CombineInstance[] list = mergeList[i].ToArray();
             mesh.CombineMeshes(list, true, true);
             combinesMeshes[i] = mesh;
         }  
+        Debug.Log("starting merging");
+        // for (int i = 0; i < mergeList.Count; i++)
+        // {
 
+        //     // Remove duplicate vertices
+        //     Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
+
+        //     int vertexMapIndex = 0;
+        //     foreach (Vector3 item in combinesMeshes[i].vertices)
+        //     {
+        //         if (!duplicateMapping.ContainsKey(item))
+        //         {
+        //             duplicateMapping.Add(item, vertexMapIndex++);
+        //         }
+        //     }
+
+        //     List<Vector3> constructVertexList = new List<Vector3>();
+        //     List<int> constructTriangleList = new List<int>();
+        //     foreach (int item in combinesMeshes[i].triangles)
+        //     {
+        //         constructTriangleList.Add(duplicateMapping[combinesMeshes[i].vertices[item]]);
+        //     }
+
+        //     foreach (Vector3 item in duplicateMapping.Keys)
+        //     {
+        //         constructVertexList.Add(item);
+        //     }
+        //     combinesMeshes[i].vertices = constructVertexList.ToArray();
+        //     combinesMeshes[i].triangles = constructTriangleList.ToArray();
+        //     yield return null;
+
+        // }
         Debug.Log("Mesh batching took : " + (Mathf.Round(((Time.realtimeSinceStartup - st)*1000*100000))/100000) + "ms");
         yield return null;
     }

@@ -288,6 +288,34 @@ public static class GenerationManager
                 plane.transform.localScale = Vector3.one / 10 * size;
                 plane.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;
             }
+
+            Vector3[] positions = new Vector3[]{
+                new Vector3(1,0,0),
+                new Vector3(0,0,1),
+                new Vector3(-1,0,0),
+                new Vector3(0,0,-1),
+
+
+                new Vector3(1,0,1),
+                new Vector3(-1,0,1),
+                new Vector3(1,0,-1),
+                new Vector3(-1,0,-1),
+            };
+
+            foreach (var item in positions)
+            {
+                GameObject w1 = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                w1.transform.position = new Vector3(
+                    item.x * worldSize * 2,
+                    chunkManager.waterLevel,
+                    item.z * worldSize * 2
+                );
+                w1.transform.localScale = Vector3.one / 10 * worldSize*2;
+                w1.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;                
+            }
+
+
+            // far water chunkg
         }
 
         foreach (Vector3 pos in chunkManager.Peaks)
