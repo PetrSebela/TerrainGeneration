@@ -20,9 +20,7 @@ public static class GenerationManager
             for (int yChunk = -chunkManager.WorldSize; yChunk < chunkManager.WorldSize; yChunk++)
             {
                 Vector2 toGenerate = new Vector2(xChunk, yChunk);
-                // !Terrain shape
-                // create height map chunk where it overlaps another chunks by 1 on each axis in negative direction
-                float[,] heightMap = new float[68, 68];
+                float[,] heightMap = new float[64,64];
                 float highestValue = -Mathf.Infinity;
                 float lowestValue = Mathf.Infinity;
 
@@ -32,15 +30,17 @@ public static class GenerationManager
                 chunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
                 chunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
                 chunkManager.HeightMapShader.SetFloat("size",chunkManager.WorldSize);
-                chunkManager.HeightMapShader.Dispatch(0, 17, 17, 1);
+                chunkManager.HeightMapShader.SetFloat("persistence",chunkManager.persistence);
+                chunkManager.HeightMapShader.SetFloat("lacunarity",chunkManager.lacunarity);
+                chunkManager.HeightMapShader.SetInt("octaves",chunkManager.octaves);
+                chunkManager.HeightMapShader.Dispatch(0, 4, 4, 1);
                 heightMapBuffer.GetData(heightMap);
 
-                // chunkManager.HeightMapDict.Add(toGenerate, heightMap);
 
                 // Finding lowest and highest point
-                for (int y = 1; y < 64; y++)
+                for (int y = 0; y < 64; y++)
                 {
-                    for (int x = 1; x < 64; x++)
+                    for (int x = 0; x < 64; x++)
                     {
                         if(heightMap[x,y] < lowestValue){
                             lowestValue = heightMap[x,y]; 
@@ -113,8 +113,8 @@ public static class GenerationManager
                     List<Matrix4x4> listReference = enviromentalDetail[item.type];
                     for (int i = 0; i < item.countInChunk; i++)
                     {
-                        int xTreeCoord = UnityEngine.Random.Range(1, 64);
-                        int zTreeCoord = UnityEngine.Random.Range(1, 64);
+                        int xTreeCoord = UnityEngine.Random.Range(0, 63);
+                        int zTreeCoord = UnityEngine.Random.Range(0, 63);
                         float height = nosieConverter.GetRealHeight(chunk.heightMap[xTreeCoord, zTreeCoord]);
 
                         // Calculate tree base normal
@@ -126,9 +126,9 @@ public static class GenerationManager
                         if(item.minHeight * chunkManager.MaxTerrainHeight  < height && height < item.maxHeight * chunkManager.MaxTerrainHeight && Vector3.Angle(Vector3.up, normal) < item.maxSlope && height > chunkManager.waterLevel + 3)
                         {
                             Vector3 position = new Vector3(
-                                (key.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                                (key.x * chunkManager.ChunkSettings.size) + (((float)(xTreeCoord - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size),
                                 height,
-                                (key.y * chunkManager.ChunkSettings.size) + (((float)(zTreeCoord - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size));
+                                (key.y * chunkManager.ChunkSettings.size) + (((float)(zTreeCoord - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size));
                             
                             Matrix4x4 matrix4X4 = Matrix4x4.TRS(
                                 position, 
@@ -153,9 +153,9 @@ public static class GenerationManager
                 //! Monuments 
                 float highestValue = -Mathf.Infinity;
                 Vector3 highestPoint = Vector3.zero;
-                for (int y = 1; y < 64; y++)
+                for (int y = 1; y < 63; y++)
                 {
-                    for (int x = 1; x < 64; x++)
+                    for (int x = 1; x < 63; x++)
                     {                    
                         float checkedValue = nosieConverter.GetRealHeight(chunk.heightMap[x,y]);
                         bool isPeak = checkedValue > highestValue &&
@@ -174,8 +174,8 @@ public static class GenerationManager
                 if (chunk.localMaximum != 0){                    
                     // finding POI
                     Vector2 comparativePosition = new Vector2(
-                        (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
-                        (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size)
+                        (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size),
+                        (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size)
                     );
 
                     int closestIndex = 0;
@@ -193,9 +193,9 @@ public static class GenerationManager
 
                     if(highestPoint.y > chunkManager.Peaks[closestIndex].y){
                         Vector3 inWorldPosition = new Vector3(
-                            (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size),
+                            (key.x * chunkManager.ChunkSettings.size) + (((float)(highestPoint.x - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size),
                             highestPoint.y,
-                            (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.maxResolution) * chunkManager.ChunkSettings.size)
+                            (key.y * chunkManager.ChunkSettings.size) + (((float)(highestPoint.z - 1) / chunkManager.ChunkSettings.resolution) * chunkManager.ChunkSettings.size)
                         );
 
                         chunkManager.Peaks[closestIndex] = inWorldPosition;
@@ -325,7 +325,7 @@ public static class GenerationManager
         }
 
         
-        chunkManager.MapTexture = MapTextureGenerator.GenerateMapTexture(chunkManager.ChunkDictionary,Vector2.zero,Vector2.one,Vector2Int.zero,chunkManager.WorldSize,chunkManager.ChunkSettings.maxResolution,chunkManager);
+        chunkManager.MapTexture = MapTextureGenerator.GenerateMapTexture(chunkManager.ChunkDictionary,Vector2.zero,Vector2.one,Vector2Int.zero,chunkManager.WorldSize,chunkManager.ChunkSettings.resolution,chunkManager);
         chunkManager.MapDisplay.texture = chunkManager.MapTexture;
 
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(-chunkManager.MaxTerrainHeight/3,chunkManager.MaxTerrainHeight));

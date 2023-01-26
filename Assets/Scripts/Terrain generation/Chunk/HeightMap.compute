@@ -93,6 +93,10 @@ float3 offset;
 float size;
 float minimum;
 float maximum;
+float persistence;
+float lacunarity;
+int octaves;
+
 RWStructuredBuffer<float2> layerOffsets;
 RWStructuredBuffer<float3> treeBuffer;
 
@@ -102,19 +106,19 @@ float sampleNoise(float2 coord){
 
     float noiseSample = 0;
 
-    for(int i = 0; i < 24;i++){
+    for(int i = 0; i < octaves;i++){
         noiseSample += snoise(coord * frequency + layerOffsets[i]) * amplitude;
-        amplitude *= 0.55;
-        frequency *= 1.576;
+        amplitude *= persistence;
+        frequency *= lacunarity;
     }
 
-    noiseSample = noiseSample / 24;
+    noiseSample = noiseSample / octaves;
     return -noiseSample * 10 + 0.1;
     // return log(noiseSample * 10 + 0.1);
 }
 
 
-[numthreads(4,4,1)]
+[numthreads(16,16,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     float s1 = sampleNoise(float2(id.x + offset.x * 64, id.y+ offset.y * 64));
@@ -124,7 +128,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float y = id.y + offset.y * 64;
     float t = pow(max(1 - sqrt(x*x + y*y) / (size * 64), 0),0.3);
 
-    heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 256 , id.y + offset.y * 64 + s2 * 256 ) )) * -1 * t - 0.01;
+    heightMap[id.x * 64 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 256 , id.y + offset.y * 64 + s2 * 256 ) )) * -1 * t - 0.01;
 
     // heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -1 * t - 0.01;
 }

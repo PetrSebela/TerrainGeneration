@@ -624,7 +624,7 @@ MonoBehaviour:
     maxResolution: 64
     treesPerChunk: 12
   WorldSize: 32
-  LODtreeBorder: 2
+  LODtreeBorder: 4
   Tracker: {fileID: 1620735406}
   MaxTerrainHeight: 256
   spSettings:
@@ -741,6 +741,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  persistence: 0.575
+  lacunarity: 1.575
+  octaves: 24
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0

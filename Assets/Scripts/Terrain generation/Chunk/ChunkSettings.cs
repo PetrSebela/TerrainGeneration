@@ -2,13 +2,13 @@
 public class ChunkSettings
 {
     public float size;
-    public int maxResolution;
+    public int resolution;
     public int treesPerChunk;
 
-    public ChunkSettings(float size, int maxResolution, int treesPerChunk)
+    public ChunkSettings(float size, int resolution, int treesPerChunk)
     {
         this.size = size;
-        this.maxResolution = maxResolution;
+        this.resolution = resolution;
         this.treesPerChunk = treesPerChunk;
     }
 }

@@ -113,6 +113,10 @@ public class ChunkManager : MonoBehaviour
     private Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
     private int ProcessIndexer = 2;
     
+    public float persistence;
+    public float lacunarity;
+    public int octaves;
+
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
@@ -121,6 +125,7 @@ public class ChunkManager : MonoBehaviour
     {
         //! Mapping low res textures to models
         materials = new Material[Texture2DList.Length];
+        
         for (int i = 0; i < Texture2DList.Length; i++)
         {
             Material mat = new Material(baseMaterial);

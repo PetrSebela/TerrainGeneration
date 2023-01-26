@@ -22,25 +22,33 @@ public static class MeshConstructorManager
                 Vector2 toGenerate = (Vector2)toGenerateNull;
                 toGenerate -= chunkManager.PastChunkPosition;
 
-                int LODindex;
-                if (Math.Abs(toGenerate.x) >= 32 || Math.Abs(toGenerate.y) >= 32)
-                    LODindex = 32;
-                else if (Math.Abs(toGenerate.x) >= 24 || Math.Abs(toGenerate.y) >= 24)
-                    LODindex = 16;
-                else if (Math.Abs(toGenerate.x) >= 12 || Math.Abs(toGenerate.y) >= 12)
+                int LODindex = 2;
+                // if (Math.Abs(toGenerate.x) >= 32 || Math.Abs(toGenerate.y) >= 32)
+                //     LODindex = 32;
+                // else if (Math.Abs(toGenerate.x) >= 24 || Math.Abs(toGenerate.y) >= 24)
+                //     LODindex = 16;
+                // else if (Math.Abs(toGenerate.x) >= 12 || Math.Abs(toGenerate.y) >= 12)
+                //     LODindex = 8;
+                // else if (Math.Abs(toGenerate.x) >= 6 || Math.Abs(toGenerate.y) >= 6)
+                //     LODindex = 4;
+                // else if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.y) >= 3)
+                //     LODindex = 2;
+                // else
+                //     LODindex = 1;
+
+                if (Math.Abs(toGenerate.x) >= 5 || Math.Abs(toGenerate.y) >= 5)
                     LODindex = 8;
-                else if (Math.Abs(toGenerate.x) >= 6 || Math.Abs(toGenerate.y) >= 6)
+                else    if (Math.Abs(toGenerate.x) >= 4 || Math.Abs(toGenerate.y) >= 4)
                     LODindex = 4;
-                else if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.y) >= 3)
+                else    if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.y) >= 3)
                     LODindex = 2;
-                else
-                    LODindex = 1;
+
 
                 // getting border vector
                 // distance - 1
-                // int[] borderNumbers = new int[] { 2, 3, 4, 5, 8 };
                 Vector2 borderVector = Vector2.zero;
-                int[] borderNumbers = new int[] { 2, 5, 11, 23, 31 };
+                // int[] borderNumbers = new int[] { 2, 5, 11, 23, 31 };
+                int[] borderNumbers = new int[] { 3, 4 };
 
                 for (int i = 0; i < borderNumbers.Length; i++)
                 {

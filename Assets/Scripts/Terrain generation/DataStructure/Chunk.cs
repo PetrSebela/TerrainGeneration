@@ -5,14 +5,24 @@ using UnityEngine;
 [System.Serializable]
 public class Chunk
 {
-    [SerializeField] public float[,] heightMap;
-    [SerializeField] public int currentLODindex;
-    [SerializeField] public Vector3 position;
-    [SerializeField] public Vector2 borderVector;
-    [SerializeField] public MeshData currentMeshData;
-    [SerializeField] public Dictionary<Spawnable,Matrix4x4[]> detailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
-    [SerializeField] public float localMaximum;
-    [SerializeField] public float localMinimum;
+
+    
+    [Header("Rendering")]
+    public MeshFilter meshFilter;
+    public MeshRenderer meshRenderer;
+    public MeshCollider meshCollider;
+    
+    public Vector2 position;
+    public Vector2 borderVector;
+    
+    public float[,] heightMap;
+    
+    public int currentLODindex;
+
+    public MeshData currentMeshData;
+    public Dictionary<Spawnable,Matrix4x4[]> detailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
+    public float localMaximum;
+    public float localMinimum;
 
     public Vector3[] vertices;
     public int[] triangles;
@@ -34,7 +44,7 @@ public class Chunk
             heightMap,
             position,
             chunkSettings.size,
-            chunkSettings.maxResolution,
+            chunkSettings.resolution,
             currentLODindex,
             this.borderVector,
             chunkManager.globalNoiseLowest,
