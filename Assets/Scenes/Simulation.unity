@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -618,14 +618,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 967913fd6e5230b4cbe91c0c1861c752, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ChunkSettings:
-    size: 64
-    maxResolution: 64
-    treesPerChunk: 12
+  ChunkSettings: {fileID: 11400000, guid: a70920e0893c13b46be15e5c3387053c, type: 2}
+  TerrainSettings: {fileID: 11400000, guid: 58359a830563c0145a7b104271ff1eff, type: 2}
   WorldSize: 32
-  LODtreeBorder: 4
-  Tracker: {fileID: 1620735406}
-  MaxTerrainHeight: 256
+  LODTreeBorder: 4
+  TrackedObject: {fileID: 1620735406}
   spSettings:
   - type: 2
     minHeight: 0
@@ -672,21 +669,13 @@ MonoBehaviour:
   TerrainMaterial: {fileID: 2100000, guid: a90de7c954770fa47b72e8e716ee1547, type: 2}
   LowDetailMaterialBase: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
     type: 2}
-  UseWater: 1
   WaterMaterial: {fileID: 2100000, guid: 3dd53825794efdb42b4cf6a2c4ac5bde, type: 2}
   waterLevel: 0
   PastChunkPosition: {x: 0, y: 0}
   GenerationComplete: 0
   FullRender: 0
-  RenderEnviroment: 0
-  DrawChunkBorders: 1
   HeightMapShader: {fileID: 7200000, guid: 8cb3cddeba4fadc4082d75678edd296c, type: 3}
   NumOfPeaks: 6
-  Peaks: []
-  PeaksPOI: []
-  HighestPointMonument: {fileID: 919132149155446097, guid: 88e7a1719d94c1c4b873a139e2d44699,
-    type: 3}
-  Monument: {fileID: 919132149155446097, guid: 88e7a1719d94c1c4b873a139e2d44699, type: 3}
   simulationSettings: {fileID: 11400000, guid: 01806e05eac489448b31c3c75788633e, type: 2}
   globalNoiseLowest: Infinity
   globalNoiseHighest: -Infinity
@@ -694,19 +683,11 @@ MonoBehaviour:
   Progress: 0
   MapDisplay: {fileID: 2093020500}
   MapTexture: {fileID: 0}
-  baseMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c, type: 2}
+  BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
+    type: 2}
   LowDetail: []
-  Texture2DList:
-  - {fileID: 2800000, guid: ce714dc281c69754c804ea9403e1c381, type: 3}
-  - {fileID: 2800000, guid: b9ecfa11653fe4849889473bead3284a, type: 3}
-  - {fileID: 2800000, guid: bf1f73867977fcb4da5c54a5118b0c98, type: 3}
-  - {fileID: 2800000, guid: 59f05c93a8f042a4e982dade7d0cfeb6, type: 3}
-  materials: []
-  terrainTexture: {fileID: 0}
-  hardness: 5
-  offset: 0.969
-  gradStart: 0.857
-  gradEnd: 0.888
+  ImpostorTextures: []
+  ImpostorMaterials: []
   terrainCurve:
     serializedVersion: 2
     m_Curve:
@@ -740,9 +721,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  persistence: 0.575
-  lacunarity: 1.575
-  octaves: 24
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0

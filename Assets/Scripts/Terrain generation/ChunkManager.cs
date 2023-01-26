@@ -9,10 +9,11 @@ public class ChunkManager : MonoBehaviour
 {
     [Header("Simulation setting")]
     public ChunkSettings ChunkSettings;
+    public TerrainSettings TerrainSettings;
+
     [SerializeField] public int WorldSize;
-    [SerializeField] public int LODtreeBorder;
-    [SerializeField] private Transform Tracker;
-    public float MaxTerrainHeight;
+    [SerializeField] public int LODTreeBorder;
+    [SerializeField] private Transform TrackedObject;
 
     [Header("Enviroment")]
     [SerializeField] public List<SpawnableSettings> spSettings = new List<SpawnableSettings>();
@@ -36,7 +37,6 @@ public class ChunkManager : MonoBehaviour
 
 
     [Header("Water settings")]
-    public bool UseWater = true;
     public Material WaterMaterial;
     public float waterLevel;
 
@@ -54,16 +54,10 @@ public class ChunkManager : MonoBehaviour
     public Vector2 PastChunkPosition = Vector2.zero;
     public bool GenerationComplete = false;
     public bool FullRender = false;
-    public bool RenderEnviroment = true;
-    public bool DrawChunkBorders = false;
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
     public int NumOfPeaks;
-    public Vector3[] Peaks;
-    public Vector2[] PeaksPOI;
-    public GameObject HighestPointMonument;
-    public GameObject Monument;
     public SimulationSettings simulationSettings;
     public float globalNoiseLowest = Mathf.Infinity;
     public float globalNoiseHighest = -Mathf.Infinity;
@@ -73,30 +67,12 @@ public class ChunkManager : MonoBehaviour
     public RawImage MapDisplay;
     public Texture2D MapTexture;
 
-    public Dictionary<Spawnable,List<List<Matrix4x4>>> FullTreeList = new Dictionary<Spawnable,List<List<Matrix4x4>>>(){
-        {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
-        {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
-        {Spawnable.Rock,new List<List<Matrix4x4>>()},
-        {Spawnable.Bush,new List<List<Matrix4x4>>()},
-    };
-
 
     [Header("LowDetailModels")]
-    public Material baseMaterial;
+    public Material BaseImpostorMaterial;
     public List<Chunk> LowDetail = new List<Chunk>();
-    public Texture2D[] Texture2DList;
-    public Material[] materials;    
-
-    public Texture2D terrainTexture;
-    public float hardness;
-    [Range(0,1)]
-    public float offset;
-
-    [Range(0,1)]
-    public float gradStart;
-    
-    [Range(0,1)]
-    public float gradEnd;
+    public Texture2D[] ImpostorTextures;
+    public Material[] ImpostorMaterials;    
     public AnimationCurve terrainCurve;
 
 
@@ -113,56 +89,46 @@ public class ChunkManager : MonoBehaviour
     private Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
     private int ProcessIndexer = 2;
     
-    public float persistence;
-    public float lacunarity;
-    public int octaves;
 
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
 
+    //* Setting up simulation  
     void Start()
     {
-        //! Mapping low res textures to models
-        materials = new Material[Texture2DList.Length];
+        ImpostorMaterials = new Material[ImpostorTextures.Length];
         
-        for (int i = 0; i < Texture2DList.Length; i++)
+        for (int i = 0; i < ImpostorTextures.Length; i++)
         {
-            Material mat = new Material(baseMaterial);
-            mat.SetTexture("_BaseMap",Texture2DList[i]);
-            materials[i] = mat;
+            Material impostorMaterial = new Material(BaseImpostorMaterial);
+            impostorMaterial.SetTexture("_BaseMap",ImpostorTextures[i]);
+            ImpostorMaterials[i] = impostorMaterial;
         }
 
         TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture());
+        
+
+
         UpdateCorutine = BatchMeshes();
         //! Simulation setup
-        MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
-        WorldSize = simulationSettings.worldSize;
-        string seed = simulationSettings.seed;
+        // MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
+        WorldSize = simulationSettings.WorldSize;
+        string seed = simulationSettings.Seed;
         GenerateWorld(seed);
     }
 
     void GenerateWorld(string seed){
         int seedInt;
-        if(int.TryParse(simulationSettings.seed, out seedInt)){
+        if(int.TryParse(simulationSettings.Seed, out seedInt)){
             SeedGenerator = new SeedGenerator(seedInt);
         }
         else{
             SeedGenerator = new SeedGenerator(seed);
         }
 
-        Tracker.position = new Vector3(0, MaxTerrainHeight, 0);
-        
-        Peaks = new Vector3[NumOfPeaks];
-        PeaksPOI = new Vector2[NumOfPeaks];
+        TrackedObject.position = new Vector3(0, simulationSettings.MaxHeight, 0);
 
-        for (int i = 0; i < NumOfPeaks; i++)
-        {
-            float angle = 360 / NumOfPeaks * i;
-            float x = math.cos(angle) * (WorldSize / 2 * ChunkSettings.size);
-            float y = math.sin(angle) * (WorldSize / 2 * ChunkSettings.size);
-            PeaksPOI[i] = new Vector2(x,y);
-        }
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 
     }
 
@@ -175,8 +141,8 @@ public class ChunkManager : MonoBehaviour
         {
             case 2:
                 Vector2 currentChunkPosition = new Vector2(
-                    Mathf.Round(Tracker.position.x / ChunkSettings.size), 
-                    Mathf.Round(Tracker.position.z / ChunkSettings.size)
+                    Mathf.Round(TrackedObject.position.x / ChunkSettings.ChunkSize), 
+                    Mathf.Round(TrackedObject.position.z / ChunkSettings.ChunkSize)
                 );
                 
                 if (currentChunkPosition != PastChunkPosition)
@@ -233,59 +199,59 @@ public class ChunkManager : MonoBehaviour
         Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
         // Rendering enviromental details
-        foreach (Spawnable spawnableType in DetailBatches.Keys)
-        {   
-            foreach (List<Matrix4x4> envList in DetailBatches[spawnableType])
-            {
-                switch (spawnableType)
-                {
-                    case Spawnable.ConiferTree:
-                        Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, envList);
-                        Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, envList);
-                        break;
+        // foreach (Spawnable spawnableType in DetailBatches.Keys)
+        // {   
+        //     foreach (List<Matrix4x4> envList in DetailBatches[spawnableType])
+        //     {
+        //         switch (spawnableType)
+        //         {
+        //             case Spawnable.ConiferTree:
+        //                 Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, envList);
+        //                 Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, envList);
+        //                 break;
 
-                    case Spawnable.DeciduousTree:
-                        Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, envList);
-                        Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, envList);
-                        break;
+        //             case Spawnable.DeciduousTree:
+        //                 Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, envList);
+        //                 Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, envList);
+        //                 break;
 
-                    case Spawnable.Rock:
-                        Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, envList);
-                        break;
+        //             case Spawnable.Rock:
+        //                 Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, envList);
+        //                 break;
 
-                    case Spawnable.Bush:
-                        Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, envList);
-                        Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, envList);
-                        break;                           
+        //             case Spawnable.Bush:
+        //                 Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, envList);
+        //                 Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, envList);
+        //                 break;                           
 
-                    default:
-                        break;
-                }
-            }
-        }      
+        //             default:
+        //                 break;
+        //         }
+        //     }
+        // }      
        
-        //* SECTION - Rendering
-        foreach (Spawnable spawnableType in LowDetailBatches.Keys)
-        {   
-            foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
-            {
-                switch (spawnableType)
-                {
-                    case Spawnable.ConiferTree:
-                        Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[0], envList);                 
-                        Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[1], envList);                 
-                        break;
+        // //* SECTION - Rendering
+        // foreach (Spawnable spawnableType in LowDetailBatches.Keys)
+        // {   
+        //     foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
+        //     {
+        //         switch (spawnableType)
+        //         {
+        //             case Spawnable.ConiferTree:
+        //                 Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[0], envList);                 
+        //                 Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[1], envList);                 
+        //                 break;
 
-                    case Spawnable.DeciduousTree:
-                        Graphics.DrawMeshInstanced(LowDetailBase, 0, materials[2], envList);                 
-                        Graphics.DrawMeshInstanced(LowDetailBase, 1, materials[3], envList);
-                        break;
+        //             case Spawnable.DeciduousTree:
+        //                 Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[2], envList);                 
+        //                 Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[3], envList);
+        //                 break;
 
-                    default:
-                        break;
-                }
-            }
-        }
+        //             default:
+        //                 break;
+        //         }
+        //     }
+        // }
 
         foreach (Mesh mesh in combinesMeshes)
         {
@@ -365,10 +331,10 @@ public class ChunkManager : MonoBehaviour
             for (int z = -WorldSize; z < WorldSize; z++)
             {
                 Mesh mesh = MeshDictionary[new Vector2(x,z)];
-                if(vertCounter + mesh.vertexCount < 4294967295){
+                if((long)(vertCounter + mesh.vertexCount) < 4294967295){
                     CombineInstance instance = new CombineInstance();
                     instance.mesh = mesh;
-                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.size,Quaternion.identity,Vector3.one);
+                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.ChunkSize,Quaternion.identity,Vector3.one);
                     mergeList[meshIndex].Add(instance);
                 }
                 else{
@@ -378,7 +344,7 @@ public class ChunkManager : MonoBehaviour
 
                     CombineInstance instance = new CombineInstance();
                     instance.mesh = mesh;
-                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.size,Quaternion.identity,Vector3.one);
+                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.ChunkSize,Quaternion.identity,Vector3.one);
                     
                     mergeList[meshIndex].Add(instance);
                 }
@@ -443,13 +409,13 @@ public class ChunkManager : MonoBehaviour
     {
         // calculating tree topology
         Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
-        if (LODindex <= LODtreeBorder && !TreeChunkDictionary.ContainsKey(key))
+        if (LODindex <= LODTreeBorder && !TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Add(key, ChunkDictionary[key]);
             LowDetail.Remove(ChunkDictionary[key]);
         }
 
-        else if (LODindex > LODtreeBorder && TreeChunkDictionary.ContainsKey(key))
+        else if (LODindex > LODTreeBorder && TreeChunkDictionary.ContainsKey(key))
         {
             TreeChunkDictionary.Remove(key);
             LowDetail.Add(ChunkDictionary[key]);

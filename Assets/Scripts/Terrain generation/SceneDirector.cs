@@ -26,15 +26,15 @@ public class SceneDirector : MonoBehaviour
     }
 
     public void BeginSimulation(){
-        simulationSettings.maxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
-        simulationSettings.seed = seedField.text;
-        simulationSettings.worldSize = int.Parse(worldSize.options[worldSize.value].text);
+        simulationSettings.MaxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
+        simulationSettings.Seed = seedField.text;
+        simulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
 
-        Debug.Log(simulationSettings.maxHeight);
-        Debug.Log(simulationSettings.seed);
-        Debug.Log(simulationSettings.worldSize);
+        Debug.Log(simulationSettings.MaxHeight);
+        Debug.Log(simulationSettings.Seed);
+        Debug.Log(simulationSettings.WorldSize);
         
-        if (simulationSettings.maxHeight != float.NaN){
+        if (simulationSettings.MaxHeight != float.NaN){
             SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
         }        
     }

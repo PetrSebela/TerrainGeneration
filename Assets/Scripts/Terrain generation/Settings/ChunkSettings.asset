@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b38cb47c9c31cea4a919bd78c1abe73d, type: 3}
-  m_Name: SimulationSettings
+  m_Script: {fileID: 11500000, guid: d83a51228d2d8ca4d812bc15199e2a8b, type: 3}
+  m_Name: ChunkSettings
   m_EditorClassIdentifier: 
-  maxHeight: 400
-  seed: 
-  worldSize: 32
+  ChunkResolution: 64
+  ChunkSize: 64

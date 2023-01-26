@@ -96,6 +96,7 @@ float maximum;
 float persistence;
 float lacunarity;
 int octaves;
+int resolution;
 
 RWStructuredBuffer<float2> layerOffsets;
 RWStructuredBuffer<float3> treeBuffer;
@@ -118,17 +119,29 @@ float sampleNoise(float2 coord){
 }
 
 
-[numthreads(16,16,1)]
+[numthreads(2,2,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    float s1 = sampleNoise(float2(id.x + offset.x * 64, id.y+ offset.y * 64));
-    float s2 = sampleNoise(float2(id.x + offset.x * 64 + 256.4, id.y + offset.y * 64 + 128.4));
+    // Falloff map
+    float x = id.x + offset.x * resolution;
+    float y = id.y + offset.y * resolution;
+    float t = pow(max(1 - sqrt(x*x + y*y) / (size * resolution), 0),0.3);
+
+
+    // FBM samples
+    float s1 = sampleNoise(float2(
+        id.x + offset.x * resolution,
+        id.y + offset.y * resolution));
     
-    float x = id.x + offset.x * 64;
-    float y = id.y + offset.y * 64;
-    float t = pow(max(1 - sqrt(x*x + y*y) / (size * 64), 0),0.3);
+    float s2 = sampleNoise(float2(
+        id.x + offset.x * resolution + 256.4, 
+        id.y + offset.y * resolution + 128.4));
+    
 
-    heightMap[id.x * 64 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 256 , id.y + offset.y * 64 + s2 * 256 ) )) * -1 * t - 0.01;
-
-    // heightMap[id.x * 68 + id.y] = ( sampleNoise( float2(id.x + offset.x * 64 + s1 * 0.5 , id.y + offset.y * 64 + s2 * 0.5 ) )) * -1 * t - 0.01;
+    // Heightmap samples with FBM
+    heightMap[id.x * resolution + id.y] = ( sampleNoise(
+            float2(
+                id.x + offset.x * resolution + s1 * 256, 
+                id.y + offset.y * resolution + s2 * 256)
+                )) * -1 * t - 0.01;
 }

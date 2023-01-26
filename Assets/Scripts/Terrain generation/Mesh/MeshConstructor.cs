@@ -17,91 +17,98 @@ public class MeshConstructor : MonoBehaviour
     };
 
     // takes in constant size 2D array and creates mesh with variable leavel of detail
-    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, float chunkSize, int chunkResolution, int LODnumber, Vector2 borderWith, float noiseMin, float noiseMax, float maxHeight, ChunkManager chunkManager)
+    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, int LODnumber, Vector2 borderWith, ChunkManager chunkManager)
     {
-        float[,] _chunkData = (float[,])chunkData.Clone();
-        NoiseConverter nosieConverter = new NoiseConverter(
+        float[,] chunkDataLocal = (float[,])chunkData.Clone();
+        NoiseConverter noiseConverter = new NoiseConverter(
             chunkManager.globalNoiseLowest,
             chunkManager.globalNoiseHighest,
-            -chunkManager.MaxTerrainHeight/3,
-            chunkManager.MaxTerrainHeight,
+            chunkManager.TerrainSettings.MinHeight,
+            chunkManager.TerrainSettings.MaxHeight,
             chunkManager.terrainCurve
         );
+
+        int chunkResolution = chunkManager.ChunkSettings.ChunkResolution;
+
         // fixing border between chunks with different resolution
-        if (borderWith != Vector2.zero)
-        {
-            if (borderWith.x == 1)
-            {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
-                {
-                    if (x % 2 != 0)
-                    {
-                        float v1 = _chunkData[(x - 1) * LODnumber + 1, chunkResolution + 1];
-                        float v2 = _chunkData[(x + 1) * LODnumber + 1, chunkResolution + 1];
-                        _chunkData[x * LODnumber + 1, chunkResolution + 1] = (v1 + v2) / 2;
-                    }
-                }
-            }
-            else if (borderWith.x == -1)
-            {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
-                {
-                    if (x % 2 != 0)
-                    {
-                        float v1 = _chunkData[(x - 1) * LODnumber + 1, 1];
-                        float v2 = _chunkData[(x + 1) * LODnumber + 1, 1];
-                        _chunkData[x * LODnumber + 1, 1] = (v1 + v2) / 2;
-                    }
-                }
-            }
+        // if (borderWith != Vector2.zero)
+        // {
+        //     if (borderWith.x == 1)
+        //     {
+        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
+        //         {
+        //             if (x % 2 != 0)
+        //             {
+        //                 float v1 = _chunkData[(x - 1) * LODnumber + 1, chunkResolution + 1];
+        //                 float v2 = _chunkData[(x + 1) * LODnumber + 1, chunkResolution + 1];
+        //                 _chunkData[x * LODnumber + 1, chunkResolution + 1] = (v1 + v2) / 2;
+        //             }
+        //         }
+        //     }
+        //     else if (borderWith.x == -1)
+        //     {
+        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
+        //         {
+        //             if (x % 2 != 0)
+        //             {
+        //                 float v1 = _chunkData[(x - 1) * LODnumber + 1, 1];
+        //                 float v2 = _chunkData[(x + 1) * LODnumber + 1, 1];
+        //                 _chunkData[x * LODnumber + 1, 1] = (v1 + v2) / 2;
+        //             }
+        //         }
+        //     }
 
-            if (borderWith.y == 1)
-            {
+        //     if (borderWith.y == 1)
+        //     {
 
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
-                {
-                    if (x % 2 != 0)
-                    {
-                        float v1 = _chunkData[chunkResolution + 1, (x - 1) * LODnumber + 1];
-                        float v2 = _chunkData[chunkResolution + 1, (x + 1) * LODnumber + 1];
-                        _chunkData[chunkResolution + 1, x * LODnumber + 1] = (v1 + v2) / 2;
-                    }
-                }
-            }
-            else if (borderWith.y == -1)
-            {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
-                {
-                    if (x % 2 != 0)
-                    {
-                        float v1 = _chunkData[1, (x - 1) * LODnumber + 1];
-                        float v2 = _chunkData[1, (x + 1) * LODnumber + 1];
-                        _chunkData[1, x * LODnumber + 1] = (v1 + v2) / 2;
-                    }
-                }
-            }
-        }
+        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
+        //         {
+        //             if (x % 2 != 0)
+        //             {
+        //                 float v1 = _chunkData[chunkResolution + 1, (x - 1) * LODnumber + 1];
+        //                 float v2 = _chunkData[chunkResolution + 1, (x + 1) * LODnumber + 1];
+        //                 _chunkData[chunkResolution + 1, x * LODnumber + 1] = (v1 + v2) / 2;
+        //             }
+        //         }
+        //     }
+        //     else if (borderWith.y == -1)
+        //     {
+        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
+        //         {
+        //             if (x % 2 != 0)
+        //             {
+        //                 float v1 = _chunkData[1, (x - 1) * LODnumber + 1];
+        //                 float v2 = _chunkData[1, (x + 1) * LODnumber + 1];
+        //                 _chunkData[1, x * LODnumber + 1] = (v1 + v2) / 2;
+        //             }
+        //         }
+        //     }
+        // }
 
 
         List<Vector3> vertexList = new List<Vector3>();
         List<int> triangleList = new List<int>();
+        
         int vertexCout = 0;
-        float sampleRate = (chunkSize) / ((float)(chunkResolution) / LODnumber);
-
+        float sampleRate = (chunkManager.ChunkSettings.ChunkSize) / ((float)(chunkResolution) / LODnumber);
+        Debug.Log(sampleRate);
+        
         for (int x = 0; x < chunkResolution / LODnumber; x++)
         {
             for (int y = 0; y < chunkResolution / LODnumber; y++)
             {
                 for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
                 {
-
                     float xPosition = (x + offsets[offsetIndex].x) * sampleRate;
                     float yPosition = (y + offsets[offsetIndex].y) * sampleRate;
-                    float height = _chunkData[(x + offsets[offsetIndex].x) * LODnumber + 1, (y + offsets[offsetIndex].y) * LODnumber + 1];
+                    
+                    float height = chunkDataLocal[
+                        (x + offsets[offsetIndex].x) * LODnumber, 
+                        (y + offsets[offsetIndex].y) * LODnumber];
                     
                     vertexList.Add(new Vector3(
                         xPosition,
-                        nosieConverter.GetRealHeight(height),
+                        noiseConverter.GetRealHeight(height),
                         yPosition
                     ));
                 }

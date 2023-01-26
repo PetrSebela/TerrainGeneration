@@ -5,8 +5,6 @@ using UnityEngine;
 [System.Serializable]
 public class Chunk
 {
-
-    
     [Header("Rendering")]
     public MeshFilter meshFilter;
     public MeshRenderer meshRenderer;
@@ -43,13 +41,8 @@ public class Chunk
         currentMeshData = MeshConstructor.ConstructTerrain(
             heightMap,
             position,
-            chunkSettings.size,
-            chunkSettings.resolution,
             currentLODindex,
             this.borderVector,
-            chunkManager.globalNoiseLowest,
-            chunkManager.globalNoiseHighest,
-            chunkManager.MaxTerrainHeight,
             chunkManager
         );
 
