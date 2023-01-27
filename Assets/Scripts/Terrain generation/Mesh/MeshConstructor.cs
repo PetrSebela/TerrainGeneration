@@ -31,59 +31,59 @@ public class MeshConstructor : MonoBehaviour
         int chunkResolution = chunkManager.ChunkSettings.ChunkResolution;
 
         // fixing border between chunks with different resolution
-        // if (borderWith != Vector2.zero)
-        // {
-        //     if (borderWith.x == 1)
-        //     {
-        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
-        //         {
-        //             if (x % 2 != 0)
-        //             {
-        //                 float v1 = _chunkData[(x - 1) * LODnumber + 1, chunkResolution + 1];
-        //                 float v2 = _chunkData[(x + 1) * LODnumber + 1, chunkResolution + 1];
-        //                 _chunkData[x * LODnumber + 1, chunkResolution + 1] = (v1 + v2) / 2;
-        //             }
-        //         }
-        //     }
-        //     else if (borderWith.x == -1)
-        //     {
-        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
-        //         {
-        //             if (x % 2 != 0)
-        //             {
-        //                 float v1 = _chunkData[(x - 1) * LODnumber + 1, 1];
-        //                 float v2 = _chunkData[(x + 1) * LODnumber + 1, 1];
-        //                 _chunkData[x * LODnumber + 1, 1] = (v1 + v2) / 2;
-        //             }
-        //         }
-        //     }
+        if (borderWith != Vector2.zero)
+        {
+            if (borderWith.x == 1)
+            {
+                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                {
+                    if (x % 2 != 0)
+                    {
+                        float v1 = chunkDataLocal[(x - 1) * LODnumber + 1, chunkResolution + 1];
+                        float v2 = chunkDataLocal[(x + 1) * LODnumber + 1, chunkResolution + 1];
+                        chunkDataLocal[x * LODnumber + 1, chunkResolution + 1] = (v1 + v2) / 2;
+                    }
+                }
+            }
+            else if (borderWith.x == -1)
+            {
+                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                {
+                    if (x % 2 != 0)
+                    {
+                        float v1 = chunkDataLocal[(x - 1) * LODnumber + 1, 1];
+                        float v2 = chunkDataLocal[(x + 1) * LODnumber + 1, 1];
+                        chunkDataLocal[x * LODnumber + 1, 1] = (v1 + v2) / 2;
+                    }
+                }
+            }
 
-        //     if (borderWith.y == 1)
-        //     {
+            if (borderWith.y == 1)
+            {
 
-        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
-        //         {
-        //             if (x % 2 != 0)
-        //             {
-        //                 float v1 = _chunkData[chunkResolution + 1, (x - 1) * LODnumber + 1];
-        //                 float v2 = _chunkData[chunkResolution + 1, (x + 1) * LODnumber + 1];
-        //                 _chunkData[chunkResolution + 1, x * LODnumber + 1] = (v1 + v2) / 2;
-        //             }
-        //         }
-        //     }
-        //     else if (borderWith.y == -1)
-        //     {
-        //         for (int x = 0; x < chunkResolution / LODnumber; x++)
-        //         {
-        //             if (x % 2 != 0)
-        //             {
-        //                 float v1 = _chunkData[1, (x - 1) * LODnumber + 1];
-        //                 float v2 = _chunkData[1, (x + 1) * LODnumber + 1];
-        //                 _chunkData[1, x * LODnumber + 1] = (v1 + v2) / 2;
-        //             }
-        //         }
-        //     }
-        // }
+                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                {
+                    if (x % 2 != 0)
+                    {
+                        float v1 = chunkDataLocal[chunkResolution + 1, (x - 1) * LODnumber + 1];
+                        float v2 = chunkDataLocal[chunkResolution + 1, (x + 1) * LODnumber + 1];
+                        chunkDataLocal[chunkResolution + 1, x * LODnumber + 1] = (v1 + v2) / 2;
+                    }
+                }
+            }
+            else if (borderWith.y == -1)
+            {
+                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                {
+                    if (x % 2 != 0)
+                    {
+                        float v1 = chunkDataLocal[1, (x - 1) * LODnumber + 1];
+                        float v2 = chunkDataLocal[1, (x + 1) * LODnumber + 1];
+                        chunkDataLocal[1, x * LODnumber + 1] = (v1 + v2) / 2;
+                    }
+                }
+            }
+        }
 
 
         List<Vector3> vertexList = new List<Vector3>();
@@ -91,7 +91,6 @@ public class MeshConstructor : MonoBehaviour
         
         int vertexCout = 0;
         float sampleRate = (chunkManager.ChunkSettings.ChunkSize) / ((float)(chunkResolution) / LODnumber);
-        Debug.Log(sampleRate);
         
         for (int x = 0; x < chunkResolution / LODnumber; x++)
         {
@@ -121,6 +120,8 @@ public class MeshConstructor : MonoBehaviour
                 vertexCout += 4;
             }
         }
+
+
         // combine duplicate vertices
         //! probably just memory saver if it eats too much cpu time remove it i will have method for calculating smooth normals anyways
         // Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();

@@ -25,7 +25,7 @@ public class Chunk
     public Vector3[] vertices;
     public int[] triangles;
 
-    public Chunk(float[,] heightMap, Vector3 position, float localMinimum, float localMaximum)
+    public Chunk(float[,] heightMap, Vector2 position, float localMinimum, float localMaximum)
     {
         this.heightMap = heightMap;
         this.position = position;
@@ -40,7 +40,7 @@ public class Chunk
 
         currentMeshData = MeshConstructor.ConstructTerrain(
             heightMap,
-            position,
+            new Vector3(position.x,0,position.y),
             currentLODindex,
             this.borderVector,
             chunkManager

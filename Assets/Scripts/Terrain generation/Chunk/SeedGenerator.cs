@@ -35,7 +35,7 @@ public class SeedGenerator
     {
         for (int i = 0; i < noiseLayers.Length; i++)
         {
-            noiseLayers[i] = new Vector2(Random.value * 1000, Random.value * 1000);
+            noiseLayers[i] = new Vector2(Random.value * 8000, Random.value * 10000);
         }
     }
 }

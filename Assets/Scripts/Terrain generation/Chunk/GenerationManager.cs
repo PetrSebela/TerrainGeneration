@@ -15,13 +15,15 @@ public static class GenerationManager
 
         offsets.SetData(chunkManager.SeedGenerator.noiseLayers);
 
+        Debug.Log(chunkManager.WorldSize);
+
         for (int xChunk = -chunkManager.WorldSize; xChunk < chunkManager.WorldSize; xChunk++)
         {
             for (int yChunk = -chunkManager.WorldSize; yChunk < chunkManager.WorldSize; yChunk++)
             {
                 Vector2 generatedChunkPosition = new Vector2(xChunk, yChunk);
-                int heightMapSide = chunkManager.ChunkSettings.ChunkResolution + 4;
-                float[,] heightMap = new float[heightMapSide,heightMapSide];
+                int heightMapSide = chunkManager.ChunkSettings.ChunkResolution + 2;
+                float[,] heightMap = new float[heightMapSide, heightMapSide ];
                 float highestValue = -Mathf.Infinity;
                 float lowestValue = Mathf.Infinity;
 
@@ -30,11 +32,14 @@ public static class GenerationManager
                 chunkManager.HeightMapShader.SetVector("offset", generatedChunkPosition);
                 chunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
                 chunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
-                chunkManager.HeightMapShader.SetFloat("size",chunkManager.WorldSize);
+                
                 chunkManager.HeightMapShader.SetFloat("persistence",chunkManager.TerrainSettings.Persistence);
                 chunkManager.HeightMapShader.SetFloat("lacunarity",chunkManager.TerrainSettings.Lacunarity);
                 chunkManager.HeightMapShader.SetInt("octaves",chunkManager.TerrainSettings.Octaves);
+                
+                chunkManager.HeightMapShader.SetFloat("size",chunkManager.ChunkSettings.ChunkSize);
                 chunkManager.HeightMapShader.SetInt("resolution",heightMapSide);
+                chunkManager.HeightMapShader.SetInts("worldSize", chunkManager.WorldSize);
                 
                 chunkManager.HeightMapShader.Dispatch(0, heightMapSide / 2, heightMapSide / 2, 1);
                 heightMapBuffer.GetData(heightMap);
@@ -58,13 +63,14 @@ public static class GenerationManager
                 if(lowestValue < chunkManager.globalNoiseLowest){
                     chunkManager.globalNoiseLowest = lowestValue;
                 }
+
                 if(highestValue > chunkManager.globalNoiseHighest){
                     chunkManager.globalNoiseHighest = highestValue;
                 }     
-
+                
                 Chunk chunk = new Chunk(
                     heightMap, 
-                    new Vector3(generatedChunkPosition.x, 0, generatedChunkPosition.y), 
+                    generatedChunkPosition, 
                     lowestValue, 
                     highestValue);
 

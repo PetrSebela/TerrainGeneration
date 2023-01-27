@@ -33,8 +33,6 @@ public static class MeshConstructorManager
                 //     LODindex = 4;
                 // else if (Math.Abs(toGenerate.x) >= 3 || Math.Abs(toGenerate.y) >= 3)
                 //     LODindex = 2;
-                // else
-                //     LODindex = 1;
 
                 if (Math.Abs(toGenerate.x) >= 5 || Math.Abs(toGenerate.y) >= 5)
                     LODindex = 8;

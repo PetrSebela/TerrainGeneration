@@ -32,7 +32,7 @@ public class PlayerController : MonoBehaviour
     public float AcceleratedFlightScale;
     private float FlightDrag = 6;    
     
-    private Camera cam;
+    [SerializeField] private Camera cam;
     [Header("Exposed Variables")]
 
     [SerializeField]

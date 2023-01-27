@@ -199,59 +199,59 @@ public class ChunkManager : MonoBehaviour
         Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
         // Rendering enviromental details
-        // foreach (Spawnable spawnableType in DetailBatches.Keys)
-        // {   
-        //     foreach (List<Matrix4x4> envList in DetailBatches[spawnableType])
-        //     {
-        //         switch (spawnableType)
-        //         {
-        //             case Spawnable.ConiferTree:
-        //                 Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, envList);
-        //                 Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, envList);
-        //                 break;
+        foreach (Spawnable spawnableType in DetailBatches.Keys)
+        {   
+            foreach (List<Matrix4x4> envList in DetailBatches[spawnableType])
+            {
+                switch (spawnableType)
+                {
+                    case Spawnable.ConiferTree:
+                        Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, envList);
+                        Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, envList);
+                        break;
 
-        //             case Spawnable.DeciduousTree:
-        //                 Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, envList);
-        //                 Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, envList);
-        //                 break;
+                    case Spawnable.DeciduousTree:
+                        Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, envList);
+                        Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, envList);
+                        break;
 
-        //             case Spawnable.Rock:
-        //                 Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, envList);
-        //                 break;
+                    case Spawnable.Rock:
+                        Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, envList);
+                        break;
 
-        //             case Spawnable.Bush:
-        //                 Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, envList);
-        //                 Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, envList);
-        //                 break;                           
+                    case Spawnable.Bush:
+                        Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, envList);
+                        Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, envList);
+                        break;                           
 
-        //             default:
-        //                 break;
-        //         }
-        //     }
-        // }      
+                    default:
+                        break;
+                }
+            }
+        }      
        
-        // //* SECTION - Rendering
-        // foreach (Spawnable spawnableType in LowDetailBatches.Keys)
-        // {   
-        //     foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
-        //     {
-        //         switch (spawnableType)
-        //         {
-        //             case Spawnable.ConiferTree:
-        //                 Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[0], envList);                 
-        //                 Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[1], envList);                 
-        //                 break;
+        //* SECTION - Rendering
+        foreach (Spawnable spawnableType in LowDetailBatches.Keys)
+        {   
+            foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
+            {
+                switch (spawnableType)
+                {
+                    case Spawnable.ConiferTree:
+                        Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[0], envList);                 
+                        Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[1], envList);                 
+                        break;
 
-        //             case Spawnable.DeciduousTree:
-        //                 Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[2], envList);                 
-        //                 Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[3], envList);
-        //                 break;
+                    case Spawnable.DeciduousTree:
+                        Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[2], envList);                 
+                        Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[3], envList);
+                        break;
 
-        //             default:
-        //                 break;
-        //         }
-        //     }
-        // }
+                    default:
+                        break;
+                }
+            }
+        }
 
         foreach (Mesh mesh in combinesMeshes)
         {
@@ -367,39 +367,7 @@ public class ChunkManager : MonoBehaviour
             CombineInstance[] list = mergeList[i].ToArray();
             mesh.CombineMeshes(list, true, true);
             combinesMeshes[i] = mesh;
-        }  
-        Debug.Log("starting merging");
-        // for (int i = 0; i < mergeList.Count; i++)
-        // {
-
-        //     // Remove duplicate vertices
-        //     Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
-
-        //     int vertexMapIndex = 0;
-        //     foreach (Vector3 item in combinesMeshes[i].vertices)
-        //     {
-        //         if (!duplicateMapping.ContainsKey(item))
-        //         {
-        //             duplicateMapping.Add(item, vertexMapIndex++);
-        //         }
-        //     }
-
-        //     List<Vector3> constructVertexList = new List<Vector3>();
-        //     List<int> constructTriangleList = new List<int>();
-        //     foreach (int item in combinesMeshes[i].triangles)
-        //     {
-        //         constructTriangleList.Add(duplicateMapping[combinesMeshes[i].vertices[item]]);
-        //     }
-
-        //     foreach (Vector3 item in duplicateMapping.Keys)
-        //     {
-        //         constructVertexList.Add(item);
-        //     }
-        //     combinesMeshes[i].vertices = constructVertexList.ToArray();
-        //     combinesMeshes[i].triangles = constructTriangleList.ToArray();
-        //     yield return null;
-
-        // }
+        }
         Debug.Log("Mesh batching took : " + (Mathf.Round(((Time.realtimeSinceStartup - st)*1000*100000))/100000) + "ms");
         yield return null;
     }
@@ -429,7 +397,7 @@ public class ChunkManager : MonoBehaviour
         MeshDictionary[key] = mesh;
         
         GameObject chunk = ChunkObjectDictionary[meshData.position];
-        if(LODindex == 1)
+        if(LODindex == 2)
         {
             if(chunk.GetComponent<MeshCollider>())
             {

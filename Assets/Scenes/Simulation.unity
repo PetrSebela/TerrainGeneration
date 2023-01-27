@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -686,7 +686,11 @@ MonoBehaviour:
   BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
     type: 2}
   LowDetail: []
-  ImpostorTextures: []
+  ImpostorTextures:
+  - {fileID: 2800000, guid: 6c9c4c922ed323341bdfeee903a36a83, type: 3}
+  - {fileID: 2800000, guid: aa9d859f56aa71247a8cdc984f7f2c9f, type: 3}
+  - {fileID: 2800000, guid: a6bc9ab16b3cd774ba8488debf3ef23c, type: 3}
+  - {fileID: 2800000, guid: 721c8ca52f116834d9a96697b2fc8833, type: 3}
   ImpostorMaterials: []
   terrainCurve:
     serializedVersion: 2
@@ -703,20 +707,29 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.35
       value: 0.25
-      inSlope: 0.012866337
-      outSlope: 0.012866337
+      inSlope: 0.0007018936
+      outSlope: 0.0007018936
       tangentMode: 0
       weightedMode: 2
       inWeight: 0.33333334
-      outWeight: 0.24397077
+      outWeight: 0.42614606
+    - serializedVersion: 3
+      time: 0.725176
+      value: 0.57578224
+      inSlope: 0.34249866
+      outSlope: 0.34249866
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.40896767
+      outWeight: 0.35234767
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 2.4107628
-      outSlope: 2.4107628
+      inSlope: 5.8228855
+      outSlope: 5.8228855
       tangentMode: 0
       weightedMode: 1
-      inWeight: 0.37622866
+      inWeight: 0.0702879
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -4489,6 +4502,7 @@ MonoBehaviour:
   AcceleratedWalkScale: 2
   FlightForce: 800
   AcceleratedFlightScale: 4
+  cam: {fileID: 330585545}
   zoomFOV: 20
   normalFOV: 60
   IsPaused: 0
