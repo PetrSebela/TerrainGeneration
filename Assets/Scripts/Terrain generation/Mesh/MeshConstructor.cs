@@ -17,9 +17,10 @@ public class MeshConstructor : MonoBehaviour
     };
 
     // takes in constant size 2D array and creates mesh with variable leavel of detail
-    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, int LODnumber, Vector2 borderWith, ChunkManager chunkManager)
+    public static MeshData ConstructTerrain(float[,] chunkData, Vector3 position, int LODindex, Vector2 borderWith, ChunkManager chunkManager)
     {
         float[,] chunkDataLocal = (float[,])chunkData.Clone();
+
         NoiseConverter noiseConverter = new NoiseConverter(
             chunkManager.globalNoiseLowest,
             chunkManager.globalNoiseHighest,
@@ -35,25 +36,25 @@ public class MeshConstructor : MonoBehaviour
         {
             if (borderWith.x == 1)
             {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                for (int x = 0; x < chunkResolution / LODindex; x++)
                 {
                     if (x % 2 != 0)
                     {
-                        float v1 = chunkDataLocal[(x - 1) * LODnumber + 1, chunkResolution + 1];
-                        float v2 = chunkDataLocal[(x + 1) * LODnumber + 1, chunkResolution + 1];
-                        chunkDataLocal[x * LODnumber + 1, chunkResolution + 1] = (v1 + v2) / 2;
+                        float v1 = chunkDataLocal[(x - 1) * LODindex, chunkResolution];
+                        float v2 = chunkDataLocal[(x + 1) * LODindex, chunkResolution];
+                        chunkDataLocal[x * LODindex, chunkResolution] = (v1 + v2) / 2;
                     }
                 }
             }
             else if (borderWith.x == -1)
             {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                for (int x = 0; x < chunkResolution / LODindex; x++)
                 {
                     if (x % 2 != 0)
                     {
-                        float v1 = chunkDataLocal[(x - 1) * LODnumber + 1, 1];
-                        float v2 = chunkDataLocal[(x + 1) * LODnumber + 1, 1];
-                        chunkDataLocal[x * LODnumber + 1, 1] = (v1 + v2) / 2;
+                        float v1 = chunkDataLocal[(x - 1) * LODindex, 0];
+                        float v2 = chunkDataLocal[(x + 1) * LODindex, 0];
+                        chunkDataLocal[x * LODindex, 0] = (v1 + v2) / 2;
                     }
                 }
             }
@@ -61,25 +62,25 @@ public class MeshConstructor : MonoBehaviour
             if (borderWith.y == 1)
             {
 
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                for (int x = 0; x < chunkResolution / LODindex; x++)
                 {
                     if (x % 2 != 0)
                     {
-                        float v1 = chunkDataLocal[chunkResolution + 1, (x - 1) * LODnumber + 1];
-                        float v2 = chunkDataLocal[chunkResolution + 1, (x + 1) * LODnumber + 1];
-                        chunkDataLocal[chunkResolution + 1, x * LODnumber + 1] = (v1 + v2) / 2;
+                        float v1 = chunkDataLocal[chunkResolution, (x - 1) * LODindex];
+                        float v2 = chunkDataLocal[chunkResolution, (x + 1) * LODindex];
+                        chunkDataLocal[chunkResolution, x * LODindex] = (v1 + v2) / 2;
                     }
                 }
             }
             else if (borderWith.y == -1)
             {
-                for (int x = 0; x < chunkResolution / LODnumber; x++)
+                for (int x = 0; x < chunkResolution / LODindex; x++)
                 {
                     if (x % 2 != 0)
                     {
-                        float v1 = chunkDataLocal[1, (x - 1) * LODnumber + 1];
-                        float v2 = chunkDataLocal[1, (x + 1) * LODnumber + 1];
-                        chunkDataLocal[1, x * LODnumber + 1] = (v1 + v2) / 2;
+                        float v1 = chunkDataLocal[0, (x - 1) * LODindex];
+                        float v2 = chunkDataLocal[0, (x + 1) * LODindex];
+                        chunkDataLocal[0, x * LODindex] = (v1 + v2) / 2;
                     }
                 }
             }
@@ -90,11 +91,11 @@ public class MeshConstructor : MonoBehaviour
         List<int> triangleList = new List<int>();
         
         int vertexCout = 0;
-        float sampleRate = (chunkManager.ChunkSettings.ChunkSize) / ((float)(chunkResolution) / LODnumber);
+        float sampleRate = (chunkManager.ChunkSettings.ChunkSize) / ((float)(chunkResolution) / LODindex);
         
-        for (int x = 0; x < chunkResolution / LODnumber; x++)
+        for (int x = 0; x < chunkResolution / LODindex; x++)
         {
-            for (int y = 0; y < chunkResolution / LODnumber; y++)
+            for (int y = 0; y < chunkResolution / LODindex; y++)
             {
                 for (int offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
                 {
@@ -102,8 +103,8 @@ public class MeshConstructor : MonoBehaviour
                     float yPosition = (y + offsets[offsetIndex].y) * sampleRate;
                     
                     float height = chunkDataLocal[
-                        (x + offsets[offsetIndex].x) * LODnumber, 
-                        (y + offsets[offsetIndex].y) * LODnumber];
+                        (x + offsets[offsetIndex].x) * LODindex, 
+                        (y + offsets[offsetIndex].y) * LODindex];
                     
                     vertexList.Add(new Vector3(
                         xPosition,
@@ -120,36 +121,8 @@ public class MeshConstructor : MonoBehaviour
                 vertexCout += 4;
             }
         }
-
-
-        // combine duplicate vertices
-        //! probably just memory saver if it eats too much cpu time remove it i will have method for calculating smooth normals anyways
-        // Dictionary<Vector3, int> duplicateMapping = new Dictionary<Vector3, int>();
-
-        // int vertexMapIndex = 0;
-        // foreach (Vector3 item in vertexList)
-        // {
-        //     if (!duplicateMapping.ContainsKey(item))
-        //     {
-        //         duplicateMapping.Add(item, vertexMapIndex++);
-        //     }
-        // }
-
-        // List<Vector3> constructVertexList = new List<Vector3>();
-        // List<int> constructTriangleList = new List<int>();
-        // foreach (int item in triangleList)
-        // {
-        //     constructTriangleList.Add(duplicateMapping[vertexList[item]]);
-        // }
-
-        // foreach (Vector3 item in duplicateMapping.Keys)
-        // {
-        //     constructVertexList.Add(item);
-        // }
-
-        // MeshData meshData = new MeshData(constructVertexList.ToArray(), constructTriangleList.ToArray(), position);
         
-        MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position);
+        MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position,LODindex);
         return meshData;
     }
 
@@ -157,15 +130,27 @@ public class MeshConstructor : MonoBehaviour
 }
 public class MeshData
 {
+    public readonly int LOD;
     public readonly Vector3[] vertexList;
-    public Vector3[] normals;
     public readonly int[] triangleList;
     public readonly Vector3 position;
 
-    public MeshData(Vector3[] vertexList, int[] triangleList, Vector3 position)
+    public MeshData(Vector3[] vertexList, int[] triangleList, Vector3 position,int LOD)
     {
         this.vertexList = vertexList;
         this.triangleList = triangleList;
         this.position = position;
+        this.LOD = LOD;
+    }
+}
+
+public struct MeshUpdate{
+    public readonly MeshData MeshData;
+    public readonly Chunk CallbackObject;
+
+    public MeshUpdate(MeshData meshData, Chunk callbackObject)
+    {
+        MeshData = meshData;
+        CallbackObject = callbackObject;
     }
 }

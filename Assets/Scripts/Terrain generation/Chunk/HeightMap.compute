@@ -112,39 +112,10 @@ float sampleNoise(float2 coord){
         noiseSample += snoise((coord + layerOffsets[i]) * frequency ) * amplitude;
         amplitude *= persistence;
         frequency *= lacunarity;
-    }
-
-    float noiseSample1 = 0;
-    amplitude = 1;
-    frequency = 0.00045;
-    
-    for(int i = 0; i < octaves;i++){
-        noiseSample1 += snoise((coord + float2(0,1)) * frequency + layerOffsets[i]) * amplitude;
-        amplitude *= persistence;
-        frequency *= lacunarity;
-    }
-
-    float noiseSample2 = 0;
-    amplitude = 1;
-    frequency = 0.00045;
-
-    for(int i = 0; i < octaves;i++){
-        noiseSample2 += snoise((coord + float2(1,0)) * frequency + layerOffsets[i]) * amplitude;
-        amplitude *= persistence;
-        frequency *= lacunarity;
-    }
-
-
-    
+    }    
 
     noiseSample = noiseSample / octaves;
-    noiseSample1 = noiseSample2 / octaves;
-    noiseSample2 = noiseSample1 / octaves;
-
-    return -(noiseSample + noiseSample1 + noiseSample2) / 3 * 10 + 0.1;
-
-    // return -noiseSample * 10 + 0.1;
-    // return log(noiseSample * 10 + 0.1);
+    return -noiseSample;
 }
 
 
@@ -155,28 +126,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float x = id.x + offset.x * size;
     float y = id.y + offset.y * size;
 
-
-    // float t = pow(max(1 - (sqrt(x*x + y*y) / (size * worldSize)), 0) , 0.28);
-    float t = pow(max(1 - (sqrt(x*x + y*y) / (size * worldSize)), 0) , 0.28);
-    // float p = sqrt(x*x + y*y) / (size * worldSize);
-    // float a = -2;
-    // float t = 1
-
-    // if(p > 0.5){
-    //     t = 1
-    // }
-    // else if (p > 0){
-    //     t = pow(p,a)/(pow(p,a)+pow(1-p,a))
-    // }
-    // float t = pow(p,a) / ( pow(p, a) + pow(5.3 - 5.3*p, a) );
-    
-    // if (p <= 0){
-    //     t = 1;
-    // }
-    // if (p >= 1){
-    //     t = 0;
-    // }
-
+    float t = pow(max(1 - (sqrt(x*x + y*y) / (size * worldSize)), 0) , 0.21);
 
     // FBM samples
     float s1 = sampleNoise(float2(x,y));

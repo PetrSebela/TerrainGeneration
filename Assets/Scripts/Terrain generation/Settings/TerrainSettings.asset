@@ -15,5 +15,5 @@ MonoBehaviour:
   Persistence: 0.55
   Lacunarity: 1.5
   Octaves: 24
-  MaxHeight: 255
-  MinHeight: -85
+  MaxHeight: 400
+  MinHeight: -133.33333

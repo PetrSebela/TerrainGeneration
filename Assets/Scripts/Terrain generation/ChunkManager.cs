@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
+using System.Threading;
 
 public class ChunkManager : MonoBehaviour
 {
@@ -43,13 +44,8 @@ public class ChunkManager : MonoBehaviour
     
     [Header("Exposed variables")]
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
-    public Dictionary<Vector2, Mesh> MeshDictionary = new Dictionary<Vector2, Mesh>();
-    public Dictionary<Vector3, GameObject> ChunkObjectDictionary = new Dictionary<Vector3, GameObject>();
     public Dictionary<Vector2, Chunk> TreeChunkDictionary = new Dictionary<Vector2, Chunk>();
     // Queues
-    public Queue<Vector2> ChunkUpdateRequestQueue = new Queue<Vector2>();
-    public Queue<ChunkUpdate> MeshQueue = new Queue<ChunkUpdate>();
-
 
     public Vector2 PastChunkPosition = Vector2.zero;
     public bool GenerationComplete = false;
@@ -57,7 +53,6 @@ public class ChunkManager : MonoBehaviour
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
-    public int NumOfPeaks;
     public SimulationSettings simulationSettings;
     public float globalNoiseLowest = Mathf.Infinity;
     public float globalNoiseHighest = -Mathf.Infinity;
@@ -76,25 +71,32 @@ public class ChunkManager : MonoBehaviour
     public AnimationCurve terrainCurve;
 
 
-    //! chunk batching
-    private Mesh[] combinesMeshes = new Mesh[0];
-
-    private IEnumerator UpdateCorutine;
-    int hold = 0;
-
     private Dictionary<Spawnable,int> LowDetailCounter = new Dictionary<Spawnable, int>();
     private Dictionary<Spawnable,int> DetailCounter = new Dictionary<Spawnable, int>();
 
     private Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
     private Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
-    private int ProcessIndexer = 2;
-    
+
+    public Queue<MeshRequest> MeshRequests = new Queue<MeshRequest>();
+    public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();
+    private Thread ProcessingThread;
+
+    public int LastQueueCount = 0;
+
+    public GameObject BelltowerObject;
+    public GameObject Signpost;
+
+    public AnimationCurve TerrainEaseCurve;
 
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
 
     //* Setting up simulation  
+
+    void OnApplicationQuit(){
+        ProcessingThread.Abort();
+    }
     void Start()
     {
         ImpostorMaterials = new Material[ImpostorTextures.Length];
@@ -108,11 +110,17 @@ public class ChunkManager : MonoBehaviour
 
         TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture());
         
+        ChunkUpdateProcessor updateProcessor = new ChunkUpdateProcessor(this);
 
+        ThreadStart threadStart = delegate
+        {
+            updateProcessor.UpdateProcessingThread();
+        };
 
-        UpdateCorutine = BatchMeshes();
+        ProcessingThread = new Thread(threadStart);
+        ProcessingThread.Start();
+
         //! Simulation setup
-        // MaxTerrainHeight = (simulationSettings.maxHeight == 0)? MaxTerrainHeight : simulationSettings.maxHeight;
         WorldSize = simulationSettings.WorldSize;
         string seed = simulationSettings.Seed;
         GenerateWorld(seed);
@@ -135,54 +143,45 @@ public class ChunkManager : MonoBehaviour
     void FixedUpdate(){
         if (!GenerationComplete)
             return;
-        
-        hold = MeshQueue.Count;
-        switch (ProcessIndexer)
-        {
-            case 2:
-                Vector2 currentChunkPosition = new Vector2(
-                    Mathf.Round(TrackedObject.position.x / ChunkSettings.ChunkSize), 
-                    Mathf.Round(TrackedObject.position.z / ChunkSettings.ChunkSize)
-                );
-                
-                if (currentChunkPosition != PastChunkPosition)
-                {
-                    PastChunkPosition = currentChunkPosition;
-                    for (int x = -34; x <= 34; x++)
-                    {
-                        for (int y = -34; y <= 34; y++)
-                        {
-                            Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                            if (sampler.x >= -WorldSize && sampler.x < WorldSize && sampler.y >= -WorldSize && sampler.y < WorldSize)
-                                lock (ChunkUpdateRequestQueue)
-                                    ChunkUpdateRequestQueue.Enqueue(sampler);
-                        }
-                    }
-                    ProcessIndexer = 0;
-                }
-                break;
-    
-            case 0:
-                for (int f = 0; f < hold; f++)
-                {
-                    ChunkUpdate updateMeshData;
-                    lock (MeshQueue)
-                        updateMeshData = MeshQueue.Dequeue();
-                    UpdateChunk(updateMeshData.meshData, updateMeshData.LODindex);
-                }  
-                ProcessIndexer = 1;
-                break;
-    
-            case 1:
-                BatchEnviroment();
-                StopCoroutine(UpdateCorutine);
-                UpdateCorutine = BatchMeshes();
-                StartCoroutine(UpdateCorutine);
-                ProcessIndexer = 2;
-                break;
 
-            default:
-                break;
+        Vector2 currentChunkPosition = new Vector2(
+            Mathf.Round(TrackedObject.position.x / ChunkSettings.ChunkSize), 
+            Mathf.Round(TrackedObject.position.z / ChunkSettings.ChunkSize)
+        );
+
+        if (currentChunkPosition != PastChunkPosition)
+        {
+            PastChunkPosition = currentChunkPosition;
+            for (int x = -7; x <= 7; x++)
+            {
+                for (int y = -7; y <= 7; y++)
+                {
+                    Vector2 sampler = currentChunkPosition + new Vector2(x, y);
+                    if (sampler.x >= -WorldSize && sampler.x < WorldSize && sampler.y >= -WorldSize && sampler.y < WorldSize)
+                    {
+                        ChunkDictionary[sampler].UpdateChunk(1,Vector2.zero,new Vector3(PastChunkPosition.x,0,PastChunkPosition.y));
+                    }
+                }
+            }
+        }
+
+        if (MeshUpdates.Count == 0 && LastQueueCount>0){
+            BatchEnviroment();
+        }
+        LastQueueCount = MeshUpdates.Count;
+
+
+        if(MeshUpdates.Count > 0){
+            int hold = MeshUpdates.Count;
+
+            for (int i = 0; i < MeshUpdates.Count; i++)
+            {
+                MeshUpdate meshUpdate;
+                lock(MeshUpdates){
+                    meshUpdate = MeshUpdates.Dequeue();
+                }
+                meshUpdate.CallbackObject.OnMeshRecieved(meshUpdate.MeshData);   
+            }
         }
     }
 
@@ -230,7 +229,7 @@ public class ChunkManager : MonoBehaviour
             }
         }      
        
-        //* SECTION - Rendering
+        // //* SECTION - Rendering
         foreach (Spawnable spawnableType in LowDetailBatches.Keys)
         {   
             foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
@@ -252,11 +251,6 @@ public class ChunkManager : MonoBehaviour
                 }
             }
         }
-
-        foreach (Mesh mesh in combinesMeshes)
-        {
-            Graphics.DrawMesh(mesh,Vector3.zero,Quaternion.identity, TerrainMaterial, 0);
-        }
     }
 
     public void BatchEnviroment(){
@@ -273,147 +267,45 @@ public class ChunkManager : MonoBehaviour
             {Spawnable.DeciduousTree,0},
         };
 
-        foreach (Chunk chunk in LowDetail)
-        {
-            foreach(Spawnable type in new Spawnable[]{Spawnable.ConiferTree,Spawnable.DeciduousTree})
-            {    
-                foreach (Matrix4x4 item in chunk.detailDictionary[type])
-                {
-                    if(LowDetailCounter[type] % 1023 == 0){
-                        LowDetailBatches[type].Add(new List<Matrix4x4>());
-                    }
-
-                    LowDetailBatches[type][(int)(LowDetailCounter[type] / 1023)].Add(item);
-                    LowDetailCounter[type]++;
-                }
-            }
-        }
-
-
-        //* -- High resolution asset -- *
-
         DetailBatches.Clear();
         DetailCounter.Clear();
 
-        var spawnableEnum = Enum.GetValues(typeof(Spawnable));
-        foreach (Spawnable spawnable in spawnableEnum)
+        foreach (Spawnable spawnable in Enum.GetValues(typeof(Spawnable)))
         {
             DetailBatches.Add(spawnable,new List<List<Matrix4x4>>());
             DetailCounter.Add(spawnable,0);
         }
 
-        foreach (Chunk chunk in TreeChunkDictionary.Values)
+
+        foreach (Chunk chunk in ChunkDictionary.Values)
         {
-            foreach(Spawnable type in spawnableEnum)
-            {    
-                foreach (Matrix4x4 item in chunk.detailDictionary[type])
-                {
-                    if(DetailCounter[type] % 1023 == 0){
-                        DetailBatches[type].Add(new List<Matrix4x4>());
+            if(chunk.CurrentLODindex >= 8){
+                foreach(Spawnable type in new Spawnable[]{Spawnable.ConiferTree,Spawnable.DeciduousTree})
+                {    
+                    foreach (Matrix4x4 item in chunk.LowDetailDictionary[type])
+                    {
+                        if(LowDetailCounter[type] % 1023 == 0){
+                            LowDetailBatches[type].Add(new List<Matrix4x4>());
+                        }
+
+                        LowDetailBatches[type][(int)(LowDetailCounter[type] / 1023)].Add(item);
+                        LowDetailCounter[type]++;
                     }
-
-                    DetailBatches[type][(int)(DetailCounter[type] / 1023)].Add(item);
-                    DetailCounter[type]++;
                 }
             }
-        }
-        Debug.Log("Enviroment batching took : " + (Mathf.Round(((Time.realtimeSinceStartup - st)*1000*100000))/100000) + "ms");
-    }
+            else{
+                foreach(Spawnable type in Enum.GetValues(typeof(Spawnable)))
+                {    
+                    foreach (Matrix4x4 item in chunk.DetailDictionary[type])
+                    {
+                        if(DetailCounter[type] % 1023 == 0){
+                            DetailBatches[type].Add(new List<Matrix4x4>());
+                        }
 
-    public IEnumerator BatchMeshes(){
-        float st = Time.realtimeSinceStartup;
-        List<List<CombineInstance>> mergeList = new List<List<CombineInstance>>(){new List<CombineInstance>()}; 
-        int vertCounter = 0;
-        int meshIndex = 0;
-
-        for (int x = -WorldSize; x < WorldSize; x++)
-        {
-            for (int z = -WorldSize; z < WorldSize; z++)
-            {
-                Mesh mesh = MeshDictionary[new Vector2(x,z)];
-                if((long)(vertCounter + mesh.vertexCount) < 4294967295){
-                    CombineInstance instance = new CombineInstance();
-                    instance.mesh = mesh;
-                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.ChunkSize,Quaternion.identity,Vector3.one);
-                    mergeList[meshIndex].Add(instance);
+                        DetailBatches[type][(int)(DetailCounter[type] / 1023)].Add(item);
+                        DetailCounter[type]++;
+                    }
                 }
-                else{
-                    mergeList.Add( new List<CombineInstance>() );
-                    meshIndex++;    
-                    vertCounter = 0;                
-
-                    CombineInstance instance = new CombineInstance();
-                    instance.mesh = mesh;
-                    instance.transform = Matrix4x4.TRS(new Vector3(x,0,z) * ChunkSettings.ChunkSize,Quaternion.identity,Vector3.one);
-                    
-                    mergeList[meshIndex].Add(instance);
-                }
-
-                vertCounter += mesh.vertexCount;
-            }
-        }
-
-        foreach (Mesh mesh in combinesMeshes)
-        {
-            DestroyImmediate(mesh);
-        }
-
-        combinesMeshes = new Mesh[mergeList.Count];
-
-        for (int i = 0; i < mergeList.Count; i++)
-        {
-            Mesh mesh = new Mesh();
-            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            CombineInstance[] list = mergeList[i].ToArray();
-            mesh.CombineMeshes(list, true, true);
-            combinesMeshes[i] = mesh;
-        }
-        Debug.Log("Mesh batching took : " + (Mathf.Round(((Time.realtimeSinceStartup - st)*1000*100000))/100000) + "ms");
-        yield return null;
-    }
-
-
-    void UpdateChunk(MeshData meshData, int LODindex)
-    {
-        // calculating tree topology
-        Vector2 key = new Vector2(meshData.position.x, meshData.position.z);
-        if (LODindex <= LODTreeBorder && !TreeChunkDictionary.ContainsKey(key))
-        {
-            TreeChunkDictionary.Add(key, ChunkDictionary[key]);
-            LowDetail.Remove(ChunkDictionary[key]);
-        }
-
-        else if (LODindex > LODTreeBorder && TreeChunkDictionary.ContainsKey(key))
-        {
-            TreeChunkDictionary.Remove(key);
-            LowDetail.Add(ChunkDictionary[key]);
-        }
-
-        Mesh mesh = MeshDictionary[key];
-        mesh.Clear();
-        mesh.vertices = meshData.vertexList;
-        mesh.triangles = meshData.triangleList;
-        mesh.normals = meshData.normals;
-        MeshDictionary[key] = mesh;
-        
-        GameObject chunk = ChunkObjectDictionary[meshData.position];
-        if(LODindex == 2)
-        {
-            if(chunk.GetComponent<MeshCollider>())
-            {
-                chunk.GetComponent<MeshCollider>().enabled = true;
-            }
-            else
-            {
-                MeshCollider collider = chunk.AddComponent<MeshCollider>();
-                collider.sharedMesh = mesh;
-            }
-        }
-        else
-        {
-            MeshCollider collider = chunk.GetComponent<MeshCollider>();
-            if(collider != null){
-                collider.enabled = false;
             }
         }
     }

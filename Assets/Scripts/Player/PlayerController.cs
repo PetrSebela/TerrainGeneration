@@ -32,36 +32,34 @@ public class PlayerController : MonoBehaviour
     public float AcceleratedFlightScale;
     private float FlightDrag = 6;    
     
-    [SerializeField] private Camera cam;
     [Header("Exposed Variables")]
+    [SerializeField] private Camera cam;
+    [SerializeField] private int zoomFOV;
+    [SerializeField] private int normalFOV;
+    [SerializeField] private ChunkManager chunkManager;
 
-    [SerializeField]
-    private int zoomFOV;
-    [SerializeField]
-    private int normalFOV;
     private Vector2 _mouseMovement;
     private Vector2 cameraRotation;
     private Vector3 _inputs = new Vector3(0, 0, 0);
     private Vector3 WishDirection = new Vector3(0, 0, 0);
     private Rigidbody rb;
 
+    public GameObject Sun;
+    public GameObject Moon;
+
+
     public bool IsPaused = false;
     public GameObject PauseMenu;
-    [SerializeField] private ChunkManager chunkManager;
     
     private bool useGravityController = false;
-
-    public RectTransform mapTranform;
-    
+    public RectTransform mapTranform;    
     public bool FocusOnMap = false;
     private bool Accelerated = false;
 
-
-
+    
 
     void Start()
     {
-
         Application.targetFrameRate = 144;
         rb = GetComponent<Rigidbody>();
         rb.drag = FlightDrag;
@@ -80,6 +78,12 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = !Cursor.visible;
             PauseMenu.SetActive(IsPaused);
+        }
+
+        if (Input.GetKeyDown(KeyCode.T)){
+            Sun.SetActive(!Sun.activeSelf);
+            Moon.SetActive(!Moon.activeSelf);
+            RenderSettings.ambientIntensity = (Sun.activeSelf)?1f:0.2f;
         }
 
 
@@ -181,9 +185,9 @@ public class PlayerController : MonoBehaviour
             case PlayerControllerType.Ground:
                 force = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
                 RaycastHit hit;
+
                 if (Physics.Raycast(this.transform.position, Vector3.down, out hit, 3)){
                     rb.AddForce(Vector3.ProjectOnPlane(WishDirection, hit.normal) * force, ForceMode.Acceleration);
-                    Debug.Log("hit");
                 }
                 else{
                     rb.AddForce(WishDirection * force, ForceMode.Acceleration);

@@ -37,11 +37,32 @@ public class TextureCreator : MonoBehaviour
         int size = 512;
         Texture2D terrainTexture = new Texture2D(size,size);
 
-        Color grass = new Color(112 / 255f, 159/ 255f, 33/255f);
-        Color darkStone = new Color(126 / 255f, 128 / 255f, 126 / 255f);
-        Color stone = new Color(156 / 255f, 158 / 255f, 156 / 255f);
-        Color lightStone = new Color(190 / 255f, 190 / 255f, 190 / 255f);
-        Color sand = new Color(255 / 255f, 228 / 255f, 137 / 255f);
+        Color grass = new Color(
+            112 / 255f, 
+            159/ 255f, 
+            33/255f
+        );
+        Color darkStone = new Color(
+            126 / 255f, 
+            128 / 255f, 
+            126 / 255f
+        );
+        Color stone = new Color(
+            156 / 255f,
+            158 / 255f, 
+            156 / 255f
+        );
+        Color lightStone = new Color(
+            190 / 255f,
+            190 / 255f, 
+            190 / 255f
+        );
+        Color sand = new Color(
+            255 / 255f,
+            228 / 255f, 
+            137 / 255f
+        );
+
 
         for (float x = 0; x < size; x++)
         {
