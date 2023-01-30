@@ -49,7 +49,6 @@ public class ChunkManager : MonoBehaviour
 
     public Vector2 PastChunkPosition = Vector2.zero;
     public bool GenerationComplete = false;
-    public bool FullRender = false;
 
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
@@ -194,8 +193,6 @@ public class ChunkManager : MonoBehaviour
                         (float)enviromentProgress / (WorldSize * 2)) / 2;
             return;
         }    
-
-        Dictionary<Vector2,Chunk> activeDictionary = (FullRender)? ChunkDictionary : TreeChunkDictionary;
 
         // Rendering enviromental details
         foreach (Spawnable spawnableType in DetailBatches.Keys)

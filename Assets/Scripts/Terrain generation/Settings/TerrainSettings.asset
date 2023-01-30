@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46c2018a26fa4f146974ba7c7f2c3fc8, type: 3}
   m_Name: TerrainSettings
   m_EditorClassIdentifier: 
-  Persistence: 0.7
-  Lacunarity: 1.31
+  Persistence: 0.715
+  Lacunarity: 1.315
   Octaves: 24
   MaxHeight: 200
   MinHeight: -66.666664

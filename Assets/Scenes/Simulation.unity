@@ -35,10 +35,10 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0.25
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.04507088, g: 0.05642844, b: 0.07673061, a: 0.25}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -674,7 +674,6 @@ MonoBehaviour:
   waterLevel: 0
   PastChunkPosition: {x: 0, y: 0}
   GenerationComplete: 0
-  FullRender: 0
   HeightMapShader: {fileID: 7200000, guid: 8cb3cddeba4fadc4082d75678edd296c, type: 3}
   simulationSettings: {fileID: 11400000, guid: 01806e05eac489448b31c3c75788633e, type: 2}
   globalNoiseLowest: Infinity
@@ -2654,7 +2653,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.3
+  m_Intensity: 0.15
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4617,7 +4616,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 25, y: 25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1612541888
 GameObject:
@@ -4787,24 +4786,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cam: {fileID: 330585546}
   _orientation: {fileID: 1193693647}
-  _moveDownKey: 306
-  _moveUpKey: 32
   _mouseSens: 2
   ControllerType: 0
   WalkForce: 300
   AcceleratedWalkScale: 2
+  JumpForce: 125
   FlightForce: 800
   AcceleratedFlightScale: 4
+  FlightDrag: 6
   cam: {fileID: 330585545}
   zoomFOV: 20
   normalFOV: 60
   chunkManager: {fileID: 100951350}
+  ToggleMap: 9
+  DayNightSwitch: 122
+  SwitchControllerType: 120
+  ZoomCamera: 99
+  PauseSimulation: 27
+  FlyUpKey: 32
+  FlyDownKey: 306
+  Accelerate: 304
   Sun: {fileID: 410087039}
   Moon: {fileID: 876910247}
+  MainLight: {fileID: 0}
   IsPaused: 0
   PauseMenu: {fileID: 2058219200}
   mapTranform: {fileID: 2093020499}
   FocusOnMap: 0
+  Jump: 0
 --- !u!4 &1620735406
 Transform:
   m_ObjectHideFlags: 0
@@ -5394,7 +5403,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1884988104
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6372,6 +6381,7 @@ GameObject:
   - component: {fileID: 2093020499}
   - component: {fileID: 2093020501}
   - component: {fileID: 2093020500}
+  - component: {fileID: 2093020502}
   m_Layer: 5
   m_Name: Image
   m_TagString: Untagged
@@ -6435,6 +6445,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2093020498}
   m_CullTransparentMesh: 1
+--- !u!114 &2093020502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2093020498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3312d7739989d2b4e91e6319e9a96d76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding: {x: 0, y: 0, z: 0, w: 0}
+  m_Softness: {x: 0, y: 0}
 --- !u!1 &2094954572
 GameObject:
   m_ObjectHideFlags: 0

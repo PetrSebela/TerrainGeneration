@@ -412,7 +412,7 @@ public static class GenerationManager
             chunkManager);
 
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(chunkManager.TerrainSettings.MinHeight,chunkManager.TerrainSettings.MaxHeight));
-
+        chunkManager.MapDisplay.transform.parent.gameObject.SetActive(true);
         chunkManager.GenerationComplete = true;
         Debug.Log("Chunk Prerender Generation Finished");
         Debug.Log(string.Format("Max : {0} | Min : {1}",chunkManager.globalNoiseHighest,chunkManager.globalNoiseLowest));

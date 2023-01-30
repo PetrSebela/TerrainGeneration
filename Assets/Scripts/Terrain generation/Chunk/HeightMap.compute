@@ -104,7 +104,7 @@ RWStructuredBuffer<float3> treeBuffer;
 
 float sampleNoise(float2 coord){
     float amplitude = 1;
-    float frequency = 0.0005;
+    float frequency = 0.0004;
 
     float noiseSample = 0;
 
@@ -126,7 +126,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float x = id.x + offset.x * size;
     float y = id.y + offset.y * size;
 
-    float t = pow(max(1 - (sqrt(x*x + y*y) / (size * worldSize)), 0) , 0.21);
+    float t = pow(max(1 - (sqrt(x*x + y*y) / (size * worldSize)), 0) , 0.3);
 
     // FBM samples
     float s1 = sampleNoise(float2(x,y));

@@ -46,7 +46,12 @@ public class MapTextureGenerator : MonoBehaviour
                             (int)(uvy * 512),
                             (int)(converter.GetNormalized(value) * 512)
                         );
+                        col.a = 1;
 
+                        if(converter.GetRealHeight(value) <= chunkManager.waterLevel){
+                            col = new Color(80/255, 208/255, 251/255);
+                        }
+                        
                         mapTexture.SetPixel(
                             x * chunkResolution + xInChunk + ( worldSize * chunkResolution ),
                             y * chunkResolution + yInChunk + ( worldSize * chunkResolution ),
