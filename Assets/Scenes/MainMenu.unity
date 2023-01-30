@@ -317,7 +317,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 32
+  m_text: 8
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 602ee3d22f59a944ca025bf6ba096a64, type: 2}
   m_sharedMaterial: {fileID: -2587601852043097678, guid: 602ee3d22f59a944ca025bf6ba096a64,
@@ -765,7 +765,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 417065080}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
@@ -935,7 +935,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72b37dd81b42711418fdcf15ca41bfdc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  simulationSettings: {fileID: 11400000, guid: 01806e05eac489448b31c3c75788633e, type: 2}
+  SimulationSettings: {fileID: 11400000, guid: 01806e05eac489448b31c3c75788633e, type: 2}
+  TerrainSettings: {fileID: 11400000, guid: 58359a830563c0145a7b104271ff1eff, type: 2}
   maxHeightField: {fileID: 1920955138}
   worldSize: {fileID: 988298931}
   seedField: {fileID: 838261618}
@@ -1223,7 +1224,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 568626428}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
@@ -2156,6 +2157,10 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
+    - m_Text: 8
+      m_Image: {fileID: 0}
+    - m_Text: 16
+      m_Image: {fileID: 0}
     - m_Text: 32
       m_Image: {fileID: 0}
     - m_Text: 48
@@ -3560,7 +3565,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 400
+  m_text: 200
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 602ee3d22f59a944ca025bf6ba096a64, type: 2}
   m_sharedMaterial: {fileID: -2587601852043097678, guid: 602ee3d22f59a944ca025bf6ba096a64,
@@ -4557,6 +4562,8 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
+    - m_Text: 200
+      m_Image: {fileID: 0}
     - m_Text: 400
       m_Image: {fileID: 0}
     - m_Text: 600

@@ -88,15 +88,10 @@ public class PlayerController : MonoBehaviour
 
 
         if(Input.GetKeyDown(KeyCode.Tab)){
-            FocusOnMap = true;
-            mapTranform.sizeDelta = new Vector2(500,500);
-
+            FocusOnMap = !FocusOnMap;
+            mapTranform.sizeDelta = (FocusOnMap)? new Vector2(1024,1024) : new Vector2(150,150);
         }
 
-        if(Input.GetKeyUp(KeyCode.Tab)){
-            FocusOnMap = false;
-            mapTranform.sizeDelta = new Vector2(150,150);
-        }
 
 
         if(Input.GetKeyDown(KeyCode.X)){

@@ -256,7 +256,7 @@ public class ChunkManager : MonoBehaviour
     public void BatchEnviroment(){
         float st = Time.realtimeSinceStartup;
 
-        //* -- Low resolution asset -- *
+        //* -- Low resolution assets -- *
         LowDetailBatches.Clear();
         LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
             {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
@@ -279,7 +279,7 @@ public class ChunkManager : MonoBehaviour
 
         foreach (Chunk chunk in ChunkDictionary.Values)
         {
-            if(chunk.CurrentLODindex >= 8){
+            if(chunk.CurrentLODindex >= 4  && chunk.CurrentLODindex <= 8){
                 foreach(Spawnable type in new Spawnable[]{Spawnable.ConiferTree,Spawnable.DeciduousTree})
                 {    
                     foreach (Matrix4x4 item in chunk.LowDetailDictionary[type])
@@ -293,7 +293,7 @@ public class ChunkManager : MonoBehaviour
                     }
                 }
             }
-            else{
+            else if (chunk.CurrentLODindex < 4){
                 foreach(Spawnable type in Enum.GetValues(typeof(Spawnable)))
                 {    
                     foreach (Matrix4x4 item in chunk.DetailDictionary[type])

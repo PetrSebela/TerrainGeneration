@@ -106,7 +106,7 @@ public static class GenerationManager
             int xInChunk = Random.Range(11,chunkManager.ChunkSettings.ChunkResolution - 11);
             int yInChunk = Random.Range(11,chunkManager.ChunkSettings.ChunkResolution - 11);
 
-            float[,] heightMap = chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].heightMap;
+            float[,] heightMap = chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].HeightMap;
 
             float desiredHeight = heightMap[xInChunk,yInChunk];
 
@@ -147,7 +147,7 @@ public static class GenerationManager
 
                 lock(chunkManager.MeshRequests){
                     chunkManager.MeshRequests.Enqueue(new MeshRequest(
-                        chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].heightMap,
+                        chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].HeightMap,
                         new Vector3(xChunkHut,0,yChunkHut),
                         chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)],
                         Vector3.zero)
@@ -162,7 +162,7 @@ public static class GenerationManager
             int x = Random.Range(-chunkManager.WorldSize+5,chunkManager.WorldSize-5);
             int y = Random.Range(-chunkManager.WorldSize+5,chunkManager.WorldSize-5);
 
-            float[,] heightMap = chunkManager.ChunkDictionary[new Vector2(x,y)].heightMap;
+            float[,] heightMap = chunkManager.ChunkDictionary[new Vector2(x,y)].HeightMap;
 
             int xInChunk = Random.Range(11,chunkManager.ChunkSettings.ChunkResolution - 11);
             int yInChunk = Random.Range(11,chunkManager.ChunkSettings.ChunkResolution - 11);
@@ -208,7 +208,7 @@ public static class GenerationManager
 
                 lock(chunkManager.MeshRequests){
                     chunkManager.MeshRequests.Enqueue(new MeshRequest(
-                        chunkManager.ChunkDictionary[new Vector2(x,y)].heightMap,
+                        chunkManager.ChunkDictionary[new Vector2(x,y)].HeightMap,
                         new Vector3(x,0,y),
                         chunkManager.ChunkDictionary[new Vector2(x,y)],
                         Vector3.zero)
@@ -226,7 +226,7 @@ public static class GenerationManager
                 Vector2 key = new Vector2(xChunk, yChunk);
                 Chunk chunk = chunkManager.ChunkDictionary[key];
                 
-                if(noiseConverter.GetRealHeight(chunk.localMinimum) < chunkManager.waterLevel){
+                if(noiseConverter.GetRealHeight(chunk.LocalMinimum) < chunkManager.waterLevel){
                     validWaterChunk.Add(key * chunkManager.ChunkSettings.ChunkSize);
                 }
 
@@ -249,12 +249,12 @@ public static class GenerationManager
                     {
                         int xTreeCoord = UnityEngine.Random.Range(0, chunkManager.ChunkSettings.ChunkResolution - 1);
                         int zTreeCoord = UnityEngine.Random.Range(0, chunkManager.ChunkSettings.ChunkResolution - 1);
-                        float height = noiseConverter.GetRealHeight(chunk.heightMap[xTreeCoord, zTreeCoord]);
+                        float height = noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord, zTreeCoord]);
 
                         // Calculate base normal
-                        Vector3 p1 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.heightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p2 = new Vector3(xTreeCoord + 1 , noiseConverter.GetRealHeight(chunk.heightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.heightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
+                        Vector3 p1 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
+                        Vector3 p2 = new Vector3(xTreeCoord + 1 , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
+                        Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
                         bool canSpawnObject = item.minHeight * chunkManager.TerrainSettings.MaxHeight  < height && 
@@ -335,6 +335,8 @@ public static class GenerationManager
                 MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
                 meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
                 meshRenderer.material = chunkManager.TerrainMaterial;
+                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshRenderer = meshRenderer;
+
 
                 MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
                 chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshCollider = meshCollider;
@@ -343,7 +345,7 @@ public static class GenerationManager
 
                 Chunk c = chunkManager.ChunkDictionary[new Vector2(x,y)];
                 lock(chunkManager.MeshRequests){
-                    chunkManager.MeshRequests.Enqueue(new MeshRequest(c.heightMap,position,c,Vector3.zero));
+                    chunkManager.MeshRequests.Enqueue(new MeshRequest(c.HeightMap,position,c,Vector3.zero));
                 }
             }
         }
@@ -403,13 +405,12 @@ public static class GenerationManager
             w1.GetComponent<MeshRenderer>().material = chunkManager.WaterMaterial;                
         }
         
-        // chunkManager.MapTexture = MapTextureGenerator.GenerateMapTexture(
-        //     chunkManager.ChunkDictionary,
-        //     chunkManager.WorldSize,
-        //     chunkManager.ChunkSettings.ChunkResolution,
-        //     chunkManager);
+        yield return MapTextureGenerator.GenerateMapTexture(
+            chunkManager.ChunkDictionary,
+            chunkManager.WorldSize,
+            chunkManager.ChunkSettings.ChunkResolution,
+            chunkManager);
 
-        // chunkManager.MapDisplay.texture = chunkManager.MapTexture;
         chunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(chunkManager.TerrainSettings.MinHeight,chunkManager.TerrainSettings.MaxHeight));
 
         chunkManager.GenerationComplete = true;
@@ -433,6 +434,12 @@ public class NoiseConverter{
         this.min2 = min2;
         this.high2 = high2;
         this.terrainCurve = terrainCurve;
+    }
+
+    public float GetNormalized(float rawValue){
+        float range01 = 0 + (rawValue - min1) * (1 - 0) / (high1 - min1);
+        return terrainCurve.Evaluate(range01);
+        
     }
 
     public float GetRealHeight(float value){

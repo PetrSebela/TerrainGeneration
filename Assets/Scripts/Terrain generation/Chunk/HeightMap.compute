@@ -104,7 +104,7 @@ RWStructuredBuffer<float3> treeBuffer;
 
 float sampleNoise(float2 coord){
     float amplitude = 1;
-    float frequency = 0.00045;
+    float frequency = 0.0005;
 
     float noiseSample = 0;
 

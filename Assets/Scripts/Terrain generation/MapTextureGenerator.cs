@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MapTextureGenerator : MonoBehaviour
 {
-    public static Texture2D GenerateMapTexture(Dictionary<Vector2, Chunk> chunkMap, int worldSize, int chunkResolution, ChunkManager chunkManager)
+    public static IEnumerator GenerateMapTexture(Dictionary<Vector2, Chunk> chunkMap, int worldSize, int chunkResolution, ChunkManager chunkManager)
         {
         
         Texture2D mapTexture = new Texture2D(
@@ -19,29 +19,45 @@ public class MapTextureGenerator : MonoBehaviour
             0,
             1,
             chunkManager.terrainCurve);
-        
+
+
+        Texture2D tex = TextureCreator.GenerateTexture();
+
         for (int x = -worldSize; x < worldSize; x++)
         {
             for (int y = -worldSize; y < worldSize; y++)
             {
                 Vector2 key =  new Vector2(x,y);
-                float[,] heightMap = chunkMap[key].heightMap;        
-                for (int xChunk = 0; xChunk < chunkResolution; xChunk++)
+                float[,] heightMap = chunkMap[key].HeightMap;        
+                for (int xInChunk = 0; xInChunk < chunkResolution; xInChunk++)
                 {
-                    for (int yChunk = 0; yChunk < chunkResolution; yChunk++)
+                    for (int yInChunk = 0; yInChunk < chunkResolution; yInChunk++)
                     {
-                        float value = heightMap[xChunk,yChunk];
+                        float value = heightMap[xInChunk,yInChunk];
                         float color = Mathf.Abs(converter.GetRealHeight(value));
+                        Vector3 p1 = new Vector3(xInChunk     , converter.GetRealHeight(heightMap[xInChunk      , yInChunk    ]), yInChunk);
+                        Vector3 p2 = new Vector3(xInChunk + 1 , converter.GetRealHeight(heightMap[xInChunk + 1  , yInChunk    ]), yInChunk);
+                        Vector3 p3 = new Vector3(xInChunk     , converter.GetRealHeight(heightMap[xInChunk      , yInChunk + 1]), yInChunk + 1);
+                        Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);   
+
+                        float uvy = Vector3.Angle(normal,Vector3.up) / 90;
+                        
+                        Color col = tex.GetPixel(
+                            (int)(uvy * 512),
+                            (int)(converter.GetNormalized(value) * 512)
+                        );
+
                         mapTexture.SetPixel(
-                            x * chunkResolution + xChunk + ( worldSize * chunkResolution ),
-                            y * chunkResolution + yChunk + ( worldSize * chunkResolution ),
-                            new Color(color,color,color));
+                            x * chunkResolution + xInChunk + ( worldSize * chunkResolution ),
+                            y * chunkResolution + yInChunk + ( worldSize * chunkResolution ),
+                            col);
                     }
                 }
             }
+            yield return null;
         }
 
         mapTexture.Apply();
-        return mapTexture;
+        chunkManager.MapDisplay.texture = mapTexture;
     }
 }

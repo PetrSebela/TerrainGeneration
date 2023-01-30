@@ -22,7 +22,7 @@ public class ChunkUpdateProcessor
                 }
                 if(meshRequest.CallbackObject != null){
 
-                    Vector2 checkPosition =  meshRequest.CallbackObject.position - new Vector2(meshRequest.ViewerPosition.x,meshRequest.ViewerPosition.z); //new Vector2(meshRequest.Position.x,meshRequest.Position.z);
+                    Vector2 checkPosition =  meshRequest.CallbackObject.Position - new Vector2(meshRequest.ViewerPosition.x,meshRequest.ViewerPosition.z); //new Vector2(meshRequest.Position.x,meshRequest.Position.z);
 
                     int LODindex = 1;
 

@@ -47,7 +47,7 @@ public class PauseMenu : MonoBehaviour
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream("SavedWorlds/SavedWorld.world", FileMode.Open);
             Chunk data = formatter.Deserialize(stream) as Chunk;
-            Debug.Log(data.position);    
+            Debug.Log(data.Position);    
             stream.Close();
         }
         catch{

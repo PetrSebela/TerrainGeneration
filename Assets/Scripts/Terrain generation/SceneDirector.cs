@@ -8,7 +8,8 @@ using System.IO;
 
 public class SceneDirector : MonoBehaviour
 {
-    [SerializeField] private SimulationSettings simulationSettings;
+    [SerializeField] private SimulationSettings SimulationSettings;
+    [SerializeField] private TerrainSettings TerrainSettings;
     [SerializeField] private TMP_Dropdown maxHeightField;
     [SerializeField] private TMP_Dropdown worldSize;
     [SerializeField] private TMP_InputField seedField;
@@ -26,15 +27,18 @@ public class SceneDirector : MonoBehaviour
     }
 
     public void BeginSimulation(){
-        simulationSettings.MaxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
-        simulationSettings.Seed = seedField.text;
-        simulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
+        TerrainSettings.MaxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
+        TerrainSettings.MinHeight = -float.Parse(maxHeightField.options[maxHeightField.value].text) / 3;
 
-        Debug.Log(simulationSettings.MaxHeight);
-        Debug.Log(simulationSettings.Seed);
-        Debug.Log(simulationSettings.WorldSize);
+        SimulationSettings.Seed = seedField.text;
+        SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
+
+
+        Debug.Log(SimulationSettings.MaxHeight);
+        Debug.Log(SimulationSettings.Seed);
+        Debug.Log(SimulationSettings.WorldSize);
         
-        if (simulationSettings.MaxHeight != float.NaN){
+        if (SimulationSettings.MaxHeight != float.NaN){
             SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
         }        
     }

@@ -12,35 +12,31 @@ public class Chunk
     public MeshCollider MeshCollider;
 
 
-    
-    public Vector2 position;
-    public Vector2 borderVector;
+    public Vector2 Position;
     
     
-    public float[,] heightMap;
-    
+    public float[,] HeightMap;
     public int CurrentLODindex;
 
     public Dictionary<Spawnable,Matrix4x4[]> DetailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
     public Dictionary<Spawnable,Matrix4x4[]> LowDetailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
 
+    public float LocalMaximum;
+    public float LocalMinimum;
 
-    public MeshData currentMeshData;
-    public float localMaximum;
-    public float localMinimum;
     private ChunkManager ChunkManager;
 
     public Chunk(float[,] heightMap, Vector2 position, float localMinimum, float localMaximum, ChunkManager chunkManager)
     {
-        this.heightMap = heightMap;
-        this.position = position;
-        this.localMaximum = localMaximum;
-        this.localMinimum = localMinimum;
+        this.HeightMap = heightMap;
+        this.Position = position;
+        this.LocalMaximum = localMaximum;
+        this.LocalMinimum = localMinimum;
         ChunkManager = chunkManager;
     }
 
     public void UpdateChunk(int LOD, Vector2 borderVector,Vector3 viewerPosition){
-        MeshRequest request = new MeshRequest(heightMap, Vector3.zero,this,viewerPosition);
+        MeshRequest request = new MeshRequest(HeightMap, Vector3.zero,this,viewerPosition);
         lock(ChunkManager.MeshRequests){
             ChunkManager.MeshRequests.Enqueue(request);
         }
@@ -55,6 +51,13 @@ public class Chunk
         mesh.triangles = meshData.triangleList;
         mesh.RecalculateNormals();
         MeshFilter.mesh = mesh;
+
+        // if(meshData.LOD >= 16){
+        //     MeshRenderer.enabled = false;
+        // }
+        // else{
+        //     MeshRenderer.enabled = true;
+        // }
 
         if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null) || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
             MeshCollider.enabled = true;

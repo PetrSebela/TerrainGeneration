@@ -15,7 +15,7 @@ public class TerrainModifier
 
     public void LevelTerrain(Vector2Int originChunk,Vector2Int originPosition, Vector2Int size, float desiredHeight){
         int resolution = ChunkManager.ChunkSettings.ChunkResolution;
-        float[,] heightMap = ChunkManager.ChunkDictionary[originChunk].heightMap;
+        float[,] heightMap = ChunkManager.ChunkDictionary[originChunk].HeightMap;
 
         for (int x = 0; x < size.x; x++)
         {
