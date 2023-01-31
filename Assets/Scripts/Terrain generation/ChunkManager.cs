@@ -73,8 +73,11 @@ public class ChunkManager : MonoBehaviour
     private Dictionary<Spawnable,int> LowDetailCounter = new Dictionary<Spawnable, int>();
     private Dictionary<Spawnable,int> DetailCounter = new Dictionary<Spawnable, int>();
 
-    private Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
-    private Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+    public Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+    public Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+
+    // public List<Matrix4x4[]> HightBatches = new List<Matrix4x4[]>();
+    // public List<Matrix4x4[]> LowtBatches = new List<Matrix4x4[]>();
 
     public Queue<MeshRequest> MeshRequests = new Queue<MeshRequest>();
     public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();

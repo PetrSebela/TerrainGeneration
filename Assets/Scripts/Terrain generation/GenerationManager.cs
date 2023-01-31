@@ -85,6 +85,39 @@ public static class GenerationManager
         offsets.Dispose();
         Debug.Log("HeightMap Generation Finished");
 
+        for (int x = -chunkManager.WorldSize; x < chunkManager.WorldSize; x++)
+        {
+            for (int y = -chunkManager.WorldSize; y < chunkManager.WorldSize; y++)
+            {
+                GameObject chunk = new GameObject();
+                chunk.layer = LayerMask.NameToLayer("Ground");
+                chunk.isStatic = true;
+                chunk.transform.parent = chunkManager.transform;
+
+                Vector3 position = new Vector3(x,0,y);
+                chunk.transform.position =  position * chunkManager.ChunkSettings.ChunkSize;
+                chunk.transform.name = position.ToString();
+
+                MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
+                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshFilter = meshFilter;
+
+                MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
+                meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
+                meshRenderer.material = chunkManager.TerrainMaterial;
+                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshRenderer = meshRenderer;
+
+
+                MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
+                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshCollider = meshCollider;
+                
+                Chunk c = chunkManager.ChunkDictionary[new Vector2(x,y)];
+                lock(chunkManager.MeshRequests){
+                    chunkManager.MeshRequests.Enqueue(new MeshRequest(c.HeightMap,position,c,Vector3.zero));
+                }
+            }
+        }
+
+
         //*--- Generating enviroment ------------------------------------------------------------------------------------------------
 
         //! Enviromental detail
@@ -140,10 +173,12 @@ public static class GenerationManager
                     noiseConverter.GetRealHeight(desiredHeight),
                     yChunkHut* chunkManager.ChunkSettings.ChunkSize + yInChunk);
 
-                GameObject.Instantiate(
+                GameObject obj = GameObject.Instantiate(
                     chunkManager.BelltowerObject,
                     generatePosition,
                     Quaternion.identity);
+
+                obj.transform.parent = chunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].MeshRenderer.transform; 
 
                 lock(chunkManager.MeshRequests){
                     chunkManager.MeshRequests.Enqueue(new MeshRequest(
@@ -201,10 +236,13 @@ public static class GenerationManager
                     noiseConverter.GetRealHeight(desiredHeight),
                     y* chunkManager.ChunkSettings.ChunkSize + yInChunk);
 
-                GameObject.Instantiate(
+                GameObject obj = GameObject.Instantiate(
                     chunkManager.Signpost,
                     generatePosition,
                     Quaternion.identity);
+
+                obj.transform.parent = chunkManager.ChunkDictionary[new Vector2(x,y)].MeshRenderer.transform; 
+
 
                 lock(chunkManager.MeshRequests){
                     chunkManager.MeshRequests.Enqueue(new MeshRequest(
@@ -315,40 +353,6 @@ public static class GenerationManager
         Debug.Log("Enviroment Generation Finished");
 
         //! Constructing chunks
-
-        for (int x = -chunkManager.WorldSize; x < chunkManager.WorldSize; x++)
-        {
-            for (int y = -chunkManager.WorldSize; y < chunkManager.WorldSize; y++)
-            {
-                GameObject chunk = new GameObject();
-                chunk.layer = LayerMask.NameToLayer("Ground");
-                chunk.isStatic = true;
-                chunk.transform.parent = chunkManager.transform;
-
-                Vector3 position = new Vector3(x,0,y);
-                chunk.transform.position =  position * chunkManager.ChunkSettings.ChunkSize;
-                chunk.transform.name = position.ToString();
-
-                MeshFilter meshFilter = chunk.AddComponent<MeshFilter>();
-                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshFilter = meshFilter;
-
-                MeshRenderer meshRenderer = chunk.AddComponent<MeshRenderer>();
-                meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
-                meshRenderer.material = chunkManager.TerrainMaterial;
-                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshRenderer = meshRenderer;
-
-
-                MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
-                chunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshCollider = meshCollider;
-                
-
-
-                Chunk c = chunkManager.ChunkDictionary[new Vector2(x,y)];
-                lock(chunkManager.MeshRequests){
-                    chunkManager.MeshRequests.Enqueue(new MeshRequest(c.HeightMap,position,c,Vector3.zero));
-                }
-            }
-        }
 
 
         //*---------------------------------------------------------------------------------------------------
