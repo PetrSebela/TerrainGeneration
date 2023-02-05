@@ -14,8 +14,8 @@ public class MapTextureGenerator : MonoBehaviour
         
         
         NoiseConverter converter = new NoiseConverter(
-            chunkManager.globalNoiseLowest,
-            chunkManager.globalNoiseHighest,
+            chunkManager.GlobalNoiseLowest,
+            chunkManager.GlobalNoiseHighest,
             0,
             1,
             chunkManager.terrainCurve);
@@ -49,7 +49,7 @@ public class MapTextureGenerator : MonoBehaviour
                         col.a = 1;
 
                         if(converter.GetRealHeight(value) <= chunkManager.waterLevel){
-                            col = new Color(80/255, 208/255, 251/255);
+                            col = new Color(65/255, 200/255, 255/255);
                         }
                         
                         mapTexture.SetPixel(
@@ -58,6 +58,7 @@ public class MapTextureGenerator : MonoBehaviour
                             col);
                     }
                 }
+                chunkManager.MapProgress++;
             }
             yield return null;
         }

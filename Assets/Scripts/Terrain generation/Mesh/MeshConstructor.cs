@@ -22,8 +22,8 @@ public class MeshConstructor : MonoBehaviour
         float[,] chunkDataLocal = (float[,])chunkData.Clone();
 
         NoiseConverter noiseConverter = new NoiseConverter(
-            chunkManager.globalNoiseLowest,
-            chunkManager.globalNoiseHighest,
+            chunkManager.GlobalNoiseLowest,
+            chunkManager.GlobalNoiseHighest,
             chunkManager.TerrainSettings.MinHeight,
             chunkManager.TerrainSettings.MaxHeight,
             chunkManager.terrainCurve

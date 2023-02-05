@@ -9,6 +9,7 @@ public class SeedGenerator
 
     public SeedGenerator(int seed)
     {
+        this.seed = seed;
         Debug.Log("Internal seed int: " + this.seed);
         Random.InitState(seed);
         GenerateValues();

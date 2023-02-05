@@ -52,13 +52,6 @@ public class Chunk
         mesh.RecalculateNormals();
         MeshFilter.mesh = mesh;
 
-        // if(meshData.LOD >= 16){
-        //     MeshRenderer.enabled = false;
-        // }
-        // else{
-        //     MeshRenderer.enabled = true;
-        // }
-
         if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null) || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
             MeshCollider.enabled = true;
             MeshCollider.sharedMesh = mesh;
@@ -68,6 +61,20 @@ public class Chunk
         }
         else{
             MeshCollider.enabled = false;
+        }
+
+        if(meshData.LOD <= 4){
+            ChangeChildrenState(true);
+        }
+        else{
+            ChangeChildrenState(false);
+        }
+    }
+
+    private void ChangeChildrenState(bool state){
+        for (int i = 0; i < MeshCollider.transform.childCount ; i++)
+        {
+            MeshCollider.transform.GetChild(i).gameObject.SetActive(state);
         }
     }
 }

@@ -34,25 +34,11 @@ public class PauseMenu : MonoBehaviour
     }
 
     public void SaveWorld(){
-        BinaryFormatter formatter = new BinaryFormatter();
-        FileStream fileStream = new FileStream("SavedWorlds/" + chunkManager.SeedGenerator.seed + ".world",FileMode.Create);
-        
-        formatter.Serialize(fileStream, chunkManager.ChunkDictionary[Vector2.zero]);
-        Debug.Log(simulationSettings);    
-        fileStream.Close();
+        SerializationHandler.SaveTerrain(chunkManager);
     }
 
     public void LoadWorld(){
-        try{
-            BinaryFormatter formatter = new BinaryFormatter();
-            FileStream stream = new FileStream("SavedWorlds/SavedWorld.world", FileMode.Open);
-            Chunk data = formatter.Deserialize(stream) as Chunk;
-            Debug.Log(data.Position);    
-            stream.Close();
-        }
-        catch{
-            Debug.Log("file error");
-        }
+        SerializationHandler.GetSavedTerrains();
     }
 
     public void BackToMenu(){

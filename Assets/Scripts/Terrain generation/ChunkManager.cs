@@ -48,15 +48,22 @@ public class ChunkManager : MonoBehaviour
     // Queues
 
     public Vector2 PastChunkPosition = Vector2.zero;
-    public bool GenerationComplete = false;
 
+    //! Terrain variables
     [SerializeField] public ComputeShader HeightMapShader;
     public SeedGenerator SeedGenerator;
     public SimulationSettings simulationSettings;
-    public float globalNoiseLowest = Mathf.Infinity;
-    public float globalNoiseHighest = -Mathf.Infinity;
-    public int enviromentProgress = 0;
+    
+    //! Terrain variables
+    public float GlobalNoiseLowest = Mathf.Infinity;
+    public float GlobalNoiseHighest = -Mathf.Infinity;
+    
+    //! Progress variables
+    public string ActiveGenerationJob = "";
+    public int EnviromentProgress = 0;
+    public int MapProgress = 0;
     public float Progress = 0;
+    public bool GenerationComplete = false;
     
     public RawImage MapDisplay;
     public Texture2D MapTexture;
@@ -76,8 +83,6 @@ public class ChunkManager : MonoBehaviour
     public Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
     public Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
 
-    // public List<Matrix4x4[]> HightBatches = new List<Matrix4x4[]>();
-    // public List<Matrix4x4[]> LowtBatches = new List<Matrix4x4[]>();
 
     public Queue<MeshRequest> MeshRequests = new Queue<MeshRequest>();
     public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();
@@ -90,6 +95,8 @@ public class ChunkManager : MonoBehaviour
 
     public AnimationCurve TerrainEaseCurve;
 
+    public SimulationState simulationState = new SimulationState();
+
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
@@ -99,6 +106,7 @@ public class ChunkManager : MonoBehaviour
     void OnApplicationQuit(){
         ProcessingThread.Abort();
     }
+
     void Start()
     {
         ImpostorMaterials = new Material[ImpostorTextures.Length];
@@ -132,12 +140,14 @@ public class ChunkManager : MonoBehaviour
         int seedInt;
         if(int.TryParse(simulationSettings.Seed, out seedInt)){
             SeedGenerator = new SeedGenerator(seedInt);
+            Debug.Log(seedInt);
         }
         else{
             SeedGenerator = new SeedGenerator(seed);
+            Debug.Log(seed);
         }
 
-        TrackedObject.position = new Vector3(0, simulationSettings.MaxHeight, 0);
+        TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
 
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 
     }
@@ -193,7 +203,8 @@ public class ChunkManager : MonoBehaviour
         if (!GenerationComplete){
             float worldChunkArea = math.pow(WorldSize * 2, 2);
             Progress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
-                        (float)enviromentProgress / (WorldSize * 2)) / 2;
+                        (float)EnviromentProgress / (WorldSize * 2) + 
+                        (float)MapProgress / worldChunkArea) / 3;
             return;
         }    
 

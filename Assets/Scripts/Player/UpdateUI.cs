@@ -9,6 +9,8 @@ public class UpdateUI : MonoBehaviour
     [SerializeField] private Image image;
 
     [SerializeField] TextMeshProUGUI percentage;
+    [SerializeField] TextMeshProUGUI jobType;
+
     [SerializeField] private GameObject worldManager;
     
     private ChunkManager chunkManager;
@@ -22,6 +24,7 @@ public class UpdateUI : MonoBehaviour
         {
             slider.value = chunkManager.Progress;
             percentage.text = (int)(chunkManager.Progress * 100) + "%";
+            jobType.text = chunkManager.ActiveGenerationJob;
             return;
         }
 
