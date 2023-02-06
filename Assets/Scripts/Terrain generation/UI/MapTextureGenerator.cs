@@ -16,9 +16,9 @@ public class MapTextureGenerator : MonoBehaviour
         NoiseConverter converter = new NoiseConverter(
             chunkManager.GlobalNoiseLowest,
             chunkManager.GlobalNoiseHighest,
-            0,
-            1,
-            chunkManager.terrainCurve);
+            chunkManager.TerrainSettings.MinHeight,
+            chunkManager.TerrainSettings.MaxHeight,
+            chunkManager.TerrainCurve);
 
 
         Texture2D tex = TextureCreator.GenerateTexture();
@@ -43,10 +43,11 @@ public class MapTextureGenerator : MonoBehaviour
                         float uvy = Vector3.Angle(normal,Vector3.up) / 90;
                         
                         Color col = tex.GetPixel(
-                            (int)(uvy * 512),
-                            (int)(converter.GetNormalized(value) * 512)
+                            (int)((1-uvy) * 512),
+                            (int)((converter.GetNormalized(value)) * 512)
                         );
                         col.a = 1;
+                      
 
                         if(converter.GetRealHeight(value) <= chunkManager.waterLevel){
                             col = new Color(65/255, 200/255, 255/255);

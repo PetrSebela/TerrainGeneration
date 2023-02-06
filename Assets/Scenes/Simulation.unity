@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 0.25
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.04507088, g: 0.05642844, b: 0.07673061, a: 0.25}
+  m_IndirectSpecularColor: {r: 0.045070834, g: 0.05642832, b: 0.07673042, a: 0.25}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -683,53 +683,51 @@ MonoBehaviour:
   Progress: 0
   GenerationComplete: 0
   MapDisplay: {fileID: 2093020500}
-  MapTexture: {fileID: 0}
   BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
     type: 2}
-  LowDetail: []
   ImpostorTextures:
   - {fileID: 2800000, guid: 6c9c4c922ed323341bdfeee903a36a83, type: 3}
   - {fileID: 2800000, guid: aa9d859f56aa71247a8cdc984f7f2c9f, type: 3}
   - {fileID: 2800000, guid: a6bc9ab16b3cd774ba8488debf3ef23c, type: 3}
   - {fileID: 2800000, guid: 721c8ca52f116834d9a96697b2fc8833, type: 3}
   ImpostorMaterials: []
-  terrainCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.0052261353
-      value: 0.19104004
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.35
-      value: 0.25
-      inSlope: 0.039505642
-      outSlope: 0.039505642
-      tangentMode: 0
-      weightedMode: 2
-      inWeight: 0.33333334
-      outWeight: 0.6326787
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 4.556926
-      outSlope: 4.556926
-      tangentMode: 0
-      weightedMode: 1
-      inWeight: 0.10390126
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   LastQueueCount: 0
   BelltowerObject: {fileID: 4588304716903026526, guid: 4bee07e793f7f5540be153f8147042ed,
     type: 3}
   Signpost: {fileID: 919132149155446097, guid: 50df034f36da1e94481704486bfa4f88, type: 3}
+  TerrainCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.25
+      value: 0.25
+      inSlope: 0.036780484
+      outSlope: 0.036780484
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.512987
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2.1792462
+      outSlope: 2.1792462
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.06493505
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   TerrainEaseCurve:
     serializedVersion: 2
     m_Curve:
@@ -754,6 +752,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  PlayerController: {fileID: 1620735405}
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
@@ -4948,6 +4947,7 @@ MonoBehaviour:
   FlyUpKey: 32
   FlyDownKey: 306
   Accelerate: 304
+  cameraRotation: {x: 0, y: 0}
   Sun: {fileID: 410087039}
   Moon: {fileID: 876910247}
   MainLight: {fileID: 0}

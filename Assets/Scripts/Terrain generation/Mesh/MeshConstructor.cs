@@ -26,7 +26,7 @@ public class MeshConstructor : MonoBehaviour
             chunkManager.GlobalNoiseHighest,
             chunkManager.TerrainSettings.MinHeight,
             chunkManager.TerrainSettings.MaxHeight,
-            chunkManager.terrainCurve
+            chunkManager.TerrainCurve
         );
 
         int chunkResolution = chunkManager.ChunkSettings.ChunkResolution;

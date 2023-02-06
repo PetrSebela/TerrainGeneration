@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
 
 
     private Vector2 MouseMovement;
-    private Vector2 cameraRotation;
+    public Vector2 cameraRotation;
     private Vector3 Inputs = new Vector3(0, 0, 0);
     private Vector3 WishDirection = new Vector3(0, 0, 0);
     private Rigidbody rb;
@@ -184,6 +184,13 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         MovePlayer();
+        UpdateSimulationState();
+    }
+
+    void UpdateSimulationState()
+    {
+        chunkManager.simulationState.ViewerOrientation = cameraRotation;
+        chunkManager.simulationState.ViewerPosition = rb.position;
     }
 
     void MovePlayer()

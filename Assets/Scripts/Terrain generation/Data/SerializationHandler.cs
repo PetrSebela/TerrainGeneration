@@ -12,6 +12,8 @@ public static class SerializationHandler
         BinaryFormatter formatter = new BinaryFormatter();
         TerrainSettingsSerialized tSettings = new TerrainSettingsSerialized(ChunkManager.TerrainSettings);
         SimulationSettingsSerialized sSettings = new SimulationSettingsSerialized(ChunkManager.simulationSettings, ChunkManager);
+       
+        SimulationState simState = ChunkManager.simulationState;
 
         string subFolder = (sSettings.Seed == "") ? ChunkManager.SeedGenerator.seed.ToString() : sSettings.Seed;
         string folderPath =  Application.dataPath + "/worlds/" + subFolder + "/";
@@ -23,6 +25,10 @@ public static class SerializationHandler
 
         string ssj = JsonUtility.ToJson(sSettings);
         File.WriteAllText(folderPath + "SimulationSettings.SimSet",ssj);
+
+        string simStateJson = JsonUtility.ToJson(simState);
+        File.WriteAllText(folderPath + "SimulationState.SimSta",simStateJson);
+
 
         Debug.Log("World saved in folder : " + WorldFolder.FullName );
     }
@@ -52,6 +58,27 @@ public static class SerializationHandler
                         break;
                 }
             }
+        }
+    }
+
+    public static SimulationState DeserializeSimulatinoState(string seed){
+        string fullPath = Application.dataPath + "/worlds/" + seed + "/SimulationState.SimSta";
+        try
+        {
+            StreamReader reader = new StreamReader(fullPath);
+            SimulationState s =  JsonUtility.FromJson<SimulationState>(reader.ReadToEnd());
+            
+            Debug.Log("Deserialized position : " + s.ViewerPosition);
+            Debug.Log("Deserialized orientation : " + s.ViewerOrientation);
+
+            reader.Close();
+            return s;
+                        
+        }
+        catch (System.IO.DirectoryNotFoundException)
+        {
+            Debug.Log("Folder not found : " + fullPath);
+            return null;
         }
     }
 

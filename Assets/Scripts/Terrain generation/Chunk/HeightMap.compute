@@ -138,5 +138,5 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             float2(
                 x + s1 * 256, 
                 y + s2 * 256)
-                ))* -1 * t - 0.01;
+                ))* -1;
 }

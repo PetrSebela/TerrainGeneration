@@ -111,10 +111,10 @@ public static class GenerationManager
                 MeshCollider meshCollider = chunk.AddComponent<MeshCollider>();
                 ChunkManager.ChunkDictionary[new Vector2(position.x,position.z)].MeshCollider = meshCollider;
                 
-                Chunk c = ChunkManager.ChunkDictionary[new Vector2(x,y)];
-                lock(ChunkManager.MeshRequests){
-                    ChunkManager.MeshRequests.Enqueue(new MeshRequest(c.HeightMap,position,c,Vector3.zero));
-                }
+                // Chunk c = ChunkManager.ChunkDictionary[new Vector2(x,y)];
+                // lock(ChunkManager.MeshRequests){
+                //     ChunkManager.MeshRequests.Enqueue(new MeshRequest(c.HeightMap,position,c,Vector3.zero));
+                // }
             }
         }
 
@@ -128,7 +128,7 @@ public static class GenerationManager
             ChunkManager.GlobalNoiseHighest,
             ChunkManager.TerrainSettings.MinHeight,
             ChunkManager.TerrainSettings.MaxHeight,
-            ChunkManager.terrainCurve
+            ChunkManager.TerrainCurve
         );
         TerrainModifier  terrainModifier = new TerrainModifier(ChunkManager,noiseConverter);
         
@@ -182,14 +182,14 @@ public static class GenerationManager
 
                 obj.transform.parent = ChunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].MeshRenderer.transform; 
 
-                lock(ChunkManager.MeshRequests){
-                    ChunkManager.MeshRequests.Enqueue(new MeshRequest(
-                        ChunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].HeightMap,
-                        new Vector3(xChunkHut,0,yChunkHut),
-                        ChunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)],
-                        Vector3.zero)
-                        );
-                }
+                // lock(ChunkManager.MeshRequests){
+                //     ChunkManager.MeshRequests.Enqueue(new MeshRequest(
+                //         ChunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)].HeightMap,
+                //         new Vector3(xChunkHut,0,yChunkHut),
+                //         ChunkManager.ChunkDictionary[new Vector2(xChunkHut,yChunkHut)],
+                //         Vector3.zero)
+                //         );
+                // }
             }
         }
 
@@ -245,14 +245,14 @@ public static class GenerationManager
                 obj.transform.parent = ChunkManager.ChunkDictionary[new Vector2(x,y)].MeshRenderer.transform; 
 
 
-                lock(ChunkManager.MeshRequests){
-                    ChunkManager.MeshRequests.Enqueue(new MeshRequest(
-                        ChunkManager.ChunkDictionary[new Vector2(x,y)].HeightMap,
-                        new Vector3(x,0,y),
-                        ChunkManager.ChunkDictionary[new Vector2(x,y)],
-                        Vector3.zero)
-                        );
-                }
+                // lock(ChunkManager.MeshRequests){
+                //     ChunkManager.MeshRequests.Enqueue(new MeshRequest(
+                //         ChunkManager.ChunkDictionary[new Vector2(x,y)].HeightMap,
+                //         new Vector3(x,0,y),
+                //         ChunkManager.ChunkDictionary[new Vector2(x,y)],
+                //         Vector3.zero)
+                //         );
+                // }
             }
         }
         
@@ -361,17 +361,6 @@ public static class GenerationManager
         // Spawn huts
 
 
-        // Filling Tree Dictionary
-
-        for (int x = -5; x < 5; x++)
-        {
-            for (int y = -5; y < 5; y++)
-            {
-                Vector2 key = new Vector2(x,y);
-                ChunkManager.TreeChunkDictionary.Add(key, ChunkManager.ChunkDictionary[key]);
-                ChunkManager.LowDetail.Remove(ChunkManager.ChunkDictionary[key]);
-            }
-        }
 
         ChunkManager.ActiveGenerationJob = "Generating oceans";
         //* Water generation inside reachable world
@@ -410,6 +399,18 @@ public static class GenerationManager
             );
             w1.transform.localScale = Vector3.one / 10 * worldSize*2;
             w1.GetComponent<MeshRenderer>().material = ChunkManager.WaterMaterial;                
+        }
+
+        for (int x = -ChunkManager.simulationSettings.WorldSize; x < ChunkManager.simulationSettings.WorldSize; x++)
+        {
+            for (int y = -ChunkManager.simulationSettings.WorldSize; y < ChunkManager.simulationSettings.WorldSize; y++)
+            {
+                Vector2 key = new Vector2(x,y);
+                ChunkManager.ChunkDictionary[key].UpdateChunk(new Vector3(
+                    Mathf.Round(ChunkManager.TrackedObject.position.x / ChunkManager.simulationSettings.WorldSize),
+                    0,
+                    Mathf.Round(ChunkManager.TrackedObject.position.z / ChunkManager.simulationSettings.WorldSize)));
+            }
         }
 
         ChunkManager.ActiveGenerationJob = "Generating cartographical data";

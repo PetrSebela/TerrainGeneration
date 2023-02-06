@@ -35,8 +35,8 @@ public class Chunk
         ChunkManager = chunkManager;
     }
 
-    public void UpdateChunk(int LOD, Vector2 borderVector,Vector3 viewerPosition){
-        MeshRequest request = new MeshRequest(HeightMap, Vector3.zero,this,viewerPosition);
+    public void UpdateChunk(Vector3 viewerChunkPosition){
+        MeshRequest request = new MeshRequest(HeightMap, Vector3.zero,this,viewerChunkPosition);
         lock(ChunkManager.MeshRequests){
             ChunkManager.MeshRequests.Enqueue(request);
         }
