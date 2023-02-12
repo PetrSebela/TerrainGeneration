@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Persistence: 0.715
   Lacunarity: 1.315
-  Octaves: 24
+  Octaves: 22
   MaxHeight: 200
   MinHeight: -66.666664

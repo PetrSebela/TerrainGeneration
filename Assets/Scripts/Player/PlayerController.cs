@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
 
 
     private Vector2 MouseMovement;
-    public Vector2 cameraRotation;
+    public Vector2 cameraRotation = new Vector2();
     private Vector3 Inputs = new Vector3(0, 0, 0);
     private Vector3 WishDirection = new Vector3(0, 0, 0);
     private Rigidbody rb;

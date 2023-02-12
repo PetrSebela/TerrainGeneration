@@ -8,13 +8,14 @@ public class ListWorlds : MonoBehaviour
     public GameObject TerrainField;
     public SceneDirector SceneDirector;
     public DirectoryInfo[] dirs;
+    public Transform parent;
     void Start()
     {
         dirs = SerializationHandler.GetSavedTerrains();
 
         for (int i = 0; i < dirs.Length; i++)
         {
-            GameObject instance = GameObject.Instantiate(TerrainField,parent:this.transform);
+            GameObject instance = GameObject.Instantiate(TerrainField,parent:parent);
 
             instance.GetComponentInChildren<TMP_Text>().text = dirs[i].Name;
             instance.GetComponent<RectTransform>().anchoredPosition = new Vector2(0,i * -50);

@@ -90,6 +90,7 @@ public class ChunkManager : MonoBehaviour
     public GameObject Signpost;
 
     public AnimationCurve TerrainCurve;
+    public AnimationCurve TerrainFalloffCurve;
     public AnimationCurve TerrainEaseCurve;
 
     public SimulationState simulationState;
@@ -146,6 +147,7 @@ public class ChunkManager : MonoBehaviour
         if (simulationState == null){
             Debug.Log("Viewer set to default values");
             TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
+            simulationState = new SimulationState();
         }
         else{
             Debug.Log("Viewer data loaded from memory");

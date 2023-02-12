@@ -6,6 +6,22 @@ using System.Linq;
 
 public static class GenerationManager
 {
+
+    public static float SampleNoise(Vector2 position,TerrainSettings terrainSettings,ChunkManager chunkManager)
+    {
+        float value = 0;
+        float frequency = 0.002f;
+        float amplitude = 1;
+        for (int i = 0; i < terrainSettings.Octaves; i++)
+        {
+            Vector2 modPosition = (position + chunkManager.SeedGenerator.noiseLayers[i]) * frequency;
+            value += Mathf.PerlinNoise(modPosition.x,modPosition.y) * amplitude;
+
+            amplitude *= terrainSettings.Persistence;
+            frequency *= terrainSettings.Lacunarity;
+        }
+        return value / terrainSettings.Octaves;
+    }
     public static IEnumerator GenerationCorutine(ChunkManager ChunkManager)
     {
         ComputeBuffer heightMapBuffer = new ComputeBuffer((int)Mathf.Pow(64 + 4, 2), sizeof(float));
@@ -17,6 +33,7 @@ public static class GenerationManager
 
         ChunkManager.ActiveGenerationJob = "Generating noise map";
         Debug.Log(ChunkManager.WorldSize);
+
         for (int xChunk = -ChunkManager.WorldSize; xChunk < ChunkManager.WorldSize; xChunk++)
         {
             for (int yChunk = -ChunkManager.WorldSize; yChunk < ChunkManager.WorldSize; yChunk++)
@@ -27,22 +44,27 @@ public static class GenerationManager
                 float highestValue = -Mathf.Infinity;
                 float lowestValue = Mathf.Infinity;
 
-                // preparing compute shader
-                heightMapBuffer.SetData(heightMap);
-                ChunkManager.HeightMapShader.SetVector("offset", generatedChunkPosition);
-                ChunkManager.HeightMapShader.SetBuffer(0, "heightMap", heightMapBuffer);
-                ChunkManager.HeightMapShader.SetBuffer(0, "layerOffsets", offsets);
-                
-                ChunkManager.HeightMapShader.SetFloat("persistence",ChunkManager.TerrainSettings.Persistence);
-                ChunkManager.HeightMapShader.SetFloat("lacunarity",ChunkManager.TerrainSettings.Lacunarity);
-                ChunkManager.HeightMapShader.SetInt("octaves",ChunkManager.TerrainSettings.Octaves);
-                
-                ChunkManager.HeightMapShader.SetFloat("size",ChunkManager.ChunkSettings.ChunkSize);
-                ChunkManager.HeightMapShader.SetInt("resolution",heightMapSide);
-                ChunkManager.HeightMapShader.SetInts("worldSize", ChunkManager.WorldSize);
-                
-                ChunkManager.HeightMapShader.Dispatch(0, heightMapSide / 2, heightMapSide / 2, 1);
-                heightMapBuffer.GetData(heightMap);
+                for (int i = 0; i < heightMapSide; i++)
+                {
+                    for (int j = 0; j < heightMapSide; j++)
+                    {
+                        heightMap[i,j] = SampleNoise(
+                            new Vector2(
+                                xChunk * ChunkManager.ChunkSettings.ChunkSize + i,
+                                yChunk * ChunkManager.ChunkSettings.ChunkSize + j
+                            ),
+                            ChunkManager.TerrainSettings,
+                            ChunkManager
+                        );
+
+                        float distance = Mathf.Sqrt(
+                        Mathf.Pow(xChunk * ChunkManager.ChunkSettings.ChunkSize + i,2) + 
+                        Mathf.Pow(yChunk * ChunkManager.ChunkSettings.ChunkSize + j,2));
+                        distance /= ChunkManager.WorldSize  * ChunkManager.ChunkSettings.ChunkResolution;
+                        heightMap[i,j] *= ChunkManager.TerrainFalloffCurve.Evaluate(distance);
+                    }
+                }
+
 
                 // Finding lowest and highest point
                 for (int y = 0; y < heightMapSide; y++)
@@ -74,11 +96,11 @@ public static class GenerationManager
                     lowestValue, 
                     highestValue,
                     ChunkManager
-                    );
+                );
 
                 ChunkManager.ChunkDictionary.Add(generatedChunkPosition, chunk);
+                yield return null;
             }
-            yield return null;
         }
 
         heightMapBuffer.Dispose();
