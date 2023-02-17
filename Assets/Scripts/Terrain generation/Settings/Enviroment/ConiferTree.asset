@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 97c631138a5c0a243beb36e2fa03fcc1, type: 3}
-  m_Name: ConiferTree 1
+  m_Name: ConiferTree
   m_EditorClassIdentifier: 
   Name: Conifer tree
   SpawnRange:
-    Min: 0
-    Max: 1
+    Min: 0.25
+    Max: 0.884
   SlopeLimit: 25
-  Count: 16
+  Radius: 4
+  Count: 32
   TemperatureRange:
     Min: 0
-    Max: 0
+    Max: 0.576
   HumidityRange:
-    Min: 0
-    Max: 0
+    Min: 0.252
+    Max: 0.676
   BaseSize: {x: 7, y: 7, z: 7}
   SizeVariation: {x: 2, y: 1, z: 2}
   Mesh: {fileID: -2432090755550338912, guid: 319cfaef40df6b2488fa80214fe0fd11, type: 3}

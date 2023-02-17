@@ -14,7 +14,8 @@ public class Chunk
 
     public Vector2 Position;
     
-    
+    public List<ObjectSizeDescriptor> SizeDescriptorList = new List<ObjectSizeDescriptor>();
+
     public float[,] HeightMap;
     public int CurrentLODindex;
 
@@ -95,7 +96,17 @@ public struct MeshRequest
     }
 }
 
+public struct ObjectSizeDescriptor
+{
+    public float Radius;
+    public Vector2 Position;
 
+    public ObjectSizeDescriptor(float radius, Vector2 position)
+    {
+        Radius = radius;
+        Position = position;
+    }
+}
 
 public enum Spawnable
 {

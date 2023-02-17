@@ -173,7 +173,7 @@ public static class GenerationManager
             Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
             bool canSpawnObject = desiredHeight > ChunkManager.waterLevel && 
-                                    Vector3.Angle(Vector3.up, normal) < 35;
+                                    Vector3.Angle(Vector3.up, normal) < 35 ;
             if(canSpawnObject)
             {
                 terrainModifier.LevelTerrain(
@@ -301,10 +301,21 @@ public static class GenerationManager
                 foreach (TreeObject item in ChunkManager.TreeObjects)
                 {
                     List<Matrix4x4> listReference = detailDictionary[item];
-                    for (int i = 0; i < item.Count; i++)
+                    List<Vector2> nodePositions = new List<Vector2>();
+
+                    int objectCount = 0;
+                    int iterations = 0;
+                    while (objectCount <= item.Count)
                     {
-                        int xTreeCoord = UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution - 1);
-                        int zTreeCoord = UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution - 1);
+                        if (iterations++ >= item.Count * 2){
+                            break;
+                        }
+                        
+                    // }
+                    // for (int i = 0; i < item.Count; i++)
+                    // {
+                        int xTreeCoord = (int)UnityEngine.Random.Range(item.Radius, ChunkManager.ChunkSettings.ChunkResolution - item.Radius);
+                        int zTreeCoord = (int)UnityEngine.Random.Range(item.Radius, ChunkManager.ChunkSettings.ChunkResolution - item.Radius);
                         float height = noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord, zTreeCoord]);
 
                         // Calculate base normal
@@ -313,12 +324,29 @@ public static class GenerationManager
                         Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
+                        float temperature = Mathf.PerlinNoise(
+                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.noiseLayers[0].x) * 0.0075f,                
+                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.noiseLayers[0].y) * 0.0075f                
+                        );
+
+                        float humidity = Mathf.PerlinNoise(
+                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.noiseLayers[1].x) * 0.0075f,                
+                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.noiseLayers[1].y) * 0.0075f                
+                        );
+
+
                         bool canSpawnObject = item.SpawnRange.Min * ChunkManager.TerrainSettings.MaxHeight  < height && 
                                             height < item.SpawnRange.Max * ChunkManager.TerrainSettings.MaxHeight && 
                                             Vector3.Angle(Vector3.up, normal) < item.SlopeLimit && 
-                                            height > ChunkManager.waterLevel;
+                                            height > ChunkManager.waterLevel &&
+                                            item.TemperatureRange.Min < temperature && item.TemperatureRange.Max > temperature &&
+                                            item.HumidityRange.Min < humidity && item.HumidityRange.Max > humidity &&
+                                            DoesntIntersect(item.Radius, new Vector2(xTreeCoord,zTreeCoord),chunk.SizeDescriptorList);
+                                            // item.HumidityRange.Min < humidity && item.HumidityRange.Max > humidity;
+
                         if(canSpawnObject)
                         {
+                            chunk.SizeDescriptorList.Add(new ObjectSizeDescriptor(item.Radius, new Vector2(xTreeCoord,zTreeCoord)));
                             Vector3 position = new Vector3(
                                 (key.x * ChunkManager.ChunkSettings.ChunkSize) + (((float)(xTreeCoord) / ChunkManager.ChunkSettings.ChunkResolution) * ChunkManager.ChunkSettings.ChunkSize),
                                 height,
@@ -336,6 +364,7 @@ public static class GenerationManager
                           
 
                             listReference.Add(matrix4X4);
+                            objectCount++;
                         }
                     }
                 }
@@ -441,6 +470,17 @@ public static class GenerationManager
     }
 
 
+    public static bool DoesntIntersect(float radius, Vector2 position, List<ObjectSizeDescriptor> positions)
+    {
+        foreach (ObjectSizeDescriptor checkedPosiiton in positions)
+        {
+            float comparedRadius = (checkedPosiiton.Radius > radius)?checkedPosiiton.Radius:radius;
+            if (Vector2.Distance(position,checkedPosiiton.Position) < comparedRadius)
+                return false;
+        }
+
+        return true;
+    }
 }
 
 public class NoiseConverter{

@@ -8,6 +8,7 @@ public class TreeObject : ScriptableObject
     [Header("Location settings")]
     public Range SpawnRange;
     public float SlopeLimit;
+    public float Radius;
 
     [Header("Rarity settigns")]
     public int Count;
