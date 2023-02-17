@@ -74,11 +74,11 @@ public class ChunkManager : MonoBehaviour
     public Material[] ImpostorMaterials;    
 
 
-    private Dictionary<Spawnable,int> LowDetailCounter = new Dictionary<Spawnable, int>();
-    private Dictionary<Spawnable,int> DetailCounter = new Dictionary<Spawnable, int>();
+    private Dictionary<TreeObject,int> LowDetailCounter = new Dictionary<TreeObject, int>();
+    private Dictionary<TreeObject,int> DetailCounter = new Dictionary<TreeObject, int>();
 
-    public Dictionary<Spawnable, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
-    public Dictionary<Spawnable, List<List<Matrix4x4>>> DetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>();
+    public Dictionary<TreeObject, List<List<Matrix4x4>>> LowDetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();
+    public Dictionary<TreeObject, List<List<Matrix4x4>>> DetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();
 
     public Queue<MeshRequest> MeshRequests = new Queue<MeshRequest>();
     public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();
@@ -96,6 +96,8 @@ public class ChunkManager : MonoBehaviour
     public SimulationState simulationState;
     public PlayerController PlayerController;
 
+    public TreeObject[] TreeObjects;
+    public TreeObject[] LowTreeObjects;
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
@@ -116,7 +118,20 @@ public class ChunkManager : MonoBehaviour
             impostorMaterial.SetTexture("_BaseMap",ImpostorTextures[i]);
             ImpostorMaterials[i] = impostorMaterial;
         }
+        
+        // Automatic impostor material setup
+        foreach (TreeObject treeObject in TreeObjects)
+        {
+            treeObject.ImpostorMaterials = new Material[treeObject.ImpostorTextures.Length];
+            for (int i = 0; i < treeObject.ImpostorTextures.Length; i++)
+            {
+                Material impostorMaterial = new Material(treeObject.BaseImpostorMaterial);
+                impostorMaterial.SetTexture("_BaseMap",treeObject.ImpostorTextures[i]);
+                treeObject.ImpostorMaterials[i] = impostorMaterial;                
+            }
+        }
 
+        // Generating heightmap texture
         TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture());
         
         ChunkUpdateProcessor updateProcessor = new ChunkUpdateProcessor(this);
@@ -216,57 +231,25 @@ public class ChunkManager : MonoBehaviour
         }    
 
         // Rendering enviromental details
-        foreach (Spawnable spawnableType in DetailBatches.Keys)
-        {   
-            foreach (List<Matrix4x4> envList in DetailBatches[spawnableType])
+        foreach (TreeObject treeObject in TreeObjects)
+        {
+            foreach (List<Matrix4x4> envList in DetailBatches[treeObject])
             {
-                switch (spawnableType)
+                for (int submeshIndex = 0; submeshIndex < treeObject.Mesh.subMeshCount; submeshIndex++)
                 {
-                    case Spawnable.ConiferTree:
-                        Graphics.DrawMeshInstanced(TreeMesh2, 1, BarkMaterial, envList);
-                        Graphics.DrawMeshInstanced(TreeMesh2, 0, BushMaterial, envList);
-                        break;
-
-                    case Spawnable.DeciduousTree:
-                        Graphics.DrawMeshInstanced(TreeMesh, 0, BarkMaterial, envList);
-                        Graphics.DrawMeshInstanced(TreeMesh, 1, CrownMaterial, envList);
-                        break;
-
-                    case Spawnable.Rock:
-                        Graphics.DrawMeshInstanced(RockMesh, 0, RockMaterial, envList);
-                        break;
-
-                    case Spawnable.Bush:
-                        Graphics.DrawMeshInstanced(BushMesh, 0, BushMaterial, envList);
-                        Graphics.DrawMeshInstanced(BushMesh, 1, BarkMaterial, envList);
-                        break;                           
-
-                    default:
-                        break;
-                }
+                    Graphics.DrawMeshInstanced(treeObject.Mesh, submeshIndex, treeObject.MeshMaterials[submeshIndex], envList);
+                }            
             }
-        }      
-       
-        // //* SECTION - Rendering
-        foreach (Spawnable spawnableType in LowDetailBatches.Keys)
-        {   
-            foreach (List<Matrix4x4> envList in LowDetailBatches[spawnableType])
+        }
+        foreach (TreeObject treeObject in LowTreeObjects)
+        {
+            foreach (List<Matrix4x4> envList in LowDetailBatches[treeObject])
             {
-                switch (spawnableType)
+                for (int impostorMaterialIndex = 0; impostorMaterialIndex < 2; impostorMaterialIndex++)
                 {
-                    case Spawnable.ConiferTree:
-                        Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[0], envList);                 
-                        Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[1], envList);                 
-                        break;
-
-                    case Spawnable.DeciduousTree:
-                        Graphics.DrawMeshInstanced(LowDetailBase, 0, ImpostorMaterials[2], envList);                 
-                        Graphics.DrawMeshInstanced(LowDetailBase, 1, ImpostorMaterials[3], envList);
-                        break;
-
-                    default:
-                        break;
-                }
+                    Debug.Log("low detail draw call");
+                    Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], envList);
+                }            
             }
         }
     }
@@ -276,52 +259,53 @@ public class ChunkManager : MonoBehaviour
 
         //* -- Low resolution assets -- *
         LowDetailBatches.Clear();
-        LowDetailBatches = new Dictionary<Spawnable, List<List<Matrix4x4>>>(){
-            {Spawnable.ConiferTree,new List<List<Matrix4x4>>()},
-            {Spawnable.DeciduousTree,new List<List<Matrix4x4>>()},
-        };
-        LowDetailCounter = new Dictionary<Spawnable, int>(){
-            {Spawnable.ConiferTree,0},
-            {Spawnable.DeciduousTree,0},
-        };
+        LowDetailCounter.Clear();
+        LowDetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();        
+        LowDetailCounter = new Dictionary<TreeObject, int>();
+
+        foreach (TreeObject treeObject in LowTreeObjects)
+        {
+            LowDetailBatches.Add(treeObject,new List<List<Matrix4x4>>());
+            LowDetailCounter.Add(treeObject,0);
+        }
 
         DetailBatches.Clear();
         DetailCounter.Clear();
 
-        foreach (Spawnable spawnable in Enum.GetValues(typeof(Spawnable)))
+        foreach (TreeObject treeObject in TreeObjects)
         {
-            DetailBatches.Add(spawnable,new List<List<Matrix4x4>>());
-            DetailCounter.Add(spawnable,0);
+            DetailBatches.Add(treeObject,new List<List<Matrix4x4>>());
+            DetailCounter.Add(treeObject,0);
         }
 
 
         foreach (Chunk chunk in ChunkDictionary.Values)
         {
             if(chunk.CurrentLODindex >= 4  && chunk.CurrentLODindex <= 8){
-                foreach(Spawnable type in new Spawnable[]{Spawnable.ConiferTree,Spawnable.DeciduousTree})
+                foreach(TreeObject treeObject in LowTreeObjects)
                 {    
-                    foreach (Matrix4x4 item in chunk.LowDetailDictionary[type])
+                    foreach (Matrix4x4 item in chunk.LowDetailDictionary[treeObject])
                     {
-                        if(LowDetailCounter[type] % 1023 == 0){
-                            LowDetailBatches[type].Add(new List<Matrix4x4>());
+                        if(LowDetailCounter[treeObject] % 1023 == 0){
+                            LowDetailBatches[treeObject].Add(new List<Matrix4x4>());
                         }
 
-                        LowDetailBatches[type][(int)(LowDetailCounter[type] / 1023)].Add(item);
-                        LowDetailCounter[type]++;
+                        LowDetailBatches[treeObject][(int)(LowDetailCounter[treeObject] / 1023)].Add(item);
+                        LowDetailCounter[treeObject]++;
                     }
                 }
             }
             else if (chunk.CurrentLODindex < 4){
-                foreach(Spawnable type in Enum.GetValues(typeof(Spawnable)))
+                foreach(TreeObject treeObject in TreeObjects)
                 {    
-                    foreach (Matrix4x4 item in chunk.DetailDictionary[type])
+                    foreach (Matrix4x4 item in chunk.DetailDictionary[treeObject])
                     {
-                        if(DetailCounter[type] % 1023 == 0){
-                            DetailBatches[type].Add(new List<Matrix4x4>());
+                        if(DetailCounter[treeObject] % 1023 == 0){
+                            DetailBatches[treeObject].Add(new List<Matrix4x4>());
                         }
 
-                        DetailBatches[type][(int)(DetailCounter[type] / 1023)].Add(item);
-                        DetailCounter[type]++;
+                        DetailBatches[treeObject][(int)(DetailCounter[treeObject] / 1023)].Add(item);
+                        DetailCounter[treeObject]++;
                     }
                 }
             }

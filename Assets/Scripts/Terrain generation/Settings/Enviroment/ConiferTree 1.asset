@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c631138a5c0a243beb36e2fa03fcc1, type: 3}
+  m_Name: ConiferTree 1
+  m_EditorClassIdentifier: 
+  Name: Conifer tree
+  SpawnRange:
+    Min: 0
+    Max: 1
+  SlopeLimit: 25
+  Count: 16
+  TemperatureRange:
+    Min: 0
+    Max: 0
+  HumidityRange:
+    Min: 0
+    Max: 0
+  BaseSize: {x: 7, y: 7, z: 7}
+  SizeVariation: {x: 2, y: 1, z: 2}
+  Mesh: {fileID: -2432090755550338912, guid: 319cfaef40df6b2488fa80214fe0fd11, type: 3}
+  MeshMaterials:
+  - {fileID: 2100000, guid: 093ea50b911350f4aa822c0b873bf80e, type: 2}
+  - {fileID: 2100000, guid: 5dd27e6c488fef842bd751749c3148c5, type: 2}
+  ImpostorTextures:
+  - {fileID: 2800000, guid: 6c9c4c922ed323341bdfeee903a36a83, type: 3}
+  - {fileID: 2800000, guid: aa9d859f56aa71247a8cdc984f7f2c9f, type: 3}
+  BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
+    type: 2}
+  ImpostorMaterials:
+  - {fileID: 0}
+  - {fileID: 0}

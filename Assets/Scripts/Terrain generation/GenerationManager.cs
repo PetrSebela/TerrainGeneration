@@ -291,22 +291,17 @@ public static class GenerationManager
                     validWaterChunk.Add(key * ChunkManager.ChunkSettings.ChunkSize);
                 }
 
-                Dictionary<Spawnable,List<Matrix4x4>> detailDictionary = new Dictionary<Spawnable, List<Matrix4x4>>(){
-                    {Spawnable.ConiferTree,new List<Matrix4x4>()},
-                    {Spawnable.DeciduousTree,new List<Matrix4x4>()},
-                    {Spawnable.Rock,new List<Matrix4x4>()},
-                    {Spawnable.Bush,new List<Matrix4x4>()},
-                };
-
-                Dictionary<Spawnable,List<Matrix4x4>> lowDetailDictionary = new Dictionary<Spawnable, List<Matrix4x4>>(){
-                    {Spawnable.ConiferTree,new List<Matrix4x4>()},
-                    {Spawnable.DeciduousTree,new List<Matrix4x4>()},
-                };
-
-                foreach (SpawnableSettings item in ChunkManager.spSettings)
+                Dictionary<TreeObject,List<Matrix4x4>> detailDictionary = new Dictionary<TreeObject, List<Matrix4x4>>();
+                
+                foreach (TreeObject treeObject in ChunkManager.TreeObjects)
                 {
-                    List<Matrix4x4> listReference = detailDictionary[item.type];
-                    for (int i = 0; i < item.countInChunk; i++)
+                    detailDictionary.Add(treeObject,new List<Matrix4x4>());                    
+                }
+
+                foreach (TreeObject item in ChunkManager.TreeObjects)
+                {
+                    List<Matrix4x4> listReference = detailDictionary[item];
+                    for (int i = 0; i < item.Count; i++)
                     {
                         int xTreeCoord = UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution - 1);
                         int zTreeCoord = UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution - 1);
@@ -318,9 +313,9 @@ public static class GenerationManager
                         Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
-                        bool canSpawnObject = item.minHeight * ChunkManager.TerrainSettings.MaxHeight  < height && 
-                                            height < item.maxHeight * ChunkManager.TerrainSettings.MaxHeight && 
-                                            Vector3.Angle(Vector3.up, normal) < item.maxSlope && 
+                        bool canSpawnObject = item.SpawnRange.Min * ChunkManager.TerrainSettings.MaxHeight  < height && 
+                                            height < item.SpawnRange.Max * ChunkManager.TerrainSettings.MaxHeight && 
+                                            Vector3.Angle(Vector3.up, normal) < item.SlopeLimit && 
                                             height > ChunkManager.waterLevel;
                         if(canSpawnObject)
                         {
@@ -332,7 +327,13 @@ public static class GenerationManager
                             Matrix4x4 matrix4X4 = Matrix4x4.TRS(
                                 position, 
                                 Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
-                                Vector3.one * Random.Range(item.minScale,item.maxScale));
+                                new Vector3(
+                                    item.BaseSize.x + Random.Range( 1 - item.SizeVariation.x, 1 + item.SizeVariation.x),
+                                    item.BaseSize.y + Random.Range( 1 - item.SizeVariation.y, 1 + item.SizeVariation.y),
+                                    item.BaseSize.z + Random.Range( 1 - item.SizeVariation.z, 1 + item.SizeVariation.z)
+                                )    
+                            );
+                          
 
                             listReference.Add(matrix4X4);
                         }
@@ -340,32 +341,18 @@ public static class GenerationManager
                 }
 
                 // Converting list to array
-                Dictionary<Spawnable,Matrix4x4[]> detailDictionaryArray = new Dictionary<Spawnable, Matrix4x4[]>();
-                Dictionary<Spawnable,Matrix4x4[]> lowDetailDictionaryArray = new Dictionary<Spawnable, Matrix4x4[]>();
+                Dictionary<TreeObject,Matrix4x4[]> detailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
+                Dictionary<TreeObject,Matrix4x4[]> lowDetailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
 
-                foreach (var item in detailDictionary.Keys)
+                foreach (TreeObject treeObject in ChunkManager.TreeObjects)
                 {
-                    switch (item)
-                    {
-                        case Spawnable.ConiferTree:
-                            detailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            lowDetailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            break;                                
-                        
-                        case Spawnable.DeciduousTree:
-                            detailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            lowDetailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            break;                                
-                        
-                        case Spawnable.Rock:
-                            detailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            break;         
+                    detailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
+                }
 
-                        case Spawnable.Bush:
-                            detailDictionaryArray.Add(item, detailDictionary[item].ToArray());
-                            break;                                
-                    }
-                } 
+                foreach (TreeObject treeObject in ChunkManager.LowTreeObjects)
+                {
+                    lowDetailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
+                }
 
                 chunk.DetailDictionary = detailDictionaryArray;
                 chunk.LowDetailDictionary = lowDetailDictionaryArray;
@@ -442,6 +429,8 @@ public static class GenerationManager
             ChunkManager.WorldSize,
             ChunkManager.ChunkSettings.ChunkResolution,
             ChunkManager);
+
+        ChunkManager.BatchEnviroment();
 
         ChunkManager.TerrainMaterial.SetVector("_HeightRange", new Vector2(ChunkManager.TerrainSettings.MinHeight,ChunkManager.TerrainSettings.MaxHeight));
         ChunkManager.MapDisplay.transform.parent.gameObject.SetActive(true);

@@ -642,6 +642,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   PlayerController: {fileID: 1620735405}
+  TreeObjects:
+  - {fileID: 11400000, guid: beaaa9b66a32d324eb57d1cf01b852f0, type: 2}
+  LowTreeObjects:
+  - {fileID: 11400000, guid: beaaa9b66a32d324eb57d1cf01b852f0, type: 2}
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0

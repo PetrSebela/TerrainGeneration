@@ -18,8 +18,8 @@ public class Chunk
     public float[,] HeightMap;
     public int CurrentLODindex;
 
-    public Dictionary<Spawnable,Matrix4x4[]> DetailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
-    public Dictionary<Spawnable,Matrix4x4[]> LowDetailDictionary = new Dictionary<Spawnable, Matrix4x4[]>();
+    public Dictionary<TreeObject,Matrix4x4[]> DetailDictionary = new Dictionary<TreeObject, Matrix4x4[]>();
+    public Dictionary<TreeObject,Matrix4x4[]> LowDetailDictionary = new Dictionary<TreeObject, Matrix4x4[]>();
 
     public float LocalMaximum;
     public float LocalMinimum;

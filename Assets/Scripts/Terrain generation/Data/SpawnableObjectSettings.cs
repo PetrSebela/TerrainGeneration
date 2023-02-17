@@ -19,18 +19,3 @@ public class SpawnableObjectSettings : ScriptableObject
     public Range MinimumHeight;
     public float MaxAngle;
 }
-
-public struct Range
-{
-    [Range(0,1)]
-    public float Min;
-    
-    [Range(0,1)]
-    public float Max;
-
-    public Range(float min, float max)
-    {
-        Min = min;
-        Max = max;
-    }
-}
