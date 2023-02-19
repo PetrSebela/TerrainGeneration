@@ -613,6 +613,7 @@ MonoBehaviour:
   DockCount: 12
   DockObject: {fileID: 4679943002850363553, guid: 412baaf5464c35b4b9d7e56cc52c75b7,
     type: 3}
+  SetViewerPositionFromScript: 0
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0

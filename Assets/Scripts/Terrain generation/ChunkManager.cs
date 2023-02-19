@@ -162,8 +162,8 @@ public class ChunkManager : MonoBehaviour
         
         if (simulationState == null){
             Debug.Log("Viewer set to default values");
-            // TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
-            // simulationState = new SimulationState();
+            TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
+            simulationState = new SimulationState();
             SetViewerPositionFromScript = true;
         }
         else{
