@@ -13,14 +13,16 @@ public class Chunk
 
 
     public Vector2 Position;
-    
-    public List<ObjectSizeDescriptor> SizeDescriptorList = new List<ObjectSizeDescriptor>();
+    public List<ObjectSizeDescriptor> FoliegeSizeDescriptorList = new List<ObjectSizeDescriptor>();
+    public List<ObjectSizeDescriptor> StructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
+
 
     public float[,] HeightMap;
     public int CurrentLODindex;
 
     public Dictionary<TreeObject,Matrix4x4[]> DetailDictionary = new Dictionary<TreeObject, Matrix4x4[]>();
     public Dictionary<TreeObject,Matrix4x4[]> LowDetailDictionary = new Dictionary<TreeObject, Matrix4x4[]>();
+    public List<GameObject> ChildStructures = new List<GameObject>();
 
     public float LocalMaximum;
     public float LocalMinimum;
@@ -73,9 +75,9 @@ public class Chunk
     }
 
     private void ChangeChildrenState(bool state){
-        for (int i = 0; i < MeshCollider.transform.childCount ; i++)
+        for (int i = 0; i < ChildStructures.Count ; i++)
         {
-            MeshCollider.transform.GetChild(i).gameObject.SetActive(state);
+            ChildStructures[i].SetActive(state);
         }
     }
 }

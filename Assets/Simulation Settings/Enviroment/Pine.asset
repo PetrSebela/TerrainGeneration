@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c631138a5c0a243beb36e2fa03fcc1, type: 3}
+  m_Name: Pine
+  m_EditorClassIdentifier: 
+  Name: Pine
+  SpawnRange:
+    Min: 0.105
+    Max: 0.734
+  SlopeLimit: 35
+  Radius: 8
+  Count: 32
+  TemperatureRange:
+    Min: 0
+    Max: 0.45
+  HumidityRange:
+    Min: 0
+    Max: 0.45
+  BaseSize: {x: 17, y: 17, z: 17}
+  SizeVariation: {x: 2, y: 5, z: 2}
+  Mesh: {fileID: -2432090755550338912, guid: 38fb9718d3d12e24cbc920f0b8bfb269, type: 3}
+  MeshMaterials:
+  - {fileID: 2100000, guid: 74e7940d56fbb77428448936205780ad, type: 2}
+  - {fileID: 2100000, guid: 23f60249bccceae4cadc964d2cae71df, type: 2}
+  ImpostorTextures:
+  - {fileID: 2800000, guid: a6bc9ab16b3cd774ba8488debf3ef23c, type: 3}
+  - {fileID: 2800000, guid: 721c8ca52f116834d9a96697b2fc8833, type: 3}
+  BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
+    type: 2}
+  ImpostorMaterials:
+  - {fileID: 0}
+  - {fileID: 0}

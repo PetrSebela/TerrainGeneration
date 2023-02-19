@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32830358cbd79b64f97cc42bfaf08dc2, type: 3}
+  m_Name: Belltower
+  m_EditorClassIdentifier: 
+  Name: Belltower
+  SpawnRange:
+    Min: 0.029
+    Max: 1
+  SlopeLimit: 25
+  Radius: 10
+  MinDistanceFromStructures: 50
+  Count: 64
+  Structure: {fileID: 4588304716903026526, guid: 4bee07e793f7f5540be153f8147042ed,
+    type: 3}

@@ -33,4 +33,12 @@ public class TerrainSettingsSerialized{
         MaxHeight = terrainSettings.MaxHeight;
         MinHeight = terrainSettings.MinHeight;
     }
+
+    public static void SetDataToSGO(TerrainSettingsSerialized serialized, TerrainSettings terrainSettings){
+        terrainSettings.Persistence = serialized.Persistence;
+        terrainSettings.Lacunarity = serialized.Lacunarity;
+        terrainSettings.Octaves = serialized.Octaves;
+        terrainSettings.MaxHeight = serialized.MaxHeight;
+        terrainSettings.MinHeight = serialized.MinHeight;
+    }
 }

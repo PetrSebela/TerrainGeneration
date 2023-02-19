@@ -28,7 +28,7 @@ public class SceneDirector : MonoBehaviour
 
     public void BeginSimulation(){
         TerrainSettings.MaxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
-        TerrainSettings.MinHeight = -float.Parse(maxHeightField.options[maxHeightField.value].text) / 3;
+        TerrainSettings.MinHeight = -float.Parse(maxHeightField.options[maxHeightField.value].text) / 10;
 
         SimulationSettings.Seed = seedField.text;
         SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);

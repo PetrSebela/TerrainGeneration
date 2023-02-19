@@ -21,7 +21,7 @@ public class MapTextureGenerator : MonoBehaviour
             chunkManager.TerrainCurve);
 
 
-        Texture2D tex = TextureCreator.GenerateTexture();
+        Texture2D tex = TextureCreator.GenerateTexture(chunkManager);
 
         for (int x = -worldSize; x < worldSize; x++)
         {

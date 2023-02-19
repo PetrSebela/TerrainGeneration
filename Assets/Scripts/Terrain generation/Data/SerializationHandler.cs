@@ -47,6 +47,7 @@ public static class SerializationHandler
                 switch(extenstion){
                     case "TerSet":
                         terrainSettings = JsonUtility.FromJson<TerrainSettingsSerialized>(reader.ReadToEnd());
+                        TerrainSettingsSerialized.SetDataToSGO(terrainSettings,sceneDirector.TerrainSettings);
                         break;
 
                     case "SimSet":

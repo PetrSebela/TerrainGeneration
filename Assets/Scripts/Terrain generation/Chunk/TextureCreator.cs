@@ -33,37 +33,9 @@ public class TextureCreator : MonoBehaviour
     }
 
 
-    public static Texture2D GenerateTexture(){
+    public static Texture2D GenerateTexture(ChunkManager chunkManager){
         int size = 512;
         Texture2D terrainTexture = new Texture2D(size,size);
-
-        Color grass = new Color(
-            112 / 255f, 
-            159/ 255f, 
-            33/255f
-        );
-        Color darkStone = new Color(
-            126 / 255f, 
-            128 / 255f, 
-            126 / 255f
-        );
-        Color stone = new Color(
-            156 / 255f,
-            158 / 255f, 
-            156 / 255f
-        );
-        Color lightStone = new Color(
-            190 / 255f,
-            190 / 255f, 
-            190 / 255f
-        );
-        Color sand = new Color(
-            255 / 255f,
-            228 / 255f, 
-            137 / 255f
-        );
-
-
         for (float x = 0; x < size; x++)
         {
             for (float y = 0; y < size; y++)
@@ -93,7 +65,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlized = (y/size);
                 float sl = EaseInOut(normlized,0.85f,0.9f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(grass * 0.8f, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.GrassDarker, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         terrainTexture.Apply();
@@ -105,7 +77,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlized = (y/size);
                 float sl = EaseInOut(normlized,0.5f,0.6f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(grass, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.Grass, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         terrainTexture.Apply();
@@ -116,8 +88,8 @@ public class TextureCreator : MonoBehaviour
             for (float y = 0; y < size; y++)
             {
                 float normlized = (y/size);
-                float sl = EaseInOut(normlized,0.25f,0.255f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(sand, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                float sl = EaseInOut(normlized,0.1f,0.105f);
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.Sand, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
 
@@ -129,7 +101,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlizedX = (x/size);
                 float sl = EaseInOut(normlizedX,0.7f,0.8f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(lightStone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.StoneLighter, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         terrainTexture.Apply();
@@ -141,7 +113,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlizedX = (x/size);
                 float sl = EaseInOut(normlizedX,0.65f,0.7f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(stone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.Stone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         // conputing dark slope
@@ -151,7 +123,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlizedX = (x/size);
                 float sl = EaseInOut(normlizedX,0.45f,0.62f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(darkStone, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(chunkManager.StoneDarker, terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         

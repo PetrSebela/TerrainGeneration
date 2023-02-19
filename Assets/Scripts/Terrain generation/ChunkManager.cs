@@ -12,29 +12,16 @@ public class ChunkManager : MonoBehaviour
     public ChunkSettings ChunkSettings;
     public TerrainSettings TerrainSettings;
 
-    [SerializeField] public int WorldSize;
-    [SerializeField] public int LODTreeBorder;
+    [HideInInspector] public int WorldSize;
     public Transform TrackedObject;
 
     [Header("Enviroment")]
-    [SerializeField] public List<SpawnableSettings> spSettings = new List<SpawnableSettings>();
-    [SerializeField] private Mesh TreeMesh;
-    [SerializeField] private Mesh TreeMesh2;
-    [SerializeField] private Mesh RockMesh;
-    [SerializeField] private Mesh BushMesh;
     [SerializeField] private Mesh LowDetailBase;
 
     
     [Header("Materials")]
-    [SerializeField] private Material CrownMaterial;
-    [SerializeField] private Material BarkMaterial;
-
-    [SerializeField] private Material RockMaterial;
-
-    [SerializeField] private Material BushMaterial;
     [SerializeField] public Material TerrainMaterial;
 
-    [SerializeField] private Material LowDetailMaterialBase;
 
 
     [Header("Water settings")]
@@ -44,12 +31,9 @@ public class ChunkManager : MonoBehaviour
     
     [Header("Exposed variables")]
     public Dictionary<Vector2, Chunk> ChunkDictionary = new Dictionary<Vector2, Chunk>();
-    // Queues
-
     [HideInInspector] public Vector2 PastChunkPosition = Vector2.zero;
 
     //! Terrain variables
-    [SerializeField] public ComputeShader HeightMapShader;
     [HideInInspector] public SeedGenerator SeedGenerator;
     public SimulationSettings simulationSettings;
     
@@ -73,6 +57,13 @@ public class ChunkManager : MonoBehaviour
     public Texture2D[] ImpostorTextures;
     public Material[] ImpostorMaterials;    
 
+    [Header("Colors")]
+    public Color Sand;
+    public Color Stone;
+    public Color StoneLighter;
+    public Color StoneDarker;
+    public Color Grass;
+    public Color GrassDarker;
 
     private Dictionary<TreeObject,int> LowDetailCounter = new Dictionary<TreeObject, int>();
     private Dictionary<TreeObject,int> DetailCounter = new Dictionary<TreeObject, int>();
@@ -84,10 +75,7 @@ public class ChunkManager : MonoBehaviour
     public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();
     private Thread ProcessingThread;
 
-    public int LastQueueCount = 0;
-
-    public GameObject BelltowerObject;
-    public GameObject Signpost;
+    private int LastQueueCount = 0;
 
     public AnimationCurve TerrainCurve;
     public AnimationCurve TerrainFalloffCurve;
@@ -96,8 +84,17 @@ public class ChunkManager : MonoBehaviour
     public SimulationState simulationState;
     public PlayerController PlayerController;
 
+    public StructureObject[] StructureObjects;
+    public List<ObjectSizeDescriptor> StructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
+
     public TreeObject[] TreeObjects;
     public TreeObject[] LowTreeObjects;
+
+    public int DockCount;
+    public GameObject DockObject;
+
+    public bool SetViewerPositionFromScript = false;
+
     // Vector3 -> Vector2
     // z -> y
     // V3(x,y,z) -> V2(x,z)
@@ -110,6 +107,7 @@ public class ChunkManager : MonoBehaviour
 
     void Start()
     {
+        Debug.Log(TreeObjects.Length);
         ImpostorMaterials = new Material[ImpostorTextures.Length];
         
         for (int i = 0; i < ImpostorTextures.Length; i++)
@@ -132,7 +130,7 @@ public class ChunkManager : MonoBehaviour
         }
 
         // Generating heightmap texture
-        TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture());
+        TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture(this));
         
         ChunkUpdateProcessor updateProcessor = new ChunkUpdateProcessor(this);
 
@@ -150,26 +148,29 @@ public class ChunkManager : MonoBehaviour
     }
 
     void GenerateWorld(string seed){
+        Debug.Log("Begin with string seed:" + seed);
+        
         int seedInt;
         if(int.TryParse(simulationSettings.Seed, out seedInt)){
-            SeedGenerator = new SeedGenerator(seedInt);
+            SeedGenerator = new SeedGenerator(seedInt,this);
         }
         else{
-            SeedGenerator = new SeedGenerator(seed);
+            SeedGenerator = new SeedGenerator(seed,this);
         }
 
         simulationState = SerializationHandler.DeserializeSimulatinoState(SeedGenerator.seed.ToString());
+        
         if (simulationState == null){
             Debug.Log("Viewer set to default values");
-            TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
-            simulationState = new SimulationState();
+            // TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
+            // simulationState = new SimulationState();
+            SetViewerPositionFromScript = true;
         }
         else{
             Debug.Log("Viewer data loaded from memory");
             TrackedObject.position = simulationState.ViewerPosition;
             PlayerController.cameraRotation = simulationState.ViewerOrientation;
         }
-
 
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 
     }
@@ -247,7 +248,6 @@ public class ChunkManager : MonoBehaviour
             {
                 for (int impostorMaterialIndex = 0; impostorMaterialIndex < 2; impostorMaterialIndex++)
                 {
-                    Debug.Log("low detail draw call");
                     Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], envList);
                 }            
             }
@@ -310,6 +310,20 @@ public class ChunkManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+
+        // Gizmos.color = new Color(1, 0, 0, 0.5f);
+        // foreach (Chunk chunk in ChunkDictionary.Values)
+        // {
+        //     foreach (ObjectSizeDescriptor obj in chunk.SizeDescriptorList)
+        //     {
+        //         Vector3 position
+        //         Gizmos.DrawCube(, new Vector3(1, 1, 1));
+        //     }
+        // }
     }
 }
 

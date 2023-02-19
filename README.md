@@ -68,3 +68,7 @@ This project is currently in sub beta state, so lot of features are missing.
 ## Reducing GPU call count
 - scrap quad tree division, keep generation as it is but group existing meshes into one based on LOD index and neighbours. 
 - Sort of like static batching but custom and working (Unity's is broken).
+
+
+##
+- skybox - https://assetstore.unity.com/packages/2d/textures-materials/sky/fantasy-skybox-free-18353

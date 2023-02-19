@@ -4,39 +4,60 @@ using UnityEngine;
 
 public class SeedGenerator
 {
-    public Vector2[] noiseLayers = new Vector2[24];
-    public int seed;
+    public Vector2[] NoiseLayers = new Vector2[24];
+    public Vector2[] EntityTemperatureMapOffsets;
+    public Vector2[] EntityHumidityMapOffsets;
 
-    public SeedGenerator(int seed)
+    public int seed;
+    public ChunkManager ChunkManager;
+
+    public SeedGenerator(int seed, ChunkManager chunkManager)
     {
         this.seed = seed;
+        ChunkManager = chunkManager;
         Debug.Log("Internal seed int: " + this.seed);
         Random.InitState(seed);
         GenerateValues();
+        GenerateEntityOffsets();
     }
 
-    public SeedGenerator(string seedString){
+    public SeedGenerator(string seedString, ChunkManager chunkManager){
+        ChunkManager = chunkManager;
         if(seedString == ""){
             this.seed = Time.realtimeSinceStartup.GetHashCode();
             Random.InitState(this.seed);
 
             Debug.Log("Internal seed random: " + this.seed);
-            GenerateValues();            
+            GenerateValues();        
+            GenerateEntityOffsets();    
         }
         else{
             this.seed = seedString.GetHashCode();
             Random.InitState(this.seed);
             Debug.Log("Internal seed string : " + seedString.GetHashCode().ToString());
             GenerateValues();
+            GenerateEntityOffsets();    
         }
     }
 
 
     private void GenerateValues()
     {
-        for (int i = 0; i < noiseLayers.Length; i++)
+        for (int i = 0; i < NoiseLayers.Length; i++)
         {
-            noiseLayers[i] = new Vector2(Random.value * 100000, Random.value * 100000);
+            NoiseLayers[i] = new Vector2(Random.value * 100000, Random.value * 100000);
+        }
+    }
+
+    private void GenerateEntityOffsets(){
+        Debug.Log(ChunkManager.TreeObjects);
+        EntityTemperatureMapOffsets = new Vector2[ChunkManager.TreeObjects.Length];
+        EntityHumidityMapOffsets = new Vector2[ChunkManager.TreeObjects.Length];
+
+        for (int i = 0; i < ChunkManager.TreeObjects.Length; i++)
+        {
+            EntityTemperatureMapOffsets[i] = new Vector2(Random.value * 100000, Random.value * 100000);
+            EntityHumidityMapOffsets[i] = new Vector2(Random.value * 100000, Random.value * 100000);
         }
     }
 }

@@ -25,20 +25,20 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.41960785, g: 0.5671525, b: 0.627451, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SubtractiveShadowColor: {r: 0.8590691, g: 0.9127661, b: 0.9339623, a: 1}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 4c12da8dc5dced74e838120da11725a0, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
   m_HaloTexture: {fileID: 0}
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
-  m_DefaultReflectionMode: 0
-  m_DefaultReflectionResolution: 128
+  m_DefaultReflectionMode: 1
+  m_DefaultReflectionResolution: 2048
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.25
-  m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.045070834, g: 0.05642832, b: 0.07673042, a: 0.25}
+  m_ReflectionIntensity: 0.5
+  m_CustomReflection: {fileID: 8900000, guid: 8fa4fedf13c1a8a44904553ecc5b5a1d, type: 2}
+  m_Sun: {fileID: 410087040}
+  m_IndirectSpecularColor: {r: 0.27931252, g: 0.40497327, b: 0.49547285, a: 0.5}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -487,58 +487,13 @@ MonoBehaviour:
   ChunkSettings: {fileID: 11400000, guid: a70920e0893c13b46be15e5c3387053c, type: 2}
   TerrainSettings: {fileID: 11400000, guid: 58359a830563c0145a7b104271ff1eff, type: 2}
   WorldSize: 32
-  LODTreeBorder: 4
   TrackedObject: {fileID: 1620735406}
-  spSettings:
-  - type: 2
-    minHeight: 0
-    maxHeight: 1
-    minScale: 0.5
-    maxScale: 1
-    maxSlope: 35
-    countInChunk: 12
-  - type: 3
-    minHeight: 0.605
-    maxHeight: 1
-    minScale: 0.5
-    maxScale: 1
-    maxSlope: 35
-    countInChunk: 64
-  - type: 0
-    minHeight: 0.491
-    maxHeight: 0.955
-    minScale: 5
-    maxScale: 10
-    maxSlope: 35
-    countInChunk: 32
-  - type: 1
-    minHeight: 0.01
-    maxHeight: 0.55
-    minScale: 9
-    maxScale: 15
-    maxSlope: 27.5
-    countInChunk: 16
-  TreeMesh: {fileID: -2432090755550338912, guid: 533bcbb36ea9a76e683712344c0d4fb1,
-    type: 3}
-  TreeMesh2: {fileID: -2432090755550338912, guid: 319cfaef40df6b2488fa80214fe0fd11,
-    type: 3}
-  RockMesh: {fileID: -2432090755550338912, guid: 4ed8fe17d33a78048a94b5a906c50cef,
-    type: 3}
-  BushMesh: {fileID: -2432090755550338912, guid: 6a5f132c716c0c34b9a58eab593f2764,
-    type: 3}
   LowDetailBase: {fileID: -2432090755550338912, guid: 062ae582be157fb438ec87a7e6eea63f,
     type: 3}
-  CrownMaterial: {fileID: 2100000, guid: 093ea50b911350f4aa822c0b873bf80e, type: 2}
-  BarkMaterial: {fileID: 2100000, guid: 5dd27e6c488fef842bd751749c3148c5, type: 2}
-  RockMaterial: {fileID: 2100000, guid: 8553b8b6fbaeaa4438f648926bb45f00, type: 2}
-  BushMaterial: {fileID: 2100000, guid: 52404dca27094a748a7571ed4d1d4084, type: 2}
   TerrainMaterial: {fileID: 2100000, guid: a90de7c954770fa47b72e8e716ee1547, type: 2}
-  LowDetailMaterialBase: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
-    type: 2}
   WaterMaterial: {fileID: 2100000, guid: 3dd53825794efdb42b4cf6a2c4ac5bde, type: 2}
   waterLevel: 0
   PastChunkPosition: {x: 0, y: 0}
-  HeightMapShader: {fileID: 7200000, guid: 8cb3cddeba4fadc4082d75678edd296c, type: 3}
   simulationSettings: {fileID: 11400000, guid: 01806e05eac489448b31c3c75788633e, type: 2}
   GlobalNoiseLowest: Infinity
   GlobalNoiseHighest: -Infinity
@@ -556,39 +511,41 @@ MonoBehaviour:
   - {fileID: 2800000, guid: a6bc9ab16b3cd774ba8488debf3ef23c, type: 3}
   - {fileID: 2800000, guid: 721c8ca52f116834d9a96697b2fc8833, type: 3}
   ImpostorMaterials: []
-  LastQueueCount: 0
-  BelltowerObject: {fileID: 4588304716903026526, guid: 4bee07e793f7f5540be153f8147042ed,
-    type: 3}
-  Signpost: {fileID: 919132149155446097, guid: 50df034f36da1e94481704486bfa4f88, type: 3}
+  Sand: {r: 0.7830189, g: 0.6930351, b: 0.4764596, a: 0}
+  Stone: {r: 0.5411765, g: 0.5058824, b: 0.5058824, a: 0}
+  StoneLighter: {r: 0.8392157, g: 0.78431374, b: 0.78431374, a: 0}
+  StoneDarker: {r: 0.3773585, g: 0.3506586, b: 0.3506586, a: 0}
+  Grass: {r: 0.32293808, g: 0.5188679, b: 0.18356177, a: 0}
+  GrassDarker: {r: 0.24997106, g: 0.3584906, b: 0.103150584, a: 0}
   TerrainCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
       value: 0
-      inSlope: 1
-      outSlope: 1
+      inSlope: 0.4
+      outSlope: 0.4
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.25
-      value: 0.25
-      inSlope: 0.036780484
-      outSlope: 0.036780484
+      value: 0.1
+      inSlope: 0.13360542
+      outSlope: 0.13360542
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.512987
-      outWeight: 0.33333334
+      outWeight: 0.0712831
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 2.1792462
-      outSlope: 2.1792462
+      inSlope: -0
+      outSlope: -0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.06493505
+      inWeight: 0.15478618
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -604,15 +561,15 @@ MonoBehaviour:
       tangentMode: 0
       weightedMode: 2
       inWeight: 0
-      outWeight: 0.40020368
+      outWeight: 0.37106565
     - serializedVersion: 3
       time: 1
       value: 0
-      inSlope: -4.485428
+      inSlope: -0.3647954
       outSlope: -6.2759414
       tangentMode: 1
       weightedMode: 1
-      inWeight: 0.23267382
+      inWeight: 0.4450102
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -642,12 +599,20 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   PlayerController: {fileID: 1620735405}
+  StructureObjects:
+  - {fileID: 11400000, guid: 7ad3d54beebaba543ab2f72c857a0887, type: 2}
+  - {fileID: 11400000, guid: ed23ada9f4b688b4e9e6bb4e5b539c5e, type: 2}
   TreeObjects:
-  - {fileID: 11400000, guid: beaaa9b66a32d324eb57d1cf01b852f0, type: 2}
+  - {fileID: 11400000, guid: 9f56475458602814c88b974c24873220, type: 2}
+  - {fileID: 11400000, guid: e803f121e4524474280e56d78ae7d694, type: 2}
   - {fileID: 11400000, guid: 9692f4203e132204ea20911157d9c07b, type: 2}
   LowTreeObjects:
-  - {fileID: 11400000, guid: beaaa9b66a32d324eb57d1cf01b852f0, type: 2}
+  - {fileID: 11400000, guid: 9f56475458602814c88b974c24873220, type: 2}
+  - {fileID: 11400000, guid: e803f121e4524474280e56d78ae7d694, type: 2}
   - {fileID: 11400000, guid: 9692f4203e132204ea20911157d9c07b, type: 2}
+  DockCount: 12
+  DockObject: {fileID: 4679943002850363553, guid: 412baaf5464c35b4b9d7e56cc52c75b7,
+    type: 3}
 --- !u!4 &100951351
 Transform:
   m_ObjectHideFlags: 0
@@ -1297,7 +1262,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.75
+  m_Intensity: 1.75
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1340,7 +1305,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 5000
+  m_ColorTemperature: 6600
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -1354,14 +1319,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1474197271}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2582,14 +2547,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 876910247}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1474197271}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!114 &876910249
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2622,7 +2587,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.15
+  m_Intensity: 1.75
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2665,7 +2630,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 14319
+  m_ColorTemperature: 6600
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
