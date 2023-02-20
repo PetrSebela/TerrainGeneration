@@ -10,6 +10,9 @@ public class TerrainSettings : ScriptableObject
     public float Lacunarity;
     public int Octaves;
 
+    [Range(0,1)]
+    public float WrinkleMagniture;
+
     [Header("Terrain")]
     public float MaxHeight;
     public float MinHeight;
@@ -22,6 +25,8 @@ public class TerrainSettingsSerialized{
     public float Lacunarity;
     public int Octaves;
 
+    public float WrinkleMagniture;
+
     [Header("Terrain")]
     public float MaxHeight;
     public float MinHeight;
@@ -32,6 +37,7 @@ public class TerrainSettingsSerialized{
         Octaves = terrainSettings.Octaves;
         MaxHeight = terrainSettings.MaxHeight;
         MinHeight = terrainSettings.MinHeight;
+        WrinkleMagniture = terrainSettings.WrinkleMagniture;
     }
 
     public static void SetDataToSGO(TerrainSettingsSerialized serialized, TerrainSettings terrainSettings){
@@ -40,5 +46,6 @@ public class TerrainSettingsSerialized{
         terrainSettings.Octaves = serialized.Octaves;
         terrainSettings.MaxHeight = serialized.MaxHeight;
         terrainSettings.MinHeight = serialized.MinHeight;
+        terrainSettings.WrinkleMagniture = serialized.WrinkleMagniture;
     }
 }

@@ -66,7 +66,7 @@ public class Chunk
             MeshCollider.enabled = false;
         }
 
-        if(meshData.LOD <= 4){
+        if(meshData.LOD <= 2){
             ChangeChildrenState(true);
         }
         else{

@@ -11,7 +11,14 @@ public class ListWorlds : MonoBehaviour
     public Transform parent;
     void Start()
     {
+        LoadWorldList();
+    }
+
+    public void LoadWorldList(){
         dirs = SerializationHandler.GetSavedTerrains();
+        foreach(Transform child in parent.transform){
+            Destroy(child.gameObject);
+        }
 
         for (int i = 0; i < dirs.Length; i++)
         {
@@ -25,8 +32,14 @@ public class ListWorlds : MonoBehaviour
             UnityAction action = delegate{
                 SceneDirector.LoadSimulation(path);
             };
-            
-            instance.GetComponentInChildren<Button>().onClick.AddListener(action);
+            instance.GetComponentsInChildren<Button>()[0].onClick.AddListener(action);
+
+
+            UnityAction removeAction  = delegate{
+                SceneDirector.RemoveSimulation(path);
+            };
+        
+            instance.GetComponentsInChildren<Button>()[1].onClick.AddListener(removeAction);
         }
     }
 }

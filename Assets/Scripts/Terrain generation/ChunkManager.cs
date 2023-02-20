@@ -281,7 +281,7 @@ public class ChunkManager : MonoBehaviour
 
         foreach (Chunk chunk in ChunkDictionary.Values)
         {
-            if(chunk.CurrentLODindex >= 4  && chunk.CurrentLODindex <= 8){
+            if(chunk.CurrentLODindex >= 2  && chunk.CurrentLODindex <= 16){
                 foreach(TreeObject treeObject in LowTreeObjects)
                 {    
                     foreach (Matrix4x4 item in chunk.LowDetailDictionary[treeObject])
@@ -312,8 +312,64 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-    void OnDrawGizmosSelected()
-    {
+    // void OnDrawGizmos()
+    // {
+    //     NoiseConverter noiseConverter = new NoiseConverter(
+    //         GlobalNoiseLowest,
+    //         GlobalNoiseHighest,
+    //         TerrainSettings.MinHeight,
+    //         TerrainSettings.MaxHeight,
+    //         TerrainCurve
+    //     );
+
+    //     for (int dockIndex = 0; dockIndex < DockCount; dockIndex++)
+    //     {
+    //         float angle = (float)(360 / DockCount) * dockIndex;
+    //         float sampleDistance = 1f;
+    //         float pastSample = noiseConverter.GetRealHeight(1);
+    //         Vector2 samplerPositon = Vector2.zero;
+
+    //         while(Vector2.Distance(Vector2.zero, samplerPositon) <= WorldSize * ChunkSettings.ChunkSize){
+    //             Gizmos.color = Color.red;
+    //             float s1 = GenerationManager.SampleNoise(
+    //                         samplerPositon,
+    //                         TerrainSettings,
+    //                         this
+    //                     );
+
+    //             float s2 = GenerationManager.SampleNoise(
+    //                 samplerPositon + new Vector2(512.4f,752.4f),
+    //                 TerrainSettings,
+    //                 this
+    //             );
+
+    //             float distance =  Vector2.Distance(Vector2.zero, samplerPositon) / (WorldSize  * ChunkSettings.ChunkResolution);
+    //             float currentSample =  GenerationManager.SampleNoise(
+    //                 new Vector2(
+    //                     samplerPositon.x + s1 * 15000.1f * TerrainSettings.WrinkleMagniture,
+    //                     samplerPositon.y + s2 * 8020.1f * TerrainSettings.WrinkleMagniture
+    //                 ), 
+    //                 TerrainSettings, 
+    //                 this);
+    //             currentSample *= TerrainFalloffCurve.Evaluate(distance);
+    //             currentSample = noiseConverter.GetRealHeight(currentSample);
+
+
+    //             if (pastSample >= 0 && currentSample < 0){
+    //                 Gizmos.color = Color.green;
+    //             }
+
+
+    //             Gizmos.DrawSphere(new Vector3(samplerPositon.x,currentSample,samplerPositon.y),0.1f);
+                
+    //             pastSample = currentSample;
+                
+    //             samplerPositon += new Vector2(
+    //                 Mathf.Cos(angle * Mathf.Deg2Rad) * sampleDistance,
+    //                 Mathf.Sin(angle * Mathf.Deg2Rad) * sampleDistance
+    //             );
+    //         }
+    //     }
 
         // Gizmos.color = new Color(1, 0, 0, 0.5f);
         // foreach (Chunk chunk in ChunkDictionary.Values)
@@ -324,7 +380,7 @@ public class ChunkManager : MonoBehaviour
         //         Gizmos.DrawCube(, new Vector3(1, 1, 1));
         //     }
         // }
-    }
+    // }
 }
 
 [Serializable]

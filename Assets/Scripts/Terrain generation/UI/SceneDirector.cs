@@ -10,9 +10,12 @@ public class SceneDirector : MonoBehaviour
 {
     public SimulationSettings SimulationSettings;
     public TerrainSettings TerrainSettings;
+    public ListWorlds WorldLister;
     [SerializeField] private TMP_Dropdown maxHeightField;
     [SerializeField] private TMP_Dropdown worldSize;
     [SerializeField] private TMP_InputField seedField;
+    [SerializeField] private Slider winklesSlider;
+    [SerializeField] private TMP_Text winklesSliderValue;
 
     public void Start(){
         Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
@@ -29,6 +32,7 @@ public class SceneDirector : MonoBehaviour
     public void BeginSimulation(){
         TerrainSettings.MaxHeight = float.Parse(maxHeightField.options[maxHeightField.value].text);
         TerrainSettings.MinHeight = -float.Parse(maxHeightField.options[maxHeightField.value].text) / 10;
+        TerrainSettings.WrinkleMagniture = winklesSlider.value;
 
         SimulationSettings.Seed = seedField.text;
         SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
@@ -48,5 +52,15 @@ public class SceneDirector : MonoBehaviour
     public void LoadSimulation(string path){
         SerializationHandler.DeserializeTerrain(path,this);
         SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
+    }
+
+    public void RemoveSimulation(string path){
+        Debug.Log(path);
+        System.IO.Directory.Delete(path,true);
+        WorldLister.LoadWorldList();
+    }
+
+    public void UpdateWrinkleSlider(){
+        winklesSliderValue.text = ((int)(winklesSlider.value*100)/100f).ToString();
     }
 }

@@ -48,10 +48,29 @@ public static class GenerationManager
                 {
                     for (int j = 0; j < heightMapSide; j++)
                     {
-                        heightMap[i,j] = SampleNoise(
+
+                        float s1 = SampleNoise(
                             new Vector2(
                                 xChunk * ChunkManager.ChunkSettings.ChunkSize + i,
                                 yChunk * ChunkManager.ChunkSettings.ChunkSize + j
+                            ),
+                            ChunkManager.TerrainSettings,
+                            ChunkManager
+                        );
+
+                        float s2 = SampleNoise(
+                            new Vector2(
+                                xChunk * ChunkManager.ChunkSettings.ChunkSize + i + 512.4f,
+                                yChunk * ChunkManager.ChunkSettings.ChunkSize + j + 752.4f
+                            ),
+                            ChunkManager.TerrainSettings,
+                            ChunkManager
+                        );
+
+                        heightMap[i,j] = SampleNoise(
+                            new Vector2(
+                                xChunk * ChunkManager.ChunkSettings.ChunkSize + i + s1 * 15000.1f * ChunkManager.TerrainSettings.WrinkleMagniture,
+                                yChunk * ChunkManager.ChunkSettings.ChunkSize + j + s2 * 8020.1f * ChunkManager.TerrainSettings.WrinkleMagniture
                             ),
                             ChunkManager.TerrainSettings,
                             ChunkManager
@@ -160,27 +179,34 @@ public static class GenerationManager
             Vector2 samplerPositon = Vector2.zero;
 
             while(Vector2.Distance(Vector2.zero, samplerPositon) <= ChunkManager.WorldSize * ChunkManager.ChunkSettings.ChunkSize){
+                   float s1 = GenerationManager.SampleNoise(
+                            samplerPositon,
+                            ChunkManager.TerrainSettings,
+                            ChunkManager
+                        );
+
+                float s2 = GenerationManager.SampleNoise(
+                    samplerPositon + new Vector2(512.4f,752.4f),
+                    ChunkManager.TerrainSettings,
+                    ChunkManager
+                );
+
                 float distance =  Vector2.Distance(Vector2.zero, samplerPositon) / (ChunkManager.WorldSize  * ChunkManager.ChunkSettings.ChunkResolution);
-                float currentSample = SampleNoise(samplerPositon, ChunkManager.TerrainSettings, ChunkManager);
+                float currentSample =  GenerationManager.SampleNoise(
+                    new Vector2(
+                        samplerPositon.x + s1 * 15000.1f * ChunkManager.TerrainSettings.WrinkleMagniture,
+                        samplerPositon.y + s2 * 8020.1f * ChunkManager.TerrainSettings.WrinkleMagniture
+                    ), 
+                    ChunkManager.TerrainSettings, 
+                    ChunkManager);
+                
+                
                 currentSample *= ChunkManager.TerrainFalloffCurve.Evaluate(distance);
                 currentSample = noiseConverter.GetRealHeight(currentSample);
 
                 if (pastSample >= 0 && currentSample < 0){
-                    Debug.Log("shore found at : " + samplerPositon.ToString());
-                    GameObject dock = GameObject.Instantiate(
-                        ChunkManager.DockObject,
-                        new Vector3(samplerPositon.x,0,samplerPositon.y),
-                        Quaternion.Euler(new Vector3(0, -angle - 90, 0)));
-                    
                     dockPosition[dockIndex] = new Vector3(samplerPositon.x,0,samplerPositon.y);
-                    dockOrientation[dockIndex] = new Vector3(0, -angle - 90 - 180, 0);
-
-                    Chunk chunk = ChunkManager.ChunkDictionary[new Vector2((int)(samplerPositon.x/ChunkManager.ChunkSettings.ChunkSize),(int)(samplerPositon.y/ChunkManager.ChunkSettings.ChunkSize))];
-                    dock.transform.parent = chunk.MeshRenderer.transform;
-                    
-                    chunk.FoliegeSizeDescriptorList.Add(new ObjectSizeDescriptor(10,new Vector2((int)(samplerPositon.x%ChunkManager.ChunkSettings.ChunkSize),(int)(samplerPositon.y%ChunkManager.ChunkSettings.ChunkSize))));
-                    ChunkManager.StructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,samplerPositon));
-                    break;
+                    dockOrientation[dockIndex] = new Vector3(0, -angle - 90, 0);
                 }
                 
                 
@@ -191,15 +217,45 @@ public static class GenerationManager
                     Mathf.Sin(angle * Mathf.Deg2Rad) * sampleDistance
                 );
             }
+
+            Debug.Log(angle);
+            Debug.Log(samplerPositon);
+
+            if(dockPosition[dockIndex] == null)
+                continue;
+
+            GameObject dock = GameObject.Instantiate(
+                ChunkManager.DockObject,
+                dockPosition[dockIndex],
+                Quaternion.Euler(dockOrientation[dockIndex]));
+            dock.transform.name = angle.ToString();
+
+            // Chunk chunk = ChunkManager.ChunkDictionary[
+            //     new Vector2(
+            //         (int)(dockPosition[dockIndex].x/ChunkManager.ChunkSettings.ChunkSize),
+            //         (int)(dockPosition[dockIndex].y/ChunkManager.ChunkSettings.ChunkSize)
+            //     )];
+            
+            // chunk.FoliegeSizeDescriptorList.Add(
+            //     new ObjectSizeDescriptor(
+            //         10,
+            //         new Vector2(
+            //             (int)(dockPosition[dockIndex].x%ChunkManager.ChunkSettings.ChunkSize),
+            //             (int)(dockPosition[dockIndex].y%ChunkManager.ChunkSettings.ChunkSize)
+            // )));
+            
+            // ChunkManager.StructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,dockPosition[dockIndex]));
+
+            // dock.transform.parent = chunk.MeshRenderer.transform;
+            // chunk.ChildStructures.Add(dock);
         }
+        
 
         if (ChunkManager.SetViewerPositionFromScript)
         {
             int dockIndex = UnityEngine.Random.Range(0,ChunkManager.DockCount-1);
             ChunkManager.TrackedObject.position = dockPosition[dockIndex] + new Vector3(0,5,0);
             ChunkManager.PlayerController.cameraRotation = dockOrientation[dockIndex];
-            Debug.Log(            ChunkManager.TrackedObject.position = dockPosition[dockIndex] + new Vector3(0,3.75f,0)
-);            
         }
 
 
