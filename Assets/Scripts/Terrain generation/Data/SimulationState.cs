@@ -8,7 +8,7 @@ public class SimulationState
     public bool GenerationCompleted = false;
     public Vector3 ViewerPosition = new Vector3(0,0,0);
     public Vector2 ViewerOrientation = new Vector2(0,0);
-
+    public ControllerType ControllerType = ControllerType.Flight; 
     
     public SimulationState()
     {

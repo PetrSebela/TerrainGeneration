@@ -148,7 +148,7 @@ public class ChunkManager : MonoBehaviour
     }
 
     void GenerateWorld(string seed){
-        Debug.Log("Begin with string seed:" + seed);
+        Debug.Log("Raw seed : " + seed);
         
         int seedInt;
         if(int.TryParse(simulationSettings.Seed, out seedInt)){
@@ -170,6 +170,7 @@ public class ChunkManager : MonoBehaviour
             Debug.Log("Viewer data loaded from memory");
             TrackedObject.position = simulationState.ViewerPosition;
             PlayerController.cameraRotation = simulationState.ViewerOrientation;
+            PlayerController.ControllerType = simulationState.ControllerType;
         }
 
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 

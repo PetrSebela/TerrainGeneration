@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     public float _mouseSens = 1;
 
     [Header("Controller settings")]
-    public PlayerControllerType ControllerType = PlayerControllerType.Flight;
+    public ControllerType ControllerType = ControllerType.Flight;
 
     [Header("Walking")]
     public float WalkForce;
@@ -85,8 +85,11 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(PauseSimulation)){
             Inputs = Vector3.zero;
             IsPaused = !IsPaused;
+
             Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = !Cursor.visible;
+            
+            chunkManager.simulationState.IsPaused = IsPaused;
             PauseMenu.SetActive(IsPaused);
         }
 
@@ -111,7 +114,7 @@ public class PlayerController : MonoBehaviour
         }
 
         if(Input.GetKeyDown(SwitchControllerType)){
-            ControllerType = (ControllerType==PlayerControllerType.Flight)?PlayerControllerType.Ground : PlayerControllerType.Flight;
+            ControllerType = (ControllerType==ControllerType.Flight)?ControllerType.Ground : ControllerType.Flight;
             useGravityController = !useGravityController;
             rb.useGravity = useGravityController;
             rb.drag = (useGravityController)? WalkingDrag:FlightDrag;
@@ -191,18 +194,19 @@ public class PlayerController : MonoBehaviour
     {
         chunkManager.simulationState.ViewerOrientation = cameraRotation;
         chunkManager.simulationState.ViewerPosition = rb.position;
+        chunkManager.simulationState.ControllerType = ControllerType;
     }
 
     void MovePlayer()
     {
         float force;
         switch(ControllerType){
-            case PlayerControllerType.Flight:
+            case ControllerType.Flight:
                 force = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
                 rb.AddForce(WishDirection * force, ForceMode.Acceleration);
                 break;
             
-            case PlayerControllerType.Ground:
+            case ControllerType.Ground:
                 force = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
                 RaycastHit hit;
 
@@ -229,7 +233,7 @@ public class PlayerController : MonoBehaviour
 }
 
 
-public enum PlayerControllerType
+public enum ControllerType
 {
     Flight,
     Ground
