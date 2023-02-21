@@ -83,7 +83,6 @@ public class ChunkManager : MonoBehaviour
 
     public SimulationState simulationState;
     public PlayerController PlayerController;
-
     public StructureObject[] StructureObjects;
     public List<ObjectSizeDescriptor> StructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
 
@@ -92,6 +91,8 @@ public class ChunkManager : MonoBehaviour
 
     public int DockCount;
     public GameObject DockObject;
+    public float ForestSize;
+    public float WrinkleSize;
 
     public bool SetViewerPositionFromScript = false;
 
@@ -168,6 +169,7 @@ public class ChunkManager : MonoBehaviour
         }
         else{
             Debug.Log("Viewer data loaded from memory");
+            Debug.Log(simulationState.ControllerType);
             TrackedObject.position = simulationState.ViewerPosition;
             PlayerController.cameraRotation = simulationState.ViewerOrientation;
             PlayerController.ControllerType = simulationState.ControllerType;

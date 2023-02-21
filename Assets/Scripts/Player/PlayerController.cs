@@ -41,6 +41,7 @@ public class PlayerController : MonoBehaviour
     public KeyCode FlyUpKey;
     public KeyCode FlyDownKey;
     public KeyCode Accelerate;
+    public KeyCode ToggleShadows;
 
 
 
@@ -66,6 +67,13 @@ public class PlayerController : MonoBehaviour
     private bool Accelerated = false;
 
     public bool Jump = false;
+    public bool CastShadows = true;
+
+    public Material DaySkybox;
+    public Material NightSkybox;
+
+    public Color DayFogColor;
+    public Color NightFogColor;
     
 
     void Start()
@@ -100,7 +108,8 @@ public class PlayerController : MonoBehaviour
             Sun.SetActive(!Sun.activeSelf);
             Moon.SetActive(!Moon.activeSelf);
             RenderSettings.ambientIntensity = (Sun.activeSelf)?1f:0.25f;
-
+            RenderSettings.skybox = (Sun.activeSelf)?DaySkybox:NightSkybox;
+            RenderSettings.fogColor = (Sun.activeSelf)?DayFogColor:NightFogColor;
         }
 
 
@@ -111,6 +120,12 @@ public class PlayerController : MonoBehaviour
             mapTranform.anchorMin = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
             mapTranform.anchoredPosition = (FocusOnMap)? new Vector2(256,256) : new Vector2(-25,-25);
 
+        }
+
+        if(Input.GetKeyDown(ToggleShadows)){
+            CastShadows = !CastShadows;
+            Sun.GetComponent<Light>().shadows = (CastShadows)?LightShadows.Soft:LightShadows.None;
+            Moon.GetComponent<Light>().shadows = (CastShadows)?LightShadows.Soft:LightShadows.None;
         }
 
         if(Input.GetKeyDown(SwitchControllerType)){
@@ -186,8 +201,10 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        MovePlayer();
-        UpdateSimulationState();
+        if (!IsPaused && chunkManager.GenerationComplete){
+            MovePlayer();
+            UpdateSimulationState();
+        }
     }
 
     void UpdateSimulationState()
@@ -202,11 +219,13 @@ public class PlayerController : MonoBehaviour
         float force;
         switch(ControllerType){
             case ControllerType.Flight:
+                rb.useGravity = false;
                 force = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
                 rb.AddForce(WishDirection * force, ForceMode.Acceleration);
                 break;
             
             case ControllerType.Ground:
+                rb.useGravity = true;
                 force = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
                 RaycastHit hit;
 

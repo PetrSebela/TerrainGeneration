@@ -25,7 +25,7 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.8590691, g: 0.9127661, b: 0.9339623, a: 1}
+  m_SubtractiveShadowColor: {r: 1, g: 1, b: 1, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 4c12da8dc5dced74e838120da11725a0, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 0.5
   m_CustomReflection: {fileID: 8900000, guid: 8fa4fedf13c1a8a44904553ecc5b5a1d, type: 2}
   m_Sun: {fileID: 410087040}
-  m_IndirectSpecularColor: {r: 0.2792656, g: 0.40496057, b: 0.4954875, a: 0.5}
+  m_IndirectSpecularColor: {r: 0.27931252, g: 0.40497327, b: 0.49547285, a: 0.5}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -613,6 +613,8 @@ MonoBehaviour:
   DockCount: 12
   DockObject: {fileID: 4679943002850363553, guid: 412baaf5464c35b4b9d7e56cc52c75b7,
     type: 3}
+  ForestSize: 0.75
+  WrinkleSize: 0.0025
   SetViewerPositionFromScript: 0
 --- !u!4 &100951351
 Transform:
@@ -2548,14 +2550,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 876910247}
-  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
+  m_LocalRotation: {x: -0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1474197271}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -45, y: 0, z: 0}
 --- !u!114 &876910249
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2588,7 +2590,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.75
+  m_Intensity: 0.25
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4337,6 +4339,7 @@ MonoBehaviour:
   FlyUpKey: 32
   FlyDownKey: 306
   Accelerate: 304
+  ToggleShadows: 118
   cameraRotation: {x: 0, y: 0}
   Sun: {fileID: 410087039}
   Moon: {fileID: 876910247}
@@ -4346,6 +4349,11 @@ MonoBehaviour:
   mapTranform: {fileID: 2093020499}
   FocusOnMap: 0
   Jump: 0
+  CastShadows: 1
+  DaySkybox: {fileID: 2100000, guid: 4c12da8dc5dced74e838120da11725a0, type: 2}
+  NightSkybox: {fileID: 2100000, guid: c81599feeec05d14fbf3dd64b71864c8, type: 2}
+  DayFogColor: {r: 1, g: 1, b: 1, a: 0}
+  NightFogColor: {r: 0.020024918, g: 0.14751884, b: 0.2830189, a: 0}
 --- !u!4 &1620735406
 Transform:
   m_ObjectHideFlags: 0

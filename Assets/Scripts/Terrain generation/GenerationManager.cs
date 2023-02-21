@@ -57,6 +57,14 @@ public static class GenerationManager
                             ChunkManager.TerrainSettings,
                             ChunkManager
                         );
+                        // float s1 = GetFBMSamples(
+                        //     new Vector2(
+                        //         xChunk * ChunkManager.ChunkSettings.ChunkSize + i,
+                        //         yChunk * ChunkManager.ChunkSettings.ChunkSize + j
+                        //     )
+                        //     ,
+                        //     ChunkManager.WrinkleSize
+                        // );
 
                         float s2 = SampleNoise(
                             new Vector2(
@@ -66,6 +74,14 @@ public static class GenerationManager
                             ChunkManager.TerrainSettings,
                             ChunkManager
                         );
+
+                        // float s2 = GetFBMSamples(
+                        //     new Vector2(
+                        //         xChunk * ChunkManager.ChunkSettings.ChunkSize + i + 512.4f,
+                        //         yChunk * ChunkManager.ChunkSettings.ChunkSize + j + 752.4f
+                        //     ),
+                        //     ChunkManager.WrinkleSize
+                        // );
 
                         heightMap[i,j] = SampleNoise(
                             new Vector2(
@@ -218,9 +234,6 @@ public static class GenerationManager
                 );
             }
 
-            Debug.Log(angle);
-            Debug.Log(samplerPositon);
-
             if(dockPosition[dockIndex] == null)
                 continue;
 
@@ -229,25 +242,8 @@ public static class GenerationManager
                 dockPosition[dockIndex],
                 Quaternion.Euler(dockOrientation[dockIndex]));
             dock.transform.name = angle.ToString();
-
-            // Chunk chunk = ChunkManager.ChunkDictionary[
-            //     new Vector2(
-            //         (int)(dockPosition[dockIndex].x/ChunkManager.ChunkSettings.ChunkSize),
-            //         (int)(dockPosition[dockIndex].y/ChunkManager.ChunkSettings.ChunkSize)
-            //     )];
             
-            // chunk.FoliegeSizeDescriptorList.Add(
-            //     new ObjectSizeDescriptor(
-            //         10,
-            //         new Vector2(
-            //             (int)(dockPosition[dockIndex].x%ChunkManager.ChunkSettings.ChunkSize),
-            //             (int)(dockPosition[dockIndex].y%ChunkManager.ChunkSettings.ChunkSize)
-            // )));
-            
-            // ChunkManager.StructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,dockPosition[dockIndex]));
-
-            // dock.transform.parent = chunk.MeshRenderer.transform;
-            // chunk.ChildStructures.Add(dock);
+            ChunkManager.StructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,dockPosition[dockIndex]));
         }
         
 
@@ -377,13 +373,13 @@ public static class GenerationManager
                         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
                         float temperature = Mathf.PerlinNoise(
-                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].x) * 0.0045f,                
-                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].y) * 0.0045f                
+                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].x) * 0.0045f * ChunkManager.ForestSize,                
+                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize                
                         );
 
                         float humidity = Mathf.PerlinNoise(
-                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].x) * 0.0045f,                
-                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].y) * 0.0045f                
+                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].x) * 0.0045f *ChunkManager.ForestSize,                
+                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize               
                         );
 
 
