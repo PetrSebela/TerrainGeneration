@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerController : MonoBehaviour
 {
@@ -29,7 +30,7 @@ public class PlayerController : MonoBehaviour
     [Header("Exposed Variables")]
     [SerializeField] private Camera cam;
     [SerializeField] private int zoomFOV;
-    [SerializeField] private int normalFOV;
+    public int normalFOV;
     [SerializeField] private ChunkManager chunkManager;
 
     [Header("KeyBinds")]
@@ -41,7 +42,7 @@ public class PlayerController : MonoBehaviour
     public KeyCode FlyUpKey;
     public KeyCode FlyDownKey;
     public KeyCode Accelerate;
-    public KeyCode ToggleShadows;
+    public KeyCode ToggleLowSettings;
 
 
 
@@ -67,7 +68,12 @@ public class PlayerController : MonoBehaviour
     private bool Accelerated = false;
 
     public bool Jump = false;
-    public bool CastShadows = true;
+    public bool LowSettingsFlag = true;
+
+    public RenderPipelineAsset LowSetting;
+    public RenderPipelineAsset HighSetting;
+
+    int qualitySettingIndex = 0;
 
     public Material DaySkybox;
     public Material NightSkybox;
@@ -109,8 +115,7 @@ public class PlayerController : MonoBehaviour
             Moon.SetActive(!Moon.activeSelf);
             RenderSettings.ambientIntensity = (Sun.activeSelf)?1f:0.25f;
             RenderSettings.skybox = (Sun.activeSelf)?DaySkybox:NightSkybox;
-            RenderSettings.fogColor = (Sun.activeSelf)?DayFogColor:NightFogColor;
-        }
+            RenderSettings.fogColor = (Sun.activeSelf)?DayFogColor:NightFogColor;        }
 
 
         if(Input.GetKeyDown(ToggleMap)){
@@ -122,10 +127,20 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        if(Input.GetKeyDown(ToggleShadows)){
-            CastShadows = !CastShadows;
-            Sun.GetComponent<Light>().shadows = (CastShadows)?LightShadows.Soft:LightShadows.None;
-            Moon.GetComponent<Light>().shadows = (CastShadows)?LightShadows.Soft:LightShadows.None;
+        if(Input.GetKeyDown(ToggleLowSettings)){
+
+            if (qualitySettingIndex > 2){
+                qualitySettingIndex = 0;
+            }
+            QualitySettings.SetQualityLevel(qualitySettingIndex++,true);
+
+            // QualitySettings.SetQualityLevel = G.
+            // GraphicsSettings.renderPipelineAsset = (LowSettingsFlag)?LowSetting:HighSetting;
+            // Debug.Log(LowSettingsFlag);
+            // Sun.GetComponent<Light>().shadows = (LowSettings)?LightShadows.Soft:LightShadows.None;
+            // Moon.GetComponent<Light>().shadows = (LowSettings)?LightShadows.Soft:LightShadows.None;
+            // GraphicsSettings.defaultRenderPipeline = 
+
         }
 
         if(Input.GetKeyDown(SwitchControllerType)){

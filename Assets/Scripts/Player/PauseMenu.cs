@@ -49,6 +49,10 @@ public class PauseMenu : MonoBehaviour
         Debug.Log("Resolution change");
         Vector2Int res = resolutionMap[resolutionDropdown.options[resolutionDropdown.value].text];
         Screen.SetResolution(res.x, res.y, FullScreenMode.FullScreenWindow);
+        UserConfig uc = new UserConfig();
+        uc.WinWidth = res.x;
+        uc.WinHeight = res.y;
+        UserConfig.SaveConfig(uc);
     }
 
     public void CopySeedToClipboard(){
@@ -58,5 +62,6 @@ public class PauseMenu : MonoBehaviour
     public void UpdateFOV(Slider slider){
         FOVdisplay.text = slider.value.ToString();
         cam.fieldOfView = slider.value;
+        chunkManager.PlayerController.normalFOV = (int)slider.value;
     }
 }

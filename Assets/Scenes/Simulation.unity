@@ -15,7 +15,7 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 1
-  m_FogColor: {r: 0.8326362, g: 0.90018696, b: 0.9339623, a: 1}
+  m_FogColor: {r: 1, g: 1, b: 1, a: 1}
   m_FogMode: 1
   m_FogDensity: 0.0002
   m_LinearFogStart: 800
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 0.5
   m_CustomReflection: {fileID: 8900000, guid: 8fa4fedf13c1a8a44904553ecc5b5a1d, type: 2}
   m_Sun: {fileID: 410087040}
-  m_IndirectSpecularColor: {r: 0.27931252, g: 0.40497327, b: 0.49547285, a: 0.5}
+  m_IndirectSpecularColor: {r: 0.2792656, g: 0.40496057, b: 0.4954875, a: 0.5}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4339,7 +4339,7 @@ MonoBehaviour:
   FlyUpKey: 32
   FlyDownKey: 306
   Accelerate: 304
-  ToggleShadows: 118
+  ToggleLowSettings: 118
   cameraRotation: {x: 0, y: 0}
   Sun: {fileID: 410087039}
   Moon: {fileID: 876910247}
@@ -4349,7 +4349,9 @@ MonoBehaviour:
   mapTranform: {fileID: 2093020499}
   FocusOnMap: 0
   Jump: 0
-  CastShadows: 1
+  LowSettingsFlag: 1
+  LowSetting: {fileID: 11400000, guid: d0e2fc18fe036412f8223b3b3d9ad574, type: 2}
+  HighSetting: {fileID: 11400000, guid: 7b7fd9122c28c4d15b667c7040e3b3fd, type: 2}
   DaySkybox: {fileID: 2100000, guid: 4c12da8dc5dced74e838120da11725a0, type: 2}
   NightSkybox: {fileID: 2100000, guid: c81599feeec05d14fbf3dd64b71864c8, type: 2}
   DayFogColor: {r: 1, g: 1, b: 1, a: 0}

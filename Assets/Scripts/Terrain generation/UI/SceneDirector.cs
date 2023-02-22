@@ -16,9 +16,18 @@ public class SceneDirector : MonoBehaviour
     [SerializeField] private TMP_InputField seedField;
     [SerializeField] private Slider winklesSlider;
     [SerializeField] private TMP_Text winklesSliderValue;
+    public UserConfig UserConfig;
 
     public void Start(){
-        Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
+        UserConfig = UserConfig.LoadConfig();
+        if (UserConfig == null){
+            UserConfig = new UserConfig();
+            UserConfig.WinHeight = Screen.currentResolution.height;
+            UserConfig.WinWidth = Screen.currentResolution.width;
+            UserConfig.SaveConfig(UserConfig);
+        }
+        Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
+        
         Debug.Log("loading files");
         DirectoryInfo dir = new DirectoryInfo(Application.dataPath + "/../SavedWorlds/");
         FileInfo[] info = dir.GetFiles("*.world");

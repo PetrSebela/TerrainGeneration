@@ -98,7 +98,8 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 7bb899ae34f592a41a3a9354df13aaf3,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -1302,6 +1303,9 @@ MonoBehaviour:
   seedField: {fileID: 838261618}
   winklesSlider: {fileID: 1725290809}
   winklesSliderValue: {fileID: 1332868071}
+  UserConfig:
+    WinHeight: 1080
+    WinWidth: 1920
 --- !u!1 &473561462
 GameObject:
   m_ObjectHideFlags: 0
@@ -4212,7 +4216,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 200
+  m_text: 100
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 055506c3f4daa29468a76bfa0caed378, type: 2}
   m_sharedMaterial: {fileID: 6269216842557706371, guid: 055506c3f4daa29468a76bfa0caed378,
@@ -5467,6 +5471,8 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
+    - m_Text: 100
+      m_Image: {fileID: 0}
     - m_Text: 200
       m_Image: {fileID: 0}
     - m_Text: 400
