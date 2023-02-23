@@ -22,6 +22,7 @@ public class PauseMenu : MonoBehaviour
     public TMP_Text SeedDisplay;
     public TMP_Text FOVdisplay;
     public Camera cam;
+    public Slider FOVslider;
 
     public void Start(){
         SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
@@ -49,10 +50,9 @@ public class PauseMenu : MonoBehaviour
         Debug.Log("Resolution change");
         Vector2Int res = resolutionMap[resolutionDropdown.options[resolutionDropdown.value].text];
         Screen.SetResolution(res.x, res.y, FullScreenMode.FullScreenWindow);
-        UserConfig uc = new UserConfig();
-        uc.WinWidth = res.x;
-        uc.WinHeight = res.y;
-        UserConfig.SaveConfig(uc);
+        chunkManager.UserConfig.WinWidth = res.x;
+        chunkManager.UserConfig.WinHeight = res.y;
+        UserConfig.SaveConfig(chunkManager.UserConfig);
     }
 
     public void CopySeedToClipboard(){
@@ -60,8 +60,11 @@ public class PauseMenu : MonoBehaviour
     }
 
     public void UpdateFOV(Slider slider){
+        Debug.Log("fov change");
         FOVdisplay.text = slider.value.ToString();
-        cam.fieldOfView = slider.value;
+        cam.fieldOfView = (int)slider.value;
         chunkManager.PlayerController.normalFOV = (int)slider.value;
+        chunkManager.UserConfig.UserFOV = (int)slider.value;
+        UserConfig.SaveConfig(chunkManager.UserConfig);
     }
 }

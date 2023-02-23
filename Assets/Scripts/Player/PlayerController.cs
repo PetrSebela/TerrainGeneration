@@ -89,6 +89,7 @@ public class PlayerController : MonoBehaviour
         rb.drag = FlightDrag;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        qualitySettingIndex = QualitySettings.GetQualityLevel();
     }
 
     void Update()

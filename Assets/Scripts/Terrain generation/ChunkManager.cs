@@ -93,8 +93,10 @@ public class ChunkManager : MonoBehaviour
     public GameObject DockObject;
     public float ForestSize;
     public float WrinkleSize;
-
+    public UserConfig UserConfig;
     public bool SetViewerPositionFromScript = false;
+
+    public PauseMenu PauseMenu;
 
     // Vector3 -> Vector2
     // z -> y
@@ -108,6 +110,16 @@ public class ChunkManager : MonoBehaviour
 
     void Start()
     {
+        UserConfig = UserConfig.LoadConfig();
+        if (UserConfig == null)
+        {
+            UserConfig = new UserConfig();
+        }
+
+        PauseMenu.FOVdisplay.text = UserConfig.UserFOV.ToString();
+        PauseMenu.FOVslider.value = UserConfig.UserFOV;
+        PauseMenu.cam.fieldOfView = UserConfig.UserFOV;
+
         Debug.Log(TreeObjects.Length);
         ImpostorMaterials = new Material[ImpostorTextures.Length];
         
