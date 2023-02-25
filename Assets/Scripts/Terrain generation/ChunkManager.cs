@@ -157,21 +157,15 @@ public class ChunkManager : MonoBehaviour
 
         //! Simulation setup
         WorldSize = simulationSettings.WorldSize;        
-        GenerateWorld(simulationSettings.Seed);
+        GenerateWorld(simulationSettings.Name);
     }
 
-    void GenerateWorld(string seed){
-        Debug.Log("Raw seed : " + seed);
+    void GenerateWorld(string name){
+        Debug.Log("Raw seed : " + name);
         
-        int seedInt;
-        if(int.TryParse(simulationSettings.Seed, out seedInt)){
-            SeedGenerator = new SeedGenerator(seedInt,this);
-        }
-        else{
-            SeedGenerator = new SeedGenerator(seed,this);
-        }
+        
 
-        simulationState = SerializationHandler.DeserializeSimulatinoState(SeedGenerator.seed.ToString());
+        simulationState = SerializationHandler.DeserializeSimulatinoState(name.ToString());
         
         if (simulationState == null){
             Debug.Log("Viewer set to default values");
@@ -185,6 +179,14 @@ public class ChunkManager : MonoBehaviour
             TrackedObject.position = simulationState.ViewerPosition;
             PlayerController.cameraRotation = simulationState.ViewerOrientation;
             PlayerController.ControllerType = simulationState.ControllerType;
+        }
+
+        int seedInt;
+        if(int.TryParse(simulationSettings.Seed, out seedInt)){
+            SeedGenerator = new SeedGenerator(seedInt,this);
+        }
+        else{
+            SeedGenerator = new SeedGenerator(name,this);
         }
 
         StartCoroutine(GenerationManager.GenerationCorutine(this)); 

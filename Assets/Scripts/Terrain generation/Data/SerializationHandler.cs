@@ -8,18 +8,19 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public static class SerializationHandler
 {
-    public static void SaveTerrain( ChunkManager ChunkManager){
+    public static void SaveTerrain( ChunkManager ChunkManager,string saveName){
+        ChunkManager.simulationSettings.Name = saveName;
         BinaryFormatter formatter = new BinaryFormatter();
         TerrainSettingsSerialized tSettings = new TerrainSettingsSerialized(ChunkManager.TerrainSettings);
         SimulationSettingsSerialized sSettings = new SimulationSettingsSerialized(ChunkManager.simulationSettings, ChunkManager);
        
         SimulationState simState = ChunkManager.simulationState;
 
-        string subFolder = (sSettings.Seed == "") ? ChunkManager.SeedGenerator.seed.ToString() : sSettings.Seed;
-        string folderPath =  Application.dataPath + "/worlds/" + subFolder + "/";
+        // string subFolder = (sSettings.Seed == "") ? ChunkManager.SeedGenerator.seed.ToString() : sSettings.Seed;
+        string folderPath =  Application.dataPath + "/worlds/" + saveName + "/";
 
         DirectoryInfo WorldFolder = Directory.CreateDirectory(folderPath);
-
+    
         string tsj = JsonUtility.ToJson(tSettings);
         File.WriteAllText(folderPath + "TerrainSettings.TerSet",tsj);
 

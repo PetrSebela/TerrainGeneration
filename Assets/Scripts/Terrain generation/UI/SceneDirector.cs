@@ -45,6 +45,8 @@ public class SceneDirector : MonoBehaviour
 
         SimulationSettings.Seed = seedField.text;
         SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
+        SimulationSettings.Name = seedField.name;
+
         Debug.Log("sim-settings");
         Debug.Log(SimulationSettings.Seed);
         Debug.Log(SimulationSettings.WorldSize);

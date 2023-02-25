@@ -106,6 +106,12 @@ public class PlayerController : MonoBehaviour
             
             chunkManager.simulationState.IsPaused = IsPaused;
             PauseMenu.SetActive(IsPaused);
+           
+            if(!IsPaused){
+                if(PauseMenu.GetComponentInChildren<Prompt>() != null){
+                    Destroy(PauseMenu.GetComponentInChildren<Prompt>().transform.gameObject);
+                }
+            }
         }
 
         if (IsPaused)
@@ -125,7 +131,6 @@ public class PlayerController : MonoBehaviour
             mapTranform.anchorMax = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
             mapTranform.anchorMin = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
             mapTranform.anchoredPosition = (FocusOnMap)? new Vector2(256,256) : new Vector2(-25,-25);
-
         }
 
         if(Input.GetKeyDown(ToggleLowSettings)){

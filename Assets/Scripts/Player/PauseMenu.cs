@@ -24,8 +24,11 @@ public class PauseMenu : MonoBehaviour
     public Camera cam;
     public Slider FOVslider;
 
+    public GameObject CanvasParent;
+    public GameObject SavePrompt;
+
     public void Start(){
-        SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
+        // SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
         resolutionDropdown.value = resolutionDropdown.options.FindIndex(option => option.text == Screen.width + "x" + Screen.height);
     }
 
@@ -35,7 +38,13 @@ public class PauseMenu : MonoBehaviour
     }
 
     public void SaveWorld(){
-        SerializationHandler.SaveTerrain(chunkManager);
+        GameObject go = Instantiate(SavePrompt);
+        go.GetComponent<Prompt>().ChunkManager = chunkManager;
+        go.transform.parent = CanvasParent.transform;
+        go.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f,0.5f);
+        go.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f,0.5f);
+        go.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
+        // SerializationHandler.SaveTerrain(chunkManager);
     }
 
     public void LoadWorld(){
