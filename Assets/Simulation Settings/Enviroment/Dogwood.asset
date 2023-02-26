@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Dogwood
   SpawnRange:
-    Min: 0.105
-    Max: 0.734
+    Min: 0.05
+    Max: 0.55
   SlopeLimit: 35
   Radius: 4
   Count: 64
   TemperatureRange:
     Min: 0
-    Max: 0.45
+    Max: 0.5
   HumidityRange:
     Min: 0
-    Max: 0.45
-  BaseSize: {x: 15, y: 15, z: 15}
-  SizeVariation: {x: 0, y: 0, z: 0}
+    Max: 0.5
+  BaseSize: {x: 18, y: 18, z: 18}
+  SizeVariation: {x: 1, y: 1, z: 1}
   Mesh: {fileID: -2432090755550338912, guid: 533bcbb36ea9a76e683712344c0d4fb1, type: 3}
   MeshMaterials:
   - {fileID: 2100000, guid: 5dd27e6c488fef842bd751749c3148c5, type: 2}

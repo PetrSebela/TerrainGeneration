@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: SimulationSettings
   m_EditorClassIdentifier: 
   Seed: 
-  WorldSize: 4
+  WorldSize: 8
+  Name: 

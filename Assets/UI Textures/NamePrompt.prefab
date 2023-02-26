@@ -1205,6 +1205,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2122159657536428500, guid: 58014108420f45a4e892980d7fd4b590,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5385730539650721200, guid: 58014108420f45a4e892980d7fd4b590,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1335,6 +1340,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bf2bea32e8e13744b2160b1c8e214b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ChunkManager: {fileID: 0}
+  Path: 
+  SceneDirector: {fileID: 0}
+  PromptObject: {fileID: 0}
+  Background: {fileID: 0}
+  PauseMenu: {fileID: 0}
 --- !u!224 &8957154148815140468 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5385730539650721200, guid: 58014108420f45a4e892980d7fd4b590,

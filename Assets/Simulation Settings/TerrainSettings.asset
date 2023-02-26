@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46c2018a26fa4f146974ba7c7f2c3fc8, type: 3}
   m_Name: TerrainSettings
   m_EditorClassIdentifier: 
-  Persistence: 0.745
+  Persistence: 0.725
   Lacunarity: 1.315
   Octaves: 19
-  WrinkleMagniture: 0
+  WrinkleMagniture: 0.193
   MaxHeight: 150
   MinHeight: -15

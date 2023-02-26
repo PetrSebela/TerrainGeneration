@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: SignPost
   SpawnRange:
-    Min: 0.029
+    Min: 0.1
     Max: 1
   SlopeLimit: 25
   Radius: 2
-  MinDistanceFromStructures: 50
+  MinDistanceFromStructures: 100
   Count: 64
   Structure: {fileID: 919132149155446097, guid: 50df034f36da1e94481704486bfa4f88,
     type: 3}

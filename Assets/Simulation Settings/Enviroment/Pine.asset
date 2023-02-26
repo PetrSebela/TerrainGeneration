@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Pine
   SpawnRange:
-    Min: 0.105
-    Max: 0.734
+    Min: 0.1
+    Max: 0.75
   SlopeLimit: 35
   Radius: 8
-  Count: 32
+  Count: 64
   TemperatureRange:
     Min: 0
     Max: 0.45
@@ -32,8 +32,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 74e7940d56fbb77428448936205780ad, type: 2}
   - {fileID: 2100000, guid: 23f60249bccceae4cadc964d2cae71df, type: 2}
   ImpostorTextures:
-  - {fileID: 2800000, guid: a6bc9ab16b3cd774ba8488debf3ef23c, type: 3}
-  - {fileID: 2800000, guid: 721c8ca52f116834d9a96697b2fc8833, type: 3}
+  - {fileID: 2800000, guid: 5a8ad4c6602031c40a4e80c57c152923, type: 3}
+  - {fileID: 2800000, guid: 18905a39269e6a242a55876460133f11, type: 3}
   BaseImpostorMaterial: {fileID: 2100000, guid: 43d38ba168e467b4886c1d2723aaa00c,
     type: 2}
   ImpostorMaterials:

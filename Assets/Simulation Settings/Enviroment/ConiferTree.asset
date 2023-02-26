@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Conifer tree
   SpawnRange:
-    Min: 0.025
-    Max: 0.826
-  SlopeLimit: 25
+    Min: 0.45
+    Max: 0.85
+  SlopeLimit: 35
   Radius: 5
-  Count: 64
+  Count: 128
   TemperatureRange:
     Min: 0
-    Max: 0.45
+    Max: 0.5
   HumidityRange:
     Min: 0
-    Max: 0.45
+    Max: 0.5
   BaseSize: {x: 7, y: 7, z: 7}
-  SizeVariation: {x: 2, y: 1, z: 2}
+  SizeVariation: {x: 2, y: 3, z: 2}
   Mesh: {fileID: -2432090755550338912, guid: 319cfaef40df6b2488fa80214fe0fd11, type: 3}
   MeshMaterials:
   - {fileID: 2100000, guid: 093ea50b911350f4aa822c0b873bf80e, type: 2}

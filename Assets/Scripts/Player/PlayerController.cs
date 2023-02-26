@@ -80,6 +80,7 @@ public class PlayerController : MonoBehaviour
 
     public Color DayFogColor;
     public Color NightFogColor;
+    public GameObject PauseMenuArea;
     
 
     void Start()
@@ -92,6 +93,23 @@ public class PlayerController : MonoBehaviour
         qualitySettingIndex = QualitySettings.GetQualityLevel();
     }
 
+    public void ToggleSimulation(){
+        IsPaused = !IsPaused;
+
+        Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = !Cursor.visible;
+        
+        chunkManager.SimulationState.IsPaused = IsPaused;
+        PauseMenu.SetActive(IsPaused);
+        PauseMenuArea.SetActive(true);
+        
+        if(!IsPaused){
+            if(PauseMenu.GetComponentInChildren<Prompt>() != null){
+                Destroy(PauseMenu.GetComponentInChildren<Prompt>().transform.gameObject);
+            }
+        }
+    }
+
     void Update()
     {
         if (!chunkManager.GenerationComplete)
@@ -99,19 +117,7 @@ public class PlayerController : MonoBehaviour
         
         if (Input.GetKeyDown(PauseSimulation)){
             Inputs = Vector3.zero;
-            IsPaused = !IsPaused;
-
-            Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = !Cursor.visible;
-            
-            chunkManager.simulationState.IsPaused = IsPaused;
-            PauseMenu.SetActive(IsPaused);
-           
-            if(!IsPaused){
-                if(PauseMenu.GetComponentInChildren<Prompt>() != null){
-                    Destroy(PauseMenu.GetComponentInChildren<Prompt>().transform.gameObject);
-                }
-            }
+            ToggleSimulation();
         }
 
         if (IsPaused)
@@ -230,9 +236,9 @@ public class PlayerController : MonoBehaviour
 
     void UpdateSimulationState()
     {
-        chunkManager.simulationState.ViewerOrientation = cameraRotation;
-        chunkManager.simulationState.ViewerPosition = rb.position;
-        chunkManager.simulationState.ControllerType = ControllerType;
+        chunkManager.SimulationState.ViewerOrientation = cameraRotation;
+        chunkManager.SimulationState.ViewerPosition = rb.position;
+        chunkManager.SimulationState.ControllerType = ControllerType;
     }
 
     void MovePlayer()

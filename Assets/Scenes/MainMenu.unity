@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1498,7 +1498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.0754717, g: 0.0754717, b: 0.0754717, a: 1}
+  m_Color: {r: 0, g: 0.039215688, b: 0.078431375, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4781,6 +4781,12 @@ MonoBehaviour:
     type: 3}
   SceneDirector: {fileID: 465689043}
   parent: {fileID: 1164577892}
+  AcceptPrompt: {fileID: 6093691440417394483, guid: 614aa3f4527122147b5b75e54faac313,
+    type: 3}
+  CanvasParent: {fileID: 465689037}
+  ActivePrompt: {fileID: 0}
+  PromptBackground: {fileID: 8506950829187483252, guid: fddb658ac85d6f1478dfd39dfb93af67,
+    type: 3}
 --- !u!222 &1560714059
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Belltower
   SpawnRange:
-    Min: 0.029
+    Min: 0.1
     Max: 1
   SlopeLimit: 25
   Radius: 10
-  MinDistanceFromStructures: 50
-  Count: 64
+  MinDistanceFromStructures: 100
+  Count: 128
   Structure: {fileID: 4588304716903026526, guid: 4bee07e793f7f5540be153f8147042ed,
     type: 3}
