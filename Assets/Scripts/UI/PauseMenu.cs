@@ -26,10 +26,11 @@ public class PauseMenu : MonoBehaviour
     public GameObject PauseMenuObject;
     public GameObject CanvasParent;
     public GameObject SavePrompt;
+    public TMP_Dropdown QualityDropdown;
 
     public void Start(){
         // SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
-        resolutionDropdown.value = resolutionDropdown.options.FindIndex(option => option.text == Screen.width + "x" + Screen.height);
+        // resolutionDropdown.value = resolutionDropdown.options.FindIndex(option => option.text == Screen.width + "x" + Screen.height);
     }
 
     public void QuitSimulation(){
@@ -78,6 +79,13 @@ public class PauseMenu : MonoBehaviour
         cam.fieldOfView = (int)slider.value;
         chunkManager.PlayerController.normalFOV = (int)slider.value;
         chunkManager.UserConfig.UserFOV = (int)slider.value;
+        UserConfig.SaveConfig(chunkManager.UserConfig);
+    }
+
+    public void UpdateQuality(){
+        Debug.Log(QualityDropdown.value);
+        QualitySettings.SetQualityLevel(QualityDropdown.value);
+        chunkManager.UserConfig.LevelDetail = QualityDropdown.value;
         UserConfig.SaveConfig(chunkManager.UserConfig);
     }
 }

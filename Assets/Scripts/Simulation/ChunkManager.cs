@@ -120,6 +120,12 @@ public class ChunkManager : MonoBehaviour
         PauseMenu.FOVdisplay.text = UserConfig.UserFOV.ToString();
         PauseMenu.FOVslider.value = UserConfig.UserFOV;
         PauseMenu.cam.fieldOfView = UserConfig.UserFOV;
+        QualitySettings.SetQualityLevel(UserConfig.LevelDetail);
+        PauseMenu.resolutionDropdown.value = UserConfig.LevelDetail;
+
+        PauseMenu.resolutionDropdown.value = PauseMenu.resolutionDropdown.options.FindIndex(option => option.text == UserConfig.WinWidth + "x" + UserConfig.WinHeight);
+        Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
+
 
         Debug.Log(TreeObjects.Length);
         ImpostorMaterials = new Material[ImpostorTextures.Length];

@@ -132,10 +132,9 @@ public class MeshConstructor : MonoBehaviour
         
         MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position,LODindex);
         return meshData;
-    }
-
-    
+    }    
 }
+
 public class MeshData
 {
     public readonly int LOD;

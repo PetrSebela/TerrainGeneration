@@ -21,13 +21,15 @@ public class SceneDirector : MonoBehaviour
     public void Start(){
         UserConfig = UserConfig.LoadConfig();
         if (UserConfig == null){
+            Debug.Log("Resolving to default user config");
             UserConfig = new UserConfig();
             UserConfig.WinHeight = Screen.currentResolution.height;
             UserConfig.WinWidth = Screen.currentResolution.width;
             UserConfig.SaveConfig(UserConfig);
         }
         Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
-        
+        QualitySettings.SetQualityLevel(UserConfig.LevelDetail);
+
         Debug.Log("loading files");
         DirectoryInfo dir = new DirectoryInfo(Application.dataPath + "/../SavedWorlds/");
         FileInfo[] info = dir.GetFiles("*.world");
