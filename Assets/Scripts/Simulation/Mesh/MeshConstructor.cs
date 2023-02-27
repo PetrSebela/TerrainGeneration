@@ -31,6 +31,14 @@ public class MeshConstructor : MonoBehaviour
 
         int chunkResolution = chunkManager.ChunkSettings.ChunkResolution;
 
+        for (int i = 0; i < chunkManager.ChunkSettings.ChunkResolution + 2; i++)
+        {
+            for (int j = 0; j < chunkManager.ChunkSettings.ChunkResolution + 2; j++)
+            {
+                chunkDataLocal[i,j] = noiseConverter.GetRealHeight(chunkDataLocal[i,j]);
+            }
+        }
+
         // fixing border between chunks with different resolution
         if (borderWith != Vector2.zero)
         {
@@ -108,7 +116,7 @@ public class MeshConstructor : MonoBehaviour
                     
                     vertexList.Add(new Vector3(
                         xPosition,
-                        noiseConverter.GetRealHeight(height),
+                        height,
                         yPosition
                     ));
                 }
