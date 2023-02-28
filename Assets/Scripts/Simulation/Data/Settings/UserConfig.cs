@@ -28,7 +28,6 @@ public class UserConfig
         if(File.Exists(configPath)){
             using(StreamReader sr = new StreamReader(configPath)){
                 UserConfig uc = JsonUtility.FromJson<UserConfig>(sr.ReadToEnd());
-                Debug.Log("loading user config");
                 Debug.Log(uc.ToString());
                 return uc;
             }
@@ -40,6 +39,6 @@ public class UserConfig
 
     public override string ToString()
     {
-        return string.Format("Resolution {0} | {1}\n Quality {2}\n FOV {3}\n",WinWidth,WinHeight,LevelDetail,UserFOV);
+        return string.Format("Resolution {0} | {1} - Quality {2} - FOV {3}",WinWidth,WinHeight,LevelDetail,UserFOV);
     }
 }

@@ -93,7 +93,6 @@ public class ChunkManager : MonoBehaviour
     public int DockCount;
     public GameObject DockObject;
     public float ForestSize;
-    public float WrinkleSize;
     public UserConfig UserConfig;
     public bool SetViewerPositionFromScript = false;
     public GameObject Cross;
@@ -111,23 +110,17 @@ public class ChunkManager : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("Loading user config from chunk manager");
         UserConfig = UserConfig.LoadConfig();
         if (UserConfig == null)
         {
             UserConfig = new UserConfig();
         }
 
-        PauseMenu.FOVdisplay.text = UserConfig.UserFOV.ToString();
-        PauseMenu.FOVslider.value = UserConfig.UserFOV;
-        PauseMenu.cam.fieldOfView = UserConfig.UserFOV;
-        QualitySettings.SetQualityLevel(UserConfig.LevelDetail);
-        PauseMenu.resolutionDropdown.value = UserConfig.LevelDetail;
-
+        PauseMenu.FOVslider.value = UserConfig.UserFOV;       
+        PauseMenu.QualityDropdown.value = UserConfig.LevelDetail;
         PauseMenu.resolutionDropdown.value = PauseMenu.resolutionDropdown.options.FindIndex(option => option.text == UserConfig.WinWidth + "x" + UserConfig.WinHeight);
-        Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
 
-
-        Debug.Log(TreeObjects.Length);
         ImpostorMaterials = new Material[ImpostorTextures.Length];
         
         for (int i = 0; i < ImpostorTextures.Length; i++)
@@ -169,7 +162,6 @@ public class ChunkManager : MonoBehaviour
 
     void GenerateWorld(string name){
         Debug.Log("Raw seed : " + name);
-        
         
         if(name != ""){
             SimulationState = SerializationHandler.DeserializeSimulatinoState(name.ToString());
@@ -322,7 +314,7 @@ public class ChunkManager : MonoBehaviour
                     }
                 }
             }
-            else if (chunk.CurrentLODindex < 4){
+            else if (chunk.CurrentLODindex < 2){
                 foreach(TreeObject treeObject in TreeObjects)
                 {    
                     foreach (Matrix4x4 item in chunk.DetailDictionary[treeObject])
@@ -339,75 +331,10 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-    // void OnDrawGizmos()
-    // {
-    //     NoiseConverter noiseConverter = new NoiseConverter(
-    //         GlobalNoiseLowest,
-    //         GlobalNoiseHighest,
-    //         TerrainSettings.MinHeight,
-    //         TerrainSettings.MaxHeight,
-    //         TerrainCurve
-    //     );
+    void OnDrawGizmos()
+    {
 
-    //     for (int dockIndex = 0; dockIndex < DockCount; dockIndex++)
-    //     {
-    //         float angle = (float)(360 / DockCount) * dockIndex;
-    //         float sampleDistance = 1f;
-    //         float pastSample = noiseConverter.GetRealHeight(1);
-    //         Vector2 samplerPositon = Vector2.zero;
-
-    //         while(Vector2.Distance(Vector2.zero, samplerPositon) <= WorldSize * ChunkSettings.ChunkSize){
-    //             Gizmos.color = Color.red;
-    //             float s1 = GenerationManager.SampleNoise(
-    //                         samplerPositon,
-    //                         TerrainSettings,
-    //                         this
-    //                     );
-
-    //             float s2 = GenerationManager.SampleNoise(
-    //                 samplerPositon + new Vector2(512.4f,752.4f),
-    //                 TerrainSettings,
-    //                 this
-    //             );
-
-    //             float distance =  Vector2.Distance(Vector2.zero, samplerPositon) / (WorldSize  * ChunkSettings.ChunkResolution);
-    //             float currentSample =  GenerationManager.SampleNoise(
-    //                 new Vector2(
-    //                     samplerPositon.x + s1 * 15000.1f * TerrainSettings.WrinkleMagniture,
-    //                     samplerPositon.y + s2 * 8020.1f * TerrainSettings.WrinkleMagniture
-    //                 ), 
-    //                 TerrainSettings, 
-    //                 this);
-    //             currentSample *= TerrainFalloffCurve.Evaluate(distance);
-    //             currentSample = noiseConverter.GetRealHeight(currentSample);
-
-
-    //             if (pastSample >= 0 && currentSample < 0){
-    //                 Gizmos.color = Color.green;
-    //             }
-
-
-    //             Gizmos.DrawSphere(new Vector3(samplerPositon.x,currentSample,samplerPositon.y),0.1f);
-                
-    //             pastSample = currentSample;
-                
-    //             samplerPositon += new Vector2(
-    //                 Mathf.Cos(angle * Mathf.Deg2Rad) * sampleDistance,
-    //                 Mathf.Sin(angle * Mathf.Deg2Rad) * sampleDistance
-    //             );
-    //         }
-    //     }
-
-        // Gizmos.color = new Color(1, 0, 0, 0.5f);
-        // foreach (Chunk chunk in ChunkDictionary.Values)
-        // {
-        //     foreach (ObjectSizeDescriptor obj in chunk.SizeDescriptorList)
-        //     {
-        //         Vector3 position
-        //         Gizmos.DrawCube(, new Vector3(1, 1, 1));
-        //     }
-        // }
-    // }
+    }
 }
 
 [Serializable]

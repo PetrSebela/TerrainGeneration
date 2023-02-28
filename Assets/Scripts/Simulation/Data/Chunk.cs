@@ -54,6 +54,8 @@ public class Chunk
         mesh.triangles = meshData.triangleList;
         mesh.RecalculateNormals();
         MeshFilter.mesh = mesh;
+        
+        MeshCollider.sharedMesh = mesh;
 
         if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null) || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
             MeshCollider.enabled = true;
@@ -65,6 +67,13 @@ public class Chunk
         else{
             MeshCollider.enabled = false;
         }
+
+        // if (CurrentLODindex == 16){
+        //     MeshRenderer.enabled = false;
+        // }
+        // else{
+        //     MeshRenderer.enabled = true;
+        // }
 
         if(meshData.LOD <= 2){
             ChangeChildrenState(true);
