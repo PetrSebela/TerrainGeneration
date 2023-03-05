@@ -60,5 +60,5 @@ Material:
     - _normalInfluence: 1
     - _strength: 0.12
     m_Colors:
-    - _HeightRange: {r: -15, g: 150, b: 0, a: 0}
+    - _HeightRange: {r: -5, g: 50, b: 0, a: 0}
   m_BuildTextureStacks: []

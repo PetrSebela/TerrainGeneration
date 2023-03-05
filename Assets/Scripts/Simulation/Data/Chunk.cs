@@ -53,6 +53,7 @@ public class Chunk
         mesh.vertices = meshData.vertexList;
         mesh.triangles = meshData.triangleList;
         mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
         MeshFilter.mesh = mesh;
         
         // MeshCollider.sharedMesh = mesh;
