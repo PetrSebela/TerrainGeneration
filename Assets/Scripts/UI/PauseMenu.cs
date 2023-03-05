@@ -19,10 +19,12 @@ public class PauseMenu : MonoBehaviour
 
     public SimulationSettings simulationSettings;
     public ChunkManager chunkManager;
+    public TMP_Text SensitivityDisplay;
     public TMP_Text SeedDisplay;
     public TMP_Text FOVdisplay;
     public Camera cam;
     public Slider FOVslider;
+    public Slider SensitivitySlider;
     public GameObject PauseMenuObject;
     public GameObject CanvasParent;
     public GameObject SavePrompt;
@@ -86,6 +88,14 @@ public class PauseMenu : MonoBehaviour
         Debug.Log(QualityDropdown.value);
         QualitySettings.SetQualityLevel(QualityDropdown.value);
         chunkManager.UserConfig.LevelDetail = QualityDropdown.value;
+        UserConfig.SaveConfig(chunkManager.UserConfig);
+    }
+
+    public void UpdateSensitivity(){
+        Debug.Log("fov change");
+        SensitivityDisplay.text = ((int)(SensitivitySlider.value * 100)/100f).ToString();
+        chunkManager.PlayerController.LookSensitivity = SensitivitySlider.value;
+        chunkManager.UserConfig.MouseSensitivity = SensitivitySlider.value;
         UserConfig.SaveConfig(chunkManager.UserConfig);
     }
 }

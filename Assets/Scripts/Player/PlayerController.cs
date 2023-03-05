@@ -5,27 +5,25 @@ using UnityEngine.Rendering;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Camera")]
-    [SerializeField]
-    private Transform _cam;
+    [Header("Camera settings")]
+    [SerializeField] private Transform CameraTransform;
+    [SerializeField] private Transform CameraOrientation;
+    public float LookSensitivity = 1;
+
     
-    [SerializeField]
-    private Transform _orientation;
-    public float _mouseSens = 1;
-
-    [Header("Controller settings")]
-    public ControllerType ControllerType = ControllerType.Flight;
-
     [Header("Walking")]
     public float WalkForce;
     public float AcceleratedWalkScale;
-    private float WalkingDrag = 12;
+    public float WalkingDrag = 6;
+    public float FreeFallDrag = 1;
+    public float FreeFallAccelerationScale = 0.25f;
     public float JumpForce;
 
     [Header("Flight")]
     public float FlightForce;
     public float AcceleratedFlightScale;
     public float FlightDrag = 6;    
+
     
     [Header("Exposed Variables")]
     [SerializeField] private Camera cam;
@@ -33,80 +31,64 @@ public class PlayerController : MonoBehaviour
     public int normalFOV;
     [SerializeField] private ChunkManager chunkManager;
 
+
     [Header("KeyBinds")]
     public KeyCode ToggleMap;
-    public KeyCode DayNightSwitch;
     public KeyCode SwitchControllerType;
     public KeyCode ZoomCamera;
     public KeyCode PauseSimulation;
     public KeyCode FlyUpKey;
     public KeyCode FlyDownKey;
     public KeyCode Accelerate;
-    public KeyCode ToggleLowSettings;
-
-
-
 
 
     private Vector2 MouseMovement;
-    public Vector2 cameraRotation = new Vector2();
+    public Vector2 CameraRotation = new Vector2();
+    public LayerMask GroundMask;
     private Vector3 Inputs = new Vector3(0, 0, 0);
     private Vector3 WishDirection = new Vector3(0, 0, 0);
-    private Rigidbody rb;
-
-    public GameObject Sun;
-    public GameObject Moon;
-    public Light MainLight;
-
-
-    public bool IsPaused = false;
+    public Rigidbody Rigidbody;
     public GameObject PauseMenu;
-    
-    private bool useGravityController = false;
     public RectTransform mapTranform;    
-    public bool FocusOnMap = false;
-    private bool Accelerated = false;
-
-    public bool Jump = false;
-    public bool LowSettingsFlag = true;
-
-    public RenderPipelineAsset LowSetting;
-    public RenderPipelineAsset HighSetting;
-
-    int qualitySettingIndex = 0;
-
-    public Material DaySkybox;
-    public Material NightSkybox;
-
-    public Color DayFogColor;
-    public Color NightFogColor;
     public GameObject PauseMenuArea;
-    
+
+    //* Flags
+    private bool FocusOnMap = false;
+    private bool IsPaused = false;
+    private bool JumpRequest = false;
+    private bool Accelerated = false;
+    private bool IsGrounded = false;
+    private bool IgnoreGround = false;
+
+    public ControllerType ControllerType = ControllerType.Flight;
 
     void Start()
     {
         Application.targetFrameRate = 144;
-        rb = GetComponent<Rigidbody>();
-        rb.drag = FlightDrag;
+        Rigidbody.drag = FlightDrag;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        qualitySettingIndex = QualitySettings.GetQualityLevel();
     }
 
     public void ToggleSimulation(){
         IsPaused = !IsPaused;
 
+        FocusOnMap = false;
+        mapTranform.sizeDelta = new Vector2(150,150);
+        mapTranform.anchorMax = Vector2.one;
+        mapTranform.anchorMin = Vector2.one;
+        mapTranform.anchoredPosition = new Vector2(25,25);
+
         Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Cursor.visible;
         
         chunkManager.SimulationState.IsPaused = IsPaused;
+        
         PauseMenu.SetActive(IsPaused);
         PauseMenuArea.SetActive(true);
         
-        if(!IsPaused){
-            if(PauseMenu.GetComponentInChildren<Prompt>() != null){
-                Destroy(PauseMenu.GetComponentInChildren<Prompt>().transform.gameObject);
-            }
+        if(!IsPaused && PauseMenu.GetComponentInChildren<Prompt>() != null){
+            Destroy(PauseMenu.GetComponentInChildren<Prompt>().transform.gameObject);
         }
     }
 
@@ -123,80 +105,13 @@ public class PlayerController : MonoBehaviour
         if (IsPaused)
             return;
 
-        if (Input.GetKeyDown(DayNightSwitch)){
-            Sun.SetActive(!Sun.activeSelf);
-            Moon.SetActive(!Moon.activeSelf);
-            RenderSettings.ambientIntensity = (Sun.activeSelf)?1f:0.25f;
-            RenderSettings.skybox = (Sun.activeSelf)?DaySkybox:NightSkybox;
-            RenderSettings.fogColor = (Sun.activeSelf)?DayFogColor:NightFogColor;        }
+
+        FetchFunctionInputs();
+        FetchKeyboardInputs();
+        FetchMouseInputs();
 
 
-        if(Input.GetKeyDown(ToggleMap)){
-            FocusOnMap = !FocusOnMap;
-            mapTranform.sizeDelta = (FocusOnMap)? new Vector2(512,512) : new Vector2(150,150);
-            mapTranform.anchorMax = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
-            mapTranform.anchorMin = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
-            mapTranform.anchoredPosition = (FocusOnMap)? new Vector2(256,256) : new Vector2(-25,-25);
-        }
-
-        if(Input.GetKeyDown(ToggleLowSettings)){
-
-            if (qualitySettingIndex > 2){
-                qualitySettingIndex = 0;
-            }
-            QualitySettings.SetQualityLevel(qualitySettingIndex++,true);
-
-            // QualitySettings.SetQualityLevel = G.
-            // GraphicsSettings.renderPipelineAsset = (LowSettingsFlag)?LowSetting:HighSetting;
-            // Debug.Log(LowSettingsFlag);
-            // Sun.GetComponent<Light>().shadows = (LowSettings)?LightShadows.Soft:LightShadows.None;
-            // Moon.GetComponent<Light>().shadows = (LowSettings)?LightShadows.Soft:LightShadows.None;
-            // GraphicsSettings.defaultRenderPipeline = 
-
-        }
-
-        if(Input.GetKeyDown(SwitchControllerType)){
-            ControllerType = (ControllerType==ControllerType.Flight)?ControllerType.Ground : ControllerType.Flight;
-            useGravityController = !useGravityController;
-            rb.useGravity = useGravityController;
-            rb.drag = (useGravityController)? WalkingDrag:FlightDrag;
-        }
-
-
-        if (Input.GetKeyDown(ZoomCamera)){
-            cam.fieldOfView = zoomFOV;
-        }
-
-        if (Input.GetKeyUp(ZoomCamera)){
-            cam.fieldOfView = normalFOV;
-        }
-
-
-        Inputs.x = Input.GetAxisRaw("Horizontal");
-        Inputs.y = Input.GetAxisRaw("Vertical");
-        Inputs.z = 0;
-
-        if (Input.GetKeyDown(Accelerate))
-            Accelerated = true;
-        else if (Input.GetKeyUp(Accelerate))
-            Accelerated = false;
-
-        if (Input.GetKey(FlyUpKey))
-        {
-            Inputs.z++;
-            Jump = true;
-        }
-
-        if (Input.GetKey(FlyDownKey))
-            Inputs.z--;
-
-        WishDirection = _orientation.forward * Inputs.y + _orientation.right * Inputs.x + _orientation.up * Inputs.z;
-
-        MouseMovement.x = Input.GetAxisRaw("Mouse X");
-        MouseMovement.y = Input.GetAxisRaw("Mouse Y");
-
-
-        //! Placeholder for laptop keyboard without mouse
+        //! Placeholder for laptop keyboard without mouse and touchpad lock
         if (Input.GetKey(KeyCode.I))
         {
             MouseMovement.y += 1;
@@ -215,61 +130,143 @@ public class PlayerController : MonoBehaviour
         {
             MouseMovement.x -= 1;
         }
+    }
 
+    void FetchFunctionInputs(){
+        if(Input.GetKeyDown(ToggleMap)){
+            FocusOnMap = !FocusOnMap;
+            mapTranform.sizeDelta = (FocusOnMap)? new Vector2(512,512) : new Vector2(150,150);
+            mapTranform.anchorMax = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
+            mapTranform.anchorMin = (FocusOnMap)? new Vector2(0.5f,0.5f) : new Vector2(1,1) ;
+            mapTranform.anchoredPosition = (FocusOnMap)? new Vector2(256,256) : new Vector2(-25,-25);
+        }
 
-        cameraRotation.y += MouseMovement.x * _mouseSens;
-        cameraRotation.x -= MouseMovement.y * _mouseSens;
+        if(Input.GetKeyDown(SwitchControllerType)){
+            ControllerType =        (ControllerType==ControllerType.Flight) ? ControllerType.Ground : ControllerType.Flight;
+            Rigidbody.useGravity =  (ControllerType==ControllerType.Flight) ? false : true;
+            Rigidbody.drag =        (ControllerType==ControllerType.Flight) ? FlightDrag : WalkingDrag;
 
-        cameraRotation.x = Mathf.Clamp(cameraRotation.x, -90f, 90f);
+            if(IsGrounded && ControllerType == ControllerType.Flight){
+                Rigidbody.AddForce(Vector3.up * JumpForce,ForceMode.Acceleration);
+                IgnoreGround = true;
+            }
+        }
 
-        _cam.localRotation = Quaternion.Euler(cameraRotation.x, 0, 0);
-        _orientation.localRotation = Quaternion.Euler(0, cameraRotation.y, 0);
+        if (Input.GetKeyDown(ZoomCamera))
+            cam.fieldOfView = zoomFOV;
+        
+        if (Input.GetKeyUp(ZoomCamera))
+            cam.fieldOfView = normalFOV;
+    }
+    void FetchKeyboardInputs()
+    {
+        Inputs = Vector3.zero;
+        Inputs.x = Input.GetAxisRaw("Horizontal");
+        Inputs.y = Input.GetAxisRaw("Vertical");
+
+        Accelerated = Input.GetKey(Accelerate);
+        
+        if (Input.GetKeyDown(FlyUpKey))
+            JumpRequest = true;
+
+        if (Input.GetKey(FlyUpKey))
+            Inputs.z++;
+
+        if (Input.GetKey(FlyDownKey))
+            Inputs.z--;
+
+        WishDirection = CameraOrientation.forward * Inputs.y + CameraOrientation.right * Inputs.x + CameraOrientation.up * Inputs.z;
+    }
+
+    void FetchMouseInputs(){
+        MouseMovement.x = Input.GetAxisRaw("Mouse X");
+        MouseMovement.y = Input.GetAxisRaw("Mouse Y");
+
+        CameraRotation.y += MouseMovement.x * LookSensitivity;
+        CameraRotation.x -= MouseMovement.y * LookSensitivity;
+
+        CameraRotation.x = Mathf.Clamp(CameraRotation.x, -90f, 90f);
+
+        CameraTransform.localRotation = Quaternion.Euler(CameraRotation.x, 0, 0);
+        CameraOrientation.localRotation = Quaternion.Euler(0, CameraRotation.y, 0);
     }
 
     void FixedUpdate()
     {
-        if (!IsPaused && chunkManager.GenerationComplete){
-            MovePlayer();
-            UpdateSimulationState();
-        }
+        if (IsPaused && !chunkManager.GenerationComplete)
+            return;
+
+        MovePlayer();
+        UpdateSimulationState();
     }
 
     void UpdateSimulationState()
     {
-        chunkManager.SimulationState.ViewerOrientation = cameraRotation;
-        chunkManager.SimulationState.ViewerPosition = rb.position;
+        chunkManager.SimulationState.ViewerOrientation = CameraRotation;
+        chunkManager.SimulationState.ViewerPosition = Rigidbody.position;
         chunkManager.SimulationState.ControllerType = ControllerType;
     }
 
     void MovePlayer()
     {
-        float force;
-        switch(ControllerType){
-            case ControllerType.Flight:
-                rb.useGravity = false;
-                force = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
-                rb.AddForce(WishDirection * force, ForceMode.Acceleration);
-                break;
-            
-            case ControllerType.Ground:
-                rb.useGravity = true;
-                force = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
-                RaycastHit hit;
+        float moveForce;
 
-                bool grounded = Physics.Raycast(this.transform.position, Vector3.down, out hit, 3);
-                if (grounded){
-                    rb.AddForce(Vector3.ProjectOnPlane(new Vector3(WishDirection.x,0,WishDirection.z), hit.normal) * force, ForceMode.Acceleration);
+        RaycastHit raycastHit;
+        Physics.Raycast(this.transform.position, Vector3.down, out raycastHit, 2f);
+
+        IsGrounded = Physics.CheckSphere(this.transform.position - new Vector3(0,1,0), 0.2f, GroundMask);
+        WishDirection.Normalize();
+
+
+        switch(ControllerType){
+            case ControllerType.Flight:                
+                Rigidbody.useGravity = false;
+                Rigidbody.drag = FlightDrag;
+                
+                moveForce = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
+                Rigidbody.AddForce(
+                    new Vector3(
+                        WishDirection.x * moveForce, 
+                        WishDirection.y * FlightForce, 
+                        WishDirection.z * moveForce), 
+                    ForceMode.Acceleration);
+                
+                JumpRequest = false;
+
+                if (IsGrounded && !IgnoreGround)
+                    ControllerType = ControllerType.Ground;
+
+                if(!IsGrounded)
+                    IgnoreGround = false;
+
+                break;
+
+            case ControllerType.Ground:
+                Rigidbody.useGravity = true;
+                moveForce = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
+                
+                if (IsGrounded){
+                    Rigidbody.drag = WalkingDrag;
+                    Rigidbody.AddForce(Vector3.ProjectOnPlane(new Vector3(WishDirection.x,0,WishDirection.z), raycastHit.normal).normalized * moveForce, ForceMode.Acceleration);
                 }
                 else{
-                    rb.AddForce(new Vector3(WishDirection.x,0,WishDirection.z) * force, ForceMode.Acceleration);
+                    Rigidbody.drag = FreeFallDrag;
+                    Rigidbody.AddForce(new Vector3(WishDirection.x,0,WishDirection.z) * moveForce * FreeFallAccelerationScale, ForceMode.Acceleration);
                 }
-                if(grounded && Jump){
-                    rb.AddForce(hit.normal * JumpForce,ForceMode.Acceleration);
-                    Jump = false;
+
+                if(IsGrounded && JumpRequest){
+                    Rigidbody.AddForce(Vector3.up * JumpForce, ForceMode.Acceleration);
+                    JumpRequest = false;
                 }
-                else if(Jump){
-                    Jump = false;
-                }
+                else
+                    JumpRequest = false;
+
+                
+                // if (!grounded && JumpRequest){
+                //     ControllerType = ControllerType.Flight;
+                //     JumpRequest = false;
+                // }
+
                 break;
             
             default:

@@ -41,7 +41,7 @@ public class TextureCreator : MonoBehaviour
         {
             for (float y = 0; y < size; y++)
             {
-                terrainTexture.SetPixel((int)x,(int)y,new Color(1,1,1));
+                terrainTexture.SetPixel((int)x,(int)y,new Color(0.92f,0.92f,0.92f));
             }
         }
 
@@ -54,7 +54,7 @@ public class TextureCreator : MonoBehaviour
             {
                 float normlized = (y/size);
                 float sl = EaseInOut(normlized,0.875f,0.925f);
-                terrainTexture.SetPixel((int)x,(int)y,MixColors(new Color(1,1,1), terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
+                terrainTexture.SetPixel((int)x,(int)y,MixColors(new Color(0.92f,0.92f,0.92f), terrainTexture.GetPixel((int)x,(int)y), 1 - sl));
             }
         }
         terrainTexture.Apply();

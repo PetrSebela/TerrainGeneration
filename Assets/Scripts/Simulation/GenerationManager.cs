@@ -258,7 +258,7 @@ public static class GenerationManager
         {
             int dockIndex = UnityEngine.Random.Range(0,ChunkManager.DockCount-1);
             ChunkManager.TrackedObject.position = dockPosition[dockIndex] + new Vector3(0,5,0);
-            ChunkManager.PlayerController.cameraRotation = dockOrientation[dockIndex];
+            ChunkManager.PlayerController.CameraRotation = dockOrientation[dockIndex];
         }
 
 

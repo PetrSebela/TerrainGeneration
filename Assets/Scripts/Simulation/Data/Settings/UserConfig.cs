@@ -11,6 +11,7 @@ public class UserConfig
     public int WinWidth = 1920;
     public int UserFOV = 60;
     public int LevelDetail = 0;
+    public float MouseSensitivity = 1.5f;
 
     public static void SaveConfig(UserConfig userConfig){
         string userConfigJson = JsonUtility.ToJson(userConfig);
@@ -33,7 +34,7 @@ public class UserConfig
             }
         }
         else{
-            return null;
+            return new UserConfig();
         }
     }
 

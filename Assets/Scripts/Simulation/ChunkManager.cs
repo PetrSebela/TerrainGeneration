@@ -112,15 +112,12 @@ public class ChunkManager : MonoBehaviour
     {
         Debug.Log("Loading user config from chunk manager");
         UserConfig = UserConfig.LoadConfig();
-        if (UserConfig == null)
-        {
-            UserConfig = new UserConfig();
-        }
 
         PauseMenu.FOVslider.value = UserConfig.UserFOV;       
         PauseMenu.QualityDropdown.value = UserConfig.LevelDetail;
         PauseMenu.resolutionDropdown.value = PauseMenu.resolutionDropdown.options.FindIndex(option => option.text == UserConfig.WinWidth + "x" + UserConfig.WinHeight);
-
+        PauseMenu.SensitivitySlider.value = UserConfig.MouseSensitivity;
+        
         ImpostorMaterials = new Material[ImpostorTextures.Length];
         
         for (int i = 0; i < ImpostorTextures.Length; i++)
@@ -177,8 +174,9 @@ public class ChunkManager : MonoBehaviour
             Debug.Log("Viewer data loaded from memory");
             Debug.Log(SimulationState.ControllerType);
             TrackedObject.position = SimulationState.ViewerPosition;
-            PlayerController.cameraRotation = SimulationState.ViewerOrientation;
+            PlayerController.CameraRotation = SimulationState.ViewerOrientation;
             PlayerController.ControllerType = SimulationState.ControllerType;
+            PlayerController.Rigidbody.useGravity = (SimulationState.ControllerType == ControllerType.Ground)? true: false;
         }
 
         int seedInt;

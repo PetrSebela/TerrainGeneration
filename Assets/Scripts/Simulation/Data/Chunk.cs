@@ -55,14 +55,15 @@ public class Chunk
         mesh.RecalculateNormals();
         MeshFilter.mesh = mesh;
         
-        MeshCollider.sharedMesh = mesh;
+        // MeshCollider.sharedMesh = mesh;
 
-        if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null) || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
+        if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null)){ // || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
             MeshCollider.enabled = true;
             MeshCollider.sharedMesh = mesh;
         }
         else if (meshData.LOD == 1){
             MeshCollider.enabled = true;
+            // MeshCollider.sharedMesh = mesh;
         }
         else{
             MeshCollider.enabled = false;
