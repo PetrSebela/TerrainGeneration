@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
         mapTranform.sizeDelta = new Vector2(150,150);
         mapTranform.anchorMax = Vector2.one;
         mapTranform.anchorMin = Vector2.one;
-        mapTranform.anchoredPosition = new Vector2(25,25);
+        mapTranform.anchoredPosition = new Vector2(-25,-25);
 
         Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Cursor.visible;

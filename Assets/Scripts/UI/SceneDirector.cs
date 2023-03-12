@@ -20,24 +20,8 @@ public class SceneDirector : MonoBehaviour
 
     public void Start(){
         UserConfig = UserConfig.LoadConfig();
-        if (UserConfig == null){
-            Debug.Log("Resolving to default user config");
-            UserConfig = new UserConfig();
-            UserConfig.WinHeight = Screen.currentResolution.height;
-            UserConfig.WinWidth = Screen.currentResolution.width;
-            UserConfig.SaveConfig(UserConfig);
-        }
         Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
         QualitySettings.SetQualityLevel(UserConfig.LevelDetail);
-
-        Debug.Log("loading files");
-        DirectoryInfo dir = new DirectoryInfo(Application.dataPath + "/../SavedWorlds/");
-        FileInfo[] info = dir.GetFiles("*.world");
-
-        foreach (FileInfo file in info)
-        {
-            Debug.Log(file);
-        }
     }
 
     public void BeginSimulation(){
@@ -49,13 +33,7 @@ public class SceneDirector : MonoBehaviour
         SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
         SimulationSettings.Name = seedField.text;
 
-        Debug.Log("sim-settings");
-        Debug.Log(SimulationSettings.Seed);
-        Debug.Log(SimulationSettings.WorldSize);
-        
-        if (float.Parse(maxHeightField.options[maxHeightField.value].text) != float.NaN){
-            SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
-        }        
+        SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
     }
 
     public void QuitApplication(){
@@ -68,7 +46,7 @@ public class SceneDirector : MonoBehaviour
     }
 
     public void RemoveSimulation(string path){
-        Debug.Log(path);
+
         System.IO.Directory.Delete(path,true);
         WorldLister.LoadWorldList();
     }
