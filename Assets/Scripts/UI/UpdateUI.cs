@@ -22,8 +22,8 @@ public class UpdateUI : MonoBehaviour
     {
         if (!chunkManager.GenerationComplete)
         {
-            slider.value = chunkManager.Progress;
-            percentage.text = (int)(chunkManager.Progress * 100) + "%";
+            slider.value = chunkManager.GenerationProgress;
+            percentage.text = (int)(chunkManager.GenerationProgress * 100) + "%";
             jobType.text = chunkManager.ActiveGenerationJob;
             return;
         }

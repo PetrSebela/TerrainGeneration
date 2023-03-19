@@ -47,7 +47,7 @@ public class ChunkManager : MonoBehaviour
     [HideInInspector] public string ActiveGenerationJob = "";
     [HideInInspector] public int EnviromentProgress = 0;
     [HideInInspector] public int MapProgress = 0;
-    [HideInInspector] public float Progress = 0;
+    [HideInInspector] public float GenerationProgress = 0;
     [HideInInspector] public bool GenerationComplete = false;
     
     public RawImage MapDisplay;
@@ -188,41 +188,21 @@ public class ChunkManager : MonoBehaviour
         }
 
         PauseMenu.SeedDisplay.text = "Currently on seed: " + SeedGenerator.seed.ToString();
-
-        StartCoroutine(GenerationManager.GenerationCorutine(this)); 
+        GenerationManager genenerationManager = new GenerationManager(this);
+        StartCoroutine(genenerationManager.GenerationCorutine()); 
     }
 
     void FixedUpdate(){
         if (!GenerationComplete)
             return;
 
-        Vector2 currentChunkPosition = new Vector2(
-            Mathf.Round(TrackedObject.position.x / ChunkSettings.ChunkSize), 
-            Mathf.Round(TrackedObject.position.z / ChunkSettings.ChunkSize)
-        );
+        UpdateChunks();
 
-        if (currentChunkPosition != PastChunkPosition)
-        {
-            PastChunkPosition = currentChunkPosition;
-            for (int x = -7; x <= 7; x++)
-            {
-                for (int y = -7; y <= 7; y++)
-                {
-                    Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                    if (sampler.x >= -WorldSize && sampler.x < WorldSize && sampler.y >= -WorldSize && sampler.y < WorldSize)
-                    {
-                        ChunkDictionary[sampler].UpdateChunk(new Vector3(PastChunkPosition.x,0,PastChunkPosition.y));
-                    }
-                }
-            }
-        }
-
-        if (MeshUpdates.Count == 0 && LastQueueCount>0){
+        if (MeshUpdates.Count == 0 && LastQueueCount > 0){
             BatchEnviroment();
         }
         LastQueueCount = MeshUpdates.Count;
-
-
+        
         if(MeshUpdates.Count > 0){
             int hold = MeshUpdates.Count;
 
@@ -237,48 +217,39 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-    void Update()
-    {          
-        // generating chunk update requests
-        if (!GenerationComplete){
-            float worldChunkArea = math.pow(WorldSize * 2, 2);
-            Progress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
-                        (float)EnviromentProgress / (WorldSize * 2) + 
-                        (float)MapProgress / worldChunkArea) / 3;
-            return;
-        }    
+    public void UpdateChunks(){
+        Vector2 currentChunkPosition = new Vector2(
+            Mathf.Round(TrackedObject.position.x / ChunkSettings.ChunkSize), 
+            Mathf.Round(TrackedObject.position.z / ChunkSettings.ChunkSize)
+        );
 
-        // Rendering enviromental details
-        foreach (TreeObject treeObject in TreeObjects)
+        if (currentChunkPosition != PastChunkPosition)
         {
-            foreach (List<Matrix4x4> envList in DetailBatches[treeObject])
+            PastChunkPosition = currentChunkPosition;
+            for (int x = -7; x <= 7; x++)
             {
-                for (int submeshIndex = 0; submeshIndex < treeObject.Mesh.subMeshCount; submeshIndex++)
+                for (int y = -7; y <= 7; y++)
                 {
-                    Graphics.DrawMeshInstanced(treeObject.Mesh, submeshIndex, treeObject.MeshMaterials[submeshIndex], envList);
-                }            
-            }
-        }
-        foreach (TreeObject treeObject in LowTreeObjects)
-        {
-            foreach (List<Matrix4x4> envList in LowDetailBatches[treeObject])
-            {
-                for (int impostorMaterialIndex = 0; impostorMaterialIndex < 2; impostorMaterialIndex++)
-                {
-                    Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], envList);
-                }            
+                    Vector2 sampler = currentChunkPosition + new Vector2(x, y);
+                    if (IsInWorldBounds(sampler))
+                    {
+                        ChunkDictionary[sampler].UpdateChunk(new Vector3(PastChunkPosition.x,0,PastChunkPosition.y));
+                    }
+                }
             }
         }
     }
 
-    public void BatchEnviroment(){
-        float st = Time.realtimeSinceStartup;
+    public bool IsInWorldBounds(Vector2 position){
+        return position.x >= -WorldSize && position.x < WorldSize && position.y >= -WorldSize && position.y < WorldSize;
+    }
 
+    public void BatchEnviroment(){
         //* -- Low resolution assets -- *
         LowDetailBatches.Clear();
         LowDetailCounter.Clear();
-        LowDetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();        
-        LowDetailCounter = new Dictionary<TreeObject, int>();
+        // LowDetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();        
+        // LowDetailCounter = new Dictionary<TreeObject, int>();
 
         foreach (TreeObject treeObject in LowTreeObjects)
         {
@@ -329,9 +300,40 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
-    void OnDrawGizmos()
-    {
+    void Update()
+    {          
+        // generating chunk update requests
+        if (!GenerationComplete){
+            float worldChunkArea = math.pow(WorldSize * 2, 2);
+            GenerationProgress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
+                        (float)EnviromentProgress / (WorldSize * 2) + 
+                        (float)MapProgress / worldChunkArea) / 3;
+            return;
+        }    
 
+        // Rendering enviromental details
+        foreach (TreeObject treeObject in TreeObjects)
+        {
+            foreach (List<Matrix4x4> envList in DetailBatches[treeObject])
+            {
+                for (int submeshIndex = 0; submeshIndex < treeObject.Mesh.subMeshCount; submeshIndex++)
+                {
+                    Graphics.DrawMeshInstanced(treeObject.Mesh, submeshIndex, treeObject.MeshMaterials[submeshIndex], envList);
+                }            
+            }
+        }
+
+
+        foreach (TreeObject treeObject in LowTreeObjects)
+        {
+            foreach (List<Matrix4x4> envList in LowDetailBatches[treeObject])
+            {
+                for (int impostorMaterialIndex = 0; impostorMaterialIndex < 2; impostorMaterialIndex++)
+                {
+                    Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], envList);
+                }            
+            }
+        }
     }
 }
 

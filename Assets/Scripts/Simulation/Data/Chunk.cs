@@ -56,26 +56,16 @@ public class Chunk
         mesh.RecalculateTangents();
         MeshFilter.mesh = mesh;
         
-        // MeshCollider.sharedMesh = mesh;
-
-        if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null)){ // || (meshData.LOD == 4 && !ChunkManager.GenerationComplete)  ){
+        if ((meshData.LOD == 1 && MeshCollider.sharedMesh == null)){
             MeshCollider.enabled = true;
             MeshCollider.sharedMesh = mesh;
         }
         else if (meshData.LOD == 1){
             MeshCollider.enabled = true;
-            // MeshCollider.sharedMesh = mesh;
         }
         else{
             MeshCollider.enabled = false;
         }
-
-        // if (CurrentLODindex == 16){
-        //     MeshRenderer.enabled = false;
-        // }
-        // else{
-        //     MeshRenderer.enabled = true;
-        // }
 
         if(meshData.LOD <= 2){
             ChangeChildrenState(true);

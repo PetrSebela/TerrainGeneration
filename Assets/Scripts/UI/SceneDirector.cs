@@ -18,6 +18,15 @@ public class SceneDirector : MonoBehaviour
     [SerializeField] private TMP_Text winklesSliderValue;
     public UserConfig UserConfig;
 
+    private Dictionary<string,int> SizeMapper = new Dictionary<string, int>(){
+       {"16 x 16", 8},
+       {"24 x 24", 12},
+       {"32 x 32", 16},
+       {"48 x 48", 24},
+       {"64 x 64", 32},
+       {"96 x 96", 48},
+    };
+
     public void Start(){
         UserConfig = UserConfig.LoadConfig();
         Screen.SetResolution(UserConfig.WinWidth, UserConfig.WinHeight, FullScreenMode.FullScreenWindow);
@@ -30,7 +39,7 @@ public class SceneDirector : MonoBehaviour
         TerrainSettings.WrinkleMagniture = winklesSlider.value;
 
         SimulationSettings.Seed = seedField.text;
-        SimulationSettings.WorldSize = int.Parse(worldSize.options[worldSize.value].text);
+        SimulationSettings.WorldSize = SizeMapper[worldSize.options[worldSize.value].text];
         SimulationSettings.Name = seedField.text;
 
         SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
