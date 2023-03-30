@@ -9,19 +9,33 @@ public class GenerationManager
     private TerrainModifier terrainModifier;
     private Vector3[] dockPosition;
     private Vector3[] dockOrientation;
+    private List<Vector2> chunkPositions = new List<Vector2>();
+    private Vector3[] waterOffsets = new Vector3[]{
+        new Vector3(1,0,0),
+        new Vector3(0,0,1),
+        new Vector3(-1,0,0),
+        new Vector3(0,0,-1),
+
+        new Vector3(1,0,1),
+        new Vector3(-1,0,1),
+        new Vector3(1,0,-1),
+        new Vector3(-1,0,-1),
+    };
 
     public GenerationManager(ChunkManager chunkManager){
         ChunkManager = chunkManager;
     }
-    public float SampleNoise(Vector2 position, TerrainSettings terrainSettings, ChunkManager chunkManager)
+
+    
+    private float SampleNoise(Vector2 position, TerrainSettings terrainSettings)
     {
-        float sampleValue = 0;
-        float frequency = 0.002f;
+        float frequency = 0.0025f;
         float amplitude = 1;
 
+        float sampleValue = 0;
         for (int i = 0; i < terrainSettings.Octaves; i++)
         {
-            Vector2 modPosition = (position + chunkManager.SeedGenerator.NoiseLayers[i]) * frequency;
+            Vector2 modPosition = (position + ChunkManager.SeedGenerator.NoiseLayers[i]) * frequency;
             sampleValue += Mathf.PerlinNoise(modPosition.x, modPosition.y) * amplitude;
 
             amplitude *= terrainSettings.Persistence;
@@ -31,33 +45,33 @@ public class GenerationManager
         return sampleValue / terrainSettings.Octaves;
     }
 
-    public float SampleFBMNoise(Vector2 position){
+
+    private float SampleFBMNoise(Vector2 position){
         float sample1 = SampleNoise(
             position,
-            ChunkManager.TerrainSettings,
-            ChunkManager
+            ChunkManager.TerrainSettings
         );
 
         float sample2 = SampleNoise(
             position + new Vector2(512.4f,752.2f),
-            ChunkManager.TerrainSettings,
-            ChunkManager
+            ChunkManager.TerrainSettings
         );
 
         return SampleNoise(
             position + new Vector2(sample1 * 15023.21f, sample2* 8021.23f) * ChunkManager.TerrainSettings.WrinkleMagniture,
-            ChunkManager.TerrainSettings,
-            ChunkManager
+            ChunkManager.TerrainSettings
         );
     }
 
-    public float SampleNoiseWithFalloffMap(Vector2 position){
+
+    private float SampleNoiseWithFalloffMap(Vector2 position){
         float distanceFromIslandOrigin = Vector2.Distance(position,Vector2.zero);
         float normalizedDistance = distanceFromIslandOrigin / (ChunkManager.WorldSize  * ChunkManager.ChunkSettings.ChunkResolution);
         return SampleFBMNoise(position) *  ChunkManager.TerrainFalloffCurve.Evaluate(normalizedDistance);
     }
 
-    public void GenerateDock(float angle,int dockIndex){
+
+    private void GenerateDock(float angle, int dockIndex){
         float pastNoiseSample = noiseConverter.GetRealHeight(1);
         Vector2 samplerPositon = Vector2.zero;
 
@@ -93,25 +107,27 @@ public class GenerationManager
         dock.transform.name = angle.ToString();
         dock.transform.parent = ChunkManager.transform;
 
-        ChunkManager.StructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,dockPosition[dockIndex]));
+        ChunkManager.GlobalStructureSizeDescriptorList.Add(new ObjectSizeDescriptor(10,dockPosition[dockIndex]));
     }
 
-    public bool ValidateCandidate(StructureObject structureObject, int xInChunk, int yInChunk, int xChunk, int yChunk){
-         float[,] heightMap = ChunkManager.ChunkDictionary[new Vector2(xChunk,yChunk)].HeightMap;
+
+    private bool ValidateStructureCandidate(StructureObject structureObject, Vector2 chunkCoord,Vector2Int inChunkCoord){
+         float[,] heightMap = ChunkManager.ChunkDictionary[chunkCoord].HeightMap;
                 
-        Vector3 p1 = new Vector3(xInChunk     , noiseConverter.GetRealHeight(heightMap[xInChunk      , yInChunk    ]), yInChunk);
-        Vector3 p2 = new Vector3(xInChunk + 1 , noiseConverter.GetRealHeight(heightMap[xInChunk + 1  , yInChunk    ]), yInChunk);
-        Vector3 p3 = new Vector3(xInChunk     , noiseConverter.GetRealHeight(heightMap[xInChunk      , yInChunk + 1]), yInChunk + 1);
+        Vector3 p1 = new Vector3(inChunkCoord.x     , noiseConverter.GetRealHeight(heightMap[inChunkCoord.x      , inChunkCoord.y       ]), inChunkCoord.y);
+        Vector3 p2 = new Vector3(inChunkCoord.x + 1 , noiseConverter.GetRealHeight(heightMap[inChunkCoord.x + 1  , inChunkCoord.y       ]), inChunkCoord.y);
+        Vector3 p3 = new Vector3(inChunkCoord.x     , noiseConverter.GetRealHeight(heightMap[inChunkCoord.x      , inChunkCoord.y + 1   ]), inChunkCoord.y + 1);
         Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
 
-        Vector2 globalPosition2D = new Vector2(xChunk,yChunk) * ChunkManager.ChunkSettings.ChunkSize + new Vector2(xInChunk,yInChunk);
+        Vector2 globalPosition2D = chunkCoord * ChunkManager.ChunkSettings.ChunkSize + inChunkCoord;
         
-        float candidateHeight = heightMap[xInChunk,yInChunk];
+        float candidateHeight = heightMap[inChunkCoord.x,inChunkCoord.y];
 
         return  noiseConverter.GetRealHeight(candidateHeight) > 0 
                 && Vector3.Angle(Vector3.up, normal) < structureObject.SlopeLimit
-                && DoesntIntersect(structureObject.MinDistanceFromStructures,globalPosition2D,ChunkManager.StructureSizeDescriptorList);
+                && DoesntIntersect(structureObject.MinDistanceFromStructures,globalPosition2D,ChunkManager.GlobalStructureSizeDescriptorList);
     }
+
 
     public bool ValidRegion(float temperature, float humidity, TreeObject treeDescriptor){
         return  treeDescriptor.TemperatureRange.Min     < temperature 
@@ -119,6 +135,17 @@ public class GenerationManager
                 && treeDescriptor.HumidityRange.Min     < humidity 
                 && treeDescriptor.HumidityRange.Max     > humidity;
     }
+
+    
+    public bool ValidTreeCandidate(TreeObject treeDescriptor, float height, Vector3 normal, float temperature, float humidity, int xTreeCoord, int zTreeCoord, Chunk chunk){
+        return  treeDescriptor.SpawnRange.Min * ChunkManager.TerrainSettings.MaxHeight  < height 
+                && height < treeDescriptor.SpawnRange.Max * ChunkManager.TerrainSettings.MaxHeight  
+                && Vector3.Angle(Vector3.up, normal) < treeDescriptor.SlopeLimit  
+                && height > ChunkManager.waterLevel 
+                && ValidRegion(temperature, humidity, treeDescriptor)
+                && DoesntIntersect(treeDescriptor.Radius, new Vector2(xTreeCoord,zTreeCoord),chunk.FoliegeSizeDescriptorList);
+    }
+
 
     public void InstantiateChunk(Vector3 position){
         GameObject chunk = new GameObject();
@@ -146,60 +173,63 @@ public class GenerationManager
         Debug.Log("Starting generation corutine");
         ChunkManager.ActiveGenerationJob = "Generating heightmap";
 
-        List<Vector2> validWaterChunk = new List<Vector2>();
-
         for (int xChunk = -ChunkManager.WorldSize; xChunk < ChunkManager.WorldSize; xChunk++)
         {
             for (int yChunk = -ChunkManager.WorldSize; yChunk < ChunkManager.WorldSize; yChunk++)
             {
-                Vector2 generatedChunkPosition = new Vector2(xChunk, yChunk);
-                int heightMapSide = ChunkManager.ChunkSettings.ChunkResolution + 2;
-                float[,] heightMap = new float[heightMapSide, heightMapSide ];
-                float highestValue = -Mathf.Infinity;
-                float lowestValue = Mathf.Infinity;
-
-                for (int i = 0; i < heightMapSide; i++)
-                {
-                    for (int j = 0; j < heightMapSide; j++)
-                    {
-                        float noiseSample = SampleNoiseWithFalloffMap(generatedChunkPosition * ChunkManager.ChunkSettings.ChunkSize + new Vector2(i,j));
-                        heightMap[i,j] = noiseSample; 
-
-                        lowestValue = (noiseSample < lowestValue)? noiseSample : lowestValue;
-                        highestValue = (noiseSample > highestValue)? noiseSample : highestValue;
-
-                        ChunkManager.GlobalNoiseLowest = (lowestValue < ChunkManager.GlobalNoiseLowest)? lowestValue : ChunkManager.GlobalNoiseLowest;
-                        if(noiseSample > ChunkManager.GlobalNoiseHighest){
-                            ChunkManager.GlobalNoiseHighest = highestValue;
-                            ChunkManager.WorldTopPosition = new Vector3(xChunk * ChunkManager.ChunkSettings.ChunkSize + i,noiseSample,yChunk * ChunkManager.ChunkSettings.ChunkSize + j);
-                        } 
-                    }
-                }  
-                
-                Chunk chunk = new Chunk(
-                    heightMap, 
-                    generatedChunkPosition, 
-                    lowestValue, 
-                    highestValue,
-                    ChunkManager
-                );
-
-                ChunkManager.ChunkDictionary.Add(generatedChunkPosition, chunk);
-                yield return null;
+                chunkPositions.Add(new Vector2(xChunk,yChunk));
             }
+        }
+
+        List<Vector2> validWaterChunk = new List<Vector2>();
+
+        foreach (Vector2 generatedChunkPosition in chunkPositions)
+        {
+            int heightMapSide = ChunkManager.ChunkSettings.ChunkResolution + 2;
+            float[,] heightMap = new float[heightMapSide, heightMapSide ];
+            float highestValue = -Mathf.Infinity;
+            float lowestValue = Mathf.Infinity;
+
+            for (int i = 0; i < heightMapSide; i++)
+            {
+                for (int j = 0; j < heightMapSide; j++)
+                {
+                    float noiseSample = SampleNoiseWithFalloffMap(generatedChunkPosition * ChunkManager.ChunkSettings.ChunkSize + new Vector2(i,j));
+                    heightMap[i,j] = noiseSample; 
+
+                    lowestValue = (noiseSample < lowestValue)? noiseSample : lowestValue;
+                    highestValue = (noiseSample > highestValue)? noiseSample : highestValue;
+
+                    ChunkManager.GlobalNoiseLowest = (lowestValue < ChunkManager.GlobalNoiseLowest)? lowestValue : ChunkManager.GlobalNoiseLowest;
+                    if(noiseSample > ChunkManager.GlobalNoiseHighest){
+                        ChunkManager.GlobalNoiseHighest = highestValue;
+                        ChunkManager.WorldTopPosition = new Vector3(
+                            generatedChunkPosition.x * ChunkManager.ChunkSettings.ChunkSize + i,
+                            noiseSample,
+                            generatedChunkPosition.y * ChunkManager.ChunkSettings.ChunkSize + j);
+                    } 
+                }
+            }  
+            
+            Chunk chunk = new Chunk(
+                heightMap, 
+                generatedChunkPosition, 
+                lowestValue, 
+                highestValue,
+                ChunkManager
+            );
+
+            ChunkManager.ChunkDictionary.Add(generatedChunkPosition, chunk);
+            yield return null;
         }
 
         Debug.Log("HeightMap Generation Finished");
         ChunkManager.ActiveGenerationJob = "Generating chunks";
 
-        for (int x = -ChunkManager.WorldSize; x < ChunkManager.WorldSize; x++)
-        {
-            for (int y = -ChunkManager.WorldSize; y < ChunkManager.WorldSize; y++)
-            {
-                Vector3 position = new Vector3(x,0,y);
 
-                InstantiateChunk(position);
-            }
+        foreach (Vector2 planePosition in chunkPositions)
+        {
+            InstantiateChunk(new Vector3(planePosition.x,0,planePosition.y));
         }
 
 
@@ -251,40 +281,29 @@ public class GenerationManager
                 if (placementAttempts++ >= structureObject.Count * 4)
                     break;
                 
-                int xChunk = Random.Range( -ChunkManager.WorldSize, ChunkManager.WorldSize);
-                int yChunk = Random.Range( -ChunkManager.WorldSize, ChunkManager.WorldSize);
+                Vector2 chunkCoordinate = RandomVector.RandomVector2Whole(-ChunkManager.WorldSize, ChunkManager.WorldSize);
+                Vector2Int inChunkCoordinate = RandomVector.RandomVector2IntWhole(structureObject.Radius, ChunkManager.ChunkSettings.ChunkResolution - structureObject.Radius);
 
-                int xInChunk = (int)Random.Range( structureObject.Radius, ChunkManager.ChunkSettings.ChunkResolution - structureObject.Radius);
-                int yInChunk = (int)Random.Range( structureObject.Radius, ChunkManager.ChunkSettings.ChunkResolution - structureObject.Radius);
-                
-                float[,] heightMap = ChunkManager.ChunkDictionary[ new Vector2( xChunk, yChunk )].HeightMap;
-                float candidateHeight = heightMap[ xInChunk, yInChunk ];
-                Vector2 globalPosition2D = new Vector2( xChunk, yChunk ) * ChunkManager.ChunkSettings.ChunkSize + new Vector2( xInChunk, yInChunk );
-                bool validCandidate = ValidateCandidate( structureObject, xInChunk, yInChunk, xChunk, yChunk );
+                float[,] heightMap = ChunkManager.ChunkDictionary[ chunkCoordinate ].HeightMap;
+                float candidateHeight = heightMap[ inChunkCoordinate.x, inChunkCoordinate.y ];                
 
-                if ( !validCandidate )
+                if ( !ValidateStructureCandidate( structureObject, chunkCoordinate, inChunkCoordinate  ) )
                     continue;
 
                 objectCount++;
 
-                Chunk chunk = ChunkManager.ChunkDictionary[ new Vector2( xChunk, yChunk )];
-                
-                ChunkManager.StructureSizeDescriptorList.Add( 
-                    new ObjectSizeDescriptor( structureObject.MinDistanceFromStructures, globalPosition2D )
-                );
-                
-                chunk.FoliegeSizeDescriptorList.Add( 
-                    new ObjectSizeDescriptor( structureObject.Radius, new Vector2( xInChunk, yInChunk ))
-                );
+                Chunk chunk = ChunkManager.ChunkDictionary[ chunkCoordinate];
+                chunk.FoliegeSizeDescriptorList.Add( new ObjectSizeDescriptor( structureObject.Radius, inChunkCoordinate));
+                ChunkManager.GlobalStructureSizeDescriptorList.Add( new ObjectSizeDescriptor( structureObject.MinDistanceFromStructures, chunkCoordinate * ChunkManager.ChunkSettings.ChunkSize + inChunkCoordinate ));
                 
                 terrainModifier.LevelTerrain(
                     new Vector2Int(
-                        xChunk,
-                        yChunk
+                        (int)chunkCoordinate.x,
+                        (int)chunkCoordinate.y
                     ),
                     new Vector2Int(
-                        xInChunk - (int)structureObject.Radius,
-                        yInChunk - (int)structureObject.Radius
+                        inChunkCoordinate.x - (int)structureObject.Radius,
+                        inChunkCoordinate.y - (int)structureObject.Radius
                     ),
                     new Vector2Int(
                         (int)structureObject.Radius*2,
@@ -294,9 +313,9 @@ public class GenerationManager
                 );
 
                 Vector3 generatedPosition = new Vector3(
-                    xChunk * ChunkManager.ChunkSettings.ChunkSize + xInChunk,
+                    chunkCoordinate.x * ChunkManager.ChunkSettings.ChunkSize + inChunkCoordinate.x,
                     noiseConverter.GetRealHeight(candidateHeight),
-                    yChunk * ChunkManager.ChunkSettings.ChunkSize + yInChunk);
+                    chunkCoordinate.y * ChunkManager.ChunkSettings.ChunkSize + inChunkCoordinate.y);
 
                 GameObject candidateInstance = GameObject.Instantiate(
                     structureObject.Structure,
@@ -310,105 +329,98 @@ public class GenerationManager
 
 
         //! Spawning trees
-        for (int xChunk = -ChunkManager.WorldSize; xChunk < ChunkManager.WorldSize; xChunk++)
+        foreach (Vector2 key in chunkPositions)
         {
-            for (int yChunk = -ChunkManager.WorldSize; yChunk < ChunkManager.WorldSize; yChunk++)
-            {
-                Vector2 key = new Vector2(xChunk, yChunk);
-                Chunk chunk = ChunkManager.ChunkDictionary[key];
-                
-                if(noiseConverter.GetRealHeight(chunk.LocalMinimum) < ChunkManager.waterLevel){
-                    validWaterChunk.Add(key * ChunkManager.ChunkSettings.ChunkSize);
-                }
-
-                Dictionary<TreeObject,List<Matrix4x4>> detailDictionary = new Dictionary<TreeObject, List<Matrix4x4>>();
-                
-                foreach (TreeObject treeObject in ChunkManager.TreeObjects)
-                {
-                    detailDictionary.Add(treeObject,new List<Matrix4x4>());                    
-                }
-
-                int objectIndex = 0;
-                foreach (TreeObject treeDescriptor in ChunkManager.TreeObjects)
-                {
-                    List<Matrix4x4> listReference = detailDictionary[treeDescriptor];
-                    List<Vector2> nodePositions = new List<Vector2>();
-
-                    int objectCount = 0;
-                    int iterations = 0;
-                    while (objectCount <= treeDescriptor.Count)
-                    {
-                        if (iterations++ >= treeDescriptor.Count * 2){
-                            break;
-                        }
-                        
-                        int xTreeCoord = (int)UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution);
-                        int zTreeCoord = (int)UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution);
-                        float height = noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord, zTreeCoord]);
-
-                        // Calculate base normal
-                        Vector3 p1 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p2 = new Vector3(xTreeCoord + 1 , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
-                        Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
-                        Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
-
-                        float temperature = Mathf.PerlinNoise(
-                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].x) * 0.0045f * ChunkManager.ForestSize,                
-                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize                
-                        );
-
-                        float humidity = Mathf.PerlinNoise(
-                            (xChunk * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].x) * 0.0045f *ChunkManager.ForestSize,                
-                            (yChunk * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize               
-                        );
-
-                        bool canSpawnObject =   treeDescriptor.SpawnRange.Min * ChunkManager.TerrainSettings.MaxHeight  < height 
-                                                && height < treeDescriptor.SpawnRange.Max * ChunkManager.TerrainSettings.MaxHeight  
-                                                && Vector3.Angle(Vector3.up, normal) < treeDescriptor.SlopeLimit  
-                                                && height > ChunkManager.waterLevel 
-                                                && ValidRegion(temperature, humidity, treeDescriptor)
-                                                && DoesntIntersect(treeDescriptor.Radius, new Vector2(xTreeCoord,zTreeCoord),chunk.FoliegeSizeDescriptorList);
-
-                        if(canSpawnObject)
-                        {
-                            chunk.FoliegeSizeDescriptorList.Add(new ObjectSizeDescriptor(treeDescriptor.Radius, new Vector2(xTreeCoord,zTreeCoord)));
-                            Vector3 position = new Vector3(
-                                (key.x * ChunkManager.ChunkSettings.ChunkSize) + (((float)(xTreeCoord) / ChunkManager.ChunkSettings.ChunkResolution) * ChunkManager.ChunkSettings.ChunkSize),
-                                height,
-                                (key.y * ChunkManager.ChunkSettings.ChunkSize) + (((float)(zTreeCoord) / ChunkManager.ChunkSettings.ChunkResolution) * ChunkManager.ChunkSettings.ChunkSize));
-                            
-                            Matrix4x4 matrix4X4 = Matrix4x4.TRS(
-                                position, 
-                                Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
-                                new Vector3(
-                                    treeDescriptor.BaseSize.x + Random.Range( 1 - treeDescriptor.SizeVariation.x, 1 + treeDescriptor.SizeVariation.x),
-                                    treeDescriptor.BaseSize.y + Random.Range( 1 - treeDescriptor.SizeVariation.y, 1 + treeDescriptor.SizeVariation.y),
-                                    treeDescriptor.BaseSize.z + Random.Range( 1 - treeDescriptor.SizeVariation.z, 1 + treeDescriptor.SizeVariation.z)
-                                )    
-                            );
-                          
-                            listReference.Add(matrix4X4);
-                            objectCount++;
-                        }
-                    }
-                    objectIndex++;
-                }
-
-                // Converting list to array
-
-                Dictionary<TreeObject,Matrix4x4[]> detailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
-                foreach (TreeObject treeObject in ChunkManager.TreeObjects)
-                    detailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
-
-                Dictionary<TreeObject,Matrix4x4[]> lowDetailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
-                foreach (TreeObject treeObject in ChunkManager.LowTreeObjects)
-                    lowDetailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
-
-                chunk.DetailDictionary = detailDictionaryArray;
-                chunk.LowDetailDictionary = lowDetailDictionaryArray;
+            Chunk chunk = ChunkManager.ChunkDictionary[key];
+            
+            if(noiseConverter.GetRealHeight(chunk.LocalMinimum) < ChunkManager.waterLevel){
+                validWaterChunk.Add(key * ChunkManager.ChunkSettings.ChunkSize);
             }
+
+            Dictionary<TreeObject,List<Matrix4x4>> detailDictionary = new Dictionary<TreeObject, List<Matrix4x4>>();
+            
+            foreach (TreeObject treeObject in ChunkManager.TreeObjects)
+            {
+                detailDictionary.Add(treeObject,new List<Matrix4x4>());                    
+            }
+
+            int objectIndex = 0;
+            foreach (TreeObject treeDescriptor in ChunkManager.TreeObjects)
+            {
+                List<Matrix4x4> listReference = detailDictionary[treeDescriptor];
+                List<Vector2> nodePositions = new List<Vector2>();
+
+                int objectCount = 0;
+                int iterations = 0;
+                while (objectCount <= treeDescriptor.Count)
+                {
+                    if (iterations++ >= treeDescriptor.Count * 2){
+                        break;
+                    }
+                    
+                    int xTreeCoord = (int)UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution);
+                    int zTreeCoord = (int)UnityEngine.Random.Range(0, ChunkManager.ChunkSettings.ChunkResolution);
+
+                    
+                    float height = noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord, zTreeCoord]);
+
+                    // Calculate base normal
+                    Vector3 p1 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord    ]), zTreeCoord);
+                    Vector3 p2 = new Vector3(xTreeCoord + 1 , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord + 1  , zTreeCoord    ]), zTreeCoord);
+                    Vector3 p3 = new Vector3(xTreeCoord     , noiseConverter.GetRealHeight(chunk.HeightMap[xTreeCoord      , zTreeCoord + 1]), zTreeCoord + 1);
+                    Vector3 normal = Vector3.Cross(p3 - p1, p2 - p1);
+
+                    float temperature = Mathf.PerlinNoise(
+                        (key.x * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].x) * 0.0045f * ChunkManager.ForestSize,                
+                        (key.y * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityTemperatureMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize                
+                    );
+
+                    float humidity = Mathf.PerlinNoise(
+                        (key.x * ChunkManager.ChunkSettings.ChunkSize + xTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].x) * 0.0045f *ChunkManager.ForestSize,                
+                        (key.y * ChunkManager.ChunkSettings.ChunkSize + zTreeCoord + ChunkManager.SeedGenerator.EntityHumidityMapOffsets[objectIndex].y) * 0.0045f * ChunkManager.ForestSize               
+                    );
+
+                    if( ValidTreeCandidate(treeDescriptor,height,normal,temperature,humidity,xTreeCoord,zTreeCoord,chunk) )
+                    {
+                        chunk.FoliegeSizeDescriptorList.Add(new ObjectSizeDescriptor(treeDescriptor.Radius, new Vector2(xTreeCoord,zTreeCoord)));
+                        Vector3 position = new Vector3(
+                            (key.x * ChunkManager.ChunkSettings.ChunkSize) + (((float)(xTreeCoord) / ChunkManager.ChunkSettings.ChunkResolution) * ChunkManager.ChunkSettings.ChunkSize),
+                            height,
+                            (key.y * ChunkManager.ChunkSettings.ChunkSize) + (((float)(zTreeCoord) / ChunkManager.ChunkSettings.ChunkResolution) * ChunkManager.ChunkSettings.ChunkSize));
+                        
+                        Matrix4x4 matrix4X4 = Matrix4x4.TRS(
+                            position, 
+                            Quaternion.Euler(new Vector3(0,Random.Range(0,360),0)), 
+                            new Vector3(
+                                treeDescriptor.BaseSize.x + Random.Range( 1 - treeDescriptor.SizeVariation.x, 1 + treeDescriptor.SizeVariation.x),
+                                treeDescriptor.BaseSize.y + Random.Range( 1 - treeDescriptor.SizeVariation.y, 1 + treeDescriptor.SizeVariation.y),
+                                treeDescriptor.BaseSize.z + Random.Range( 1 - treeDescriptor.SizeVariation.z, 1 + treeDescriptor.SizeVariation.z)
+                            )    
+                        );
+                        
+                        listReference.Add(matrix4X4);
+                        objectCount++;
+                    }
+                }
+                objectIndex++;
+            }
+
+            // Converting list to array
+
+            Dictionary<TreeObject,Matrix4x4[]> detailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
+            foreach (TreeObject treeObject in ChunkManager.TreeObjects)
+                detailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
+
+            Dictionary<TreeObject,Matrix4x4[]> lowDetailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
+            foreach (TreeObject treeObject in ChunkManager.LowTreeObjects)
+                lowDetailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
+
+            chunk.DetailDictionary = detailDictionaryArray;
+            chunk.LowDetailDictionary = lowDetailDictionaryArray;
+
             ChunkManager.EnviromentProgress++;
-            yield return null;
+            if(ChunkManager.EnviromentProgress % 64 == 0)
+                yield return null;
         }
 
 
@@ -428,19 +440,7 @@ public class GenerationManager
         }
 
         // bordering water
-        Vector3[] positions = new Vector3[]{
-            new Vector3(1,0,0),
-            new Vector3(0,0,1),
-            new Vector3(-1,0,0),
-            new Vector3(0,0,-1),
-
-            new Vector3(1,0,1),
-            new Vector3(-1,0,1),
-            new Vector3(1,0,-1),
-            new Vector3(-1,0,-1),
-        };
-
-        foreach (var item in positions)
+        foreach (var item in waterOffsets)
         {
             GameObject w1 = GameObject.CreatePrimitive(PrimitiveType.Plane);
             w1.transform.position = new Vector3(
@@ -452,16 +452,14 @@ public class GenerationManager
             w1.GetComponent<MeshRenderer>().material = ChunkManager.WaterMaterial;                
         }
 
-        for (int x = -ChunkManager.simulationSettings.WorldSize; x < ChunkManager.simulationSettings.WorldSize; x++)
+        foreach (Vector2 key in chunkPositions)
         {
-            for (int y = -ChunkManager.simulationSettings.WorldSize; y < ChunkManager.simulationSettings.WorldSize; y++)
-            {
-                Vector2 key = new Vector2(x,y);
-                ChunkManager.ChunkDictionary[key].UpdateChunk(new Vector3(
-                    Mathf.Round(ChunkManager.TrackedObject.position.x / ChunkManager.simulationSettings.WorldSize),
-                    0,
-                    Mathf.Round(ChunkManager.TrackedObject.position.z / ChunkManager.simulationSettings.WorldSize)));
-            }
+            Vector3 triggerPosition = new Vector3(
+                Mathf.Round(ChunkManager.TrackedObject.position.x / ChunkManager.simulationSettings.WorldSize),
+                0,
+                Mathf.Round(ChunkManager.TrackedObject.position.z / ChunkManager.simulationSettings.WorldSize)
+            );
+            ChunkManager.ChunkDictionary[key].UpdateChunk(triggerPosition);
         }
 
         ChunkManager.ActiveGenerationJob = "Generating cartographical data";
@@ -492,33 +490,5 @@ public class GenerationManager
         }
 
         return true;
-    }
-}
-
-public class NoiseConverter{
-    float min1;
-    float high1;
-    float min2;
-    float high2;
-    AnimationCurve terrainCurve;
-    public NoiseConverter(float min1,float high1, float min2, float high2, AnimationCurve terrainCurve){
-        this.min1 = min1;
-        this.high1 = high1;
-        this.min2 = min2;
-        this.high2 = high2;
-        this.terrainCurve = terrainCurve;
-    }
-
-    public float GetNormalized(float rawValue){
-        float range01 = 0 + (rawValue - min1) * (1 - 0) / (high1 - min1);
-        return terrainCurve.Evaluate(range01);
-        
-    }
-
-    public float GetRealHeight(float value){
-        float range01 = 0 + (value - min1) * (1 - 0) / (high1 - min1);
-        float modHeight = terrainCurve.Evaluate(range01);
-        float realHeight = min2 + (modHeight - 0) * (high2 - min2) / (1 - 0);
-        return realHeight;
     }
 }

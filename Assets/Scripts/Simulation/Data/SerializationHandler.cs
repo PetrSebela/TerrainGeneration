@@ -10,15 +10,13 @@ public static class SerializationHandler
 {
     public static void SaveTerrain( ChunkManager ChunkManager,string saveName){
         ChunkManager.simulationSettings.Name = saveName;
-        BinaryFormatter formatter = new BinaryFormatter();
+
         TerrainSettingsSerialized tSettings = new TerrainSettingsSerialized(ChunkManager.TerrainSettings);
         SimulationSettingsSerialized sSettings = new SimulationSettingsSerialized(ChunkManager.simulationSettings, ChunkManager);
-       
         SimulationState simState = ChunkManager.SimulationState;
 
-        // string subFolder = (sSettings.Seed == "") ? ChunkManager.SeedGenerator.seed.ToString() : sSettings.Seed;
+        BinaryFormatter formatter = new BinaryFormatter();
         string folderPath =  Application.dataPath + "/worlds/" + saveName + "/";
-
         DirectoryInfo WorldFolder = Directory.CreateDirectory(folderPath);
     
         string tsj = JsonUtility.ToJson(tSettings);
@@ -34,13 +32,12 @@ public static class SerializationHandler
         Debug.Log("World saved in folder : " + WorldFolder.FullName );
     }
 
-    public static void DeserializeTerrain(string directoryPath, SceneDirector sceneDirector){
+    public static void DeserializeTerrainSettings(string directoryPath, SceneDirector sceneDirector){
         BinaryFormatter formatter = new BinaryFormatter();
         TerrainSettingsSerialized terrainSettings;
         SimulationSettingsSerialized simulationSettings;
         
         foreach (string filePath in Directory.GetFiles(directoryPath)){
-            Debug.Log(filePath);
             string extenstion = filePath.Split(".")[filePath.Split(".").Length-1];
             
             using(StreamReader reader = new StreamReader(filePath)){
@@ -86,15 +83,14 @@ public static class SerializationHandler
 
     public static DirectoryInfo[] GetSavedTerrains(){
         string folderPath =  Application.dataPath + "/worlds/";
-        string[] dPaths = Directory.GetDirectories(folderPath);
-        DirectoryInfo[] dInfos = new DirectoryInfo[dPaths.Length];
+        string[] directoryPaths = Directory.GetDirectories(folderPath);
+        DirectoryInfo[] directoryDatas = new DirectoryInfo[directoryPaths.Length];
 
-        for (int i = 0; i < dPaths.Length; i++)
+        for (int i = 0; i < directoryPaths.Length; i++)
         {
-            Debug.Log(dPaths[i]);
-            dInfos[i] = new DirectoryInfo(dPaths[i]);
+            directoryDatas[i] = new DirectoryInfo(directoryPaths[i]);
         }
-        return dInfos;
+        return directoryDatas;
     }
 }
 

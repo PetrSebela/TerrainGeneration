@@ -30,11 +30,6 @@ public class PauseMenu : MonoBehaviour
     public GameObject SavePrompt;
     public TMP_Dropdown QualityDropdown;
 
-    public void Start(){
-        // SeedDisplay.text = "Currently on seed : " + chunkManager.SeedGenerator.seed;  
-        // resolutionDropdown.value = resolutionDropdown.options.FindIndex(option => option.text == Screen.width + "x" + Screen.height);
-    }
-
     public void QuitSimulation(){
         Debug.Log("Quitting");
         Application.Quit();
@@ -46,12 +41,10 @@ public class PauseMenu : MonoBehaviour
         go.GetComponent<Prompt>().ChunkManager = chunkManager;
         go.GetComponent<Prompt>().PauseMenu = PauseMenuObject;
         PauseMenuObject.SetActive(false);
-        go.transform.parent = CanvasParent.transform;
+        go.transform.SetParent(CanvasParent.transform,true);
         go.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f,0.5f);
         go.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f,0.5f);
         go.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
-        
-        // SerializationHandler.SaveTerrain(chunkManager);
     }
 
     public void LoadWorld(){

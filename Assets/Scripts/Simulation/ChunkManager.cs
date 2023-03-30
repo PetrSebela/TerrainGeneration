@@ -74,7 +74,7 @@ public class ChunkManager : MonoBehaviour
 
     public Queue<MeshRequest> MeshRequests = new Queue<MeshRequest>();
     public Queue<MeshUpdate> MeshUpdates = new Queue<MeshUpdate>();
-    private Thread ProcessingThread;
+    private Thread UpdateProcessingThread;
 
     private int LastQueueCount = 0;
 
@@ -85,7 +85,7 @@ public class ChunkManager : MonoBehaviour
     public SimulationState SimulationState = null;
     public PlayerController PlayerController;
     public StructureObject[] StructureObjects;
-    public List<ObjectSizeDescriptor> StructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
+    public List<ObjectSizeDescriptor> GlobalStructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
 
     public TreeObject[] TreeObjects;
     public TreeObject[] LowTreeObjects;
@@ -105,7 +105,7 @@ public class ChunkManager : MonoBehaviour
     //* Setting up simulation  
 
     void OnApplicationQuit(){
-        ProcessingThread.Abort();
+        UpdateProcessingThread.Abort();
     }
 
     void Start()
@@ -123,7 +123,7 @@ public class ChunkManager : MonoBehaviour
         for (int i = 0; i < ImpostorTextures.Length; i++)
         {
             Material impostorMaterial = new Material(BaseImpostorMaterial);
-            impostorMaterial.SetTexture("_BaseMap",ImpostorTextures[i]);
+            impostorMaterial.SetTexture("_BaseMap", ImpostorTextures[i]);
             ImpostorMaterials[i] = impostorMaterial;
         }
         
@@ -141,16 +141,17 @@ public class ChunkManager : MonoBehaviour
 
         // Generating heightmap texture
         TerrainMaterial.SetTexture("_Texture2D",TextureCreator.GenerateTexture(this));
-        
-        ChunkUpdateProcessor updateProcessor = new ChunkUpdateProcessor(this);
 
+
+        // update processing thread setup 
+        ChunkUpdateProcessor updateProcessor = new ChunkUpdateProcessor(this);
         ThreadStart threadStart = delegate
         {
             updateProcessor.UpdateProcessingThread();
         };
 
-        ProcessingThread = new Thread(threadStart);
-        ProcessingThread.Start();
+        UpdateProcessingThread = new Thread(threadStart);
+        UpdateProcessingThread.Start();
 
         //! Simulation setup
         WorldSize = simulationSettings.WorldSize;        
@@ -159,6 +160,7 @@ public class ChunkManager : MonoBehaviour
 
     void GenerateWorld(string name){
         Debug.Log("Raw seed : " + name);
+
         
         if(name != ""){
             SimulationState = SerializationHandler.DeserializeSimulatinoState(name.ToString());
@@ -166,7 +168,6 @@ public class ChunkManager : MonoBehaviour
                 
         if (SimulationState == null){
             Debug.Log("Viewer set to default values");
-            TrackedObject.position = new Vector3(0, TerrainSettings.MaxHeight, 0);
             SimulationState = new SimulationState();
             SetViewerPositionFromScript = true;
         }
@@ -245,11 +246,8 @@ public class ChunkManager : MonoBehaviour
     }
 
     public void BatchEnviroment(){
-        //* -- Low resolution assets -- *
         LowDetailBatches.Clear();
         LowDetailCounter.Clear();
-        // LowDetailBatches = new Dictionary<TreeObject, List<List<Matrix4x4>>>();        
-        // LowDetailCounter = new Dictionary<TreeObject, int>();
 
         foreach (TreeObject treeObject in LowTreeObjects)
         {
@@ -283,6 +281,7 @@ public class ChunkManager : MonoBehaviour
                     }
                 }
             }
+            
             else if (chunk.CurrentLODindex < 2){
                 foreach(TreeObject treeObject in TreeObjects)
                 {    
@@ -306,7 +305,7 @@ public class ChunkManager : MonoBehaviour
         if (!GenerationComplete){
             float worldChunkArea = math.pow(WorldSize * 2, 2);
             GenerationProgress = ((float)ChunkDictionary.Count /  worldChunkArea  + 
-                        (float)EnviromentProgress / (WorldSize * 2) + 
+                        (float)EnviromentProgress / (float)Math.Pow(WorldSize * 2f,2f) + 
                         (float)MapProgress / worldChunkArea) / 3;
             return;
         }    

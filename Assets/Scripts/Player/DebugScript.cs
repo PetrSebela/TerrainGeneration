@@ -22,6 +22,7 @@ public class DebugScript : MonoBehaviour
     void Start(){
         DebugActive = DebugContainer.activeSelf;
     }
+    
     void LateUpdate()
     {
         if(Input.GetKeyDown(ToggleDebug)){

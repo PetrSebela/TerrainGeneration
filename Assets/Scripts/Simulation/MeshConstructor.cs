@@ -94,11 +94,13 @@ public class MeshConstructor : MonoBehaviour
             }
         }
 
+        Dictionary<Vector3,int> vertexIndexMap = new Dictionary<Vector3, int>();
 
+        
         List<Vector3> vertexList = new List<Vector3>();
         List<int> triangleList = new List<int>();
         
-        int vertexCout = 0;
+        int vertexCount = 0;
         float sampleRate = (chunkManager.ChunkSettings.ChunkSize) / ((float)(chunkResolution) / LODindex);
         
         for (int x = 0; x < chunkResolution / LODindex; x++)
@@ -114,22 +116,32 @@ public class MeshConstructor : MonoBehaviour
                         (x + offsets[offsetIndex].x) * LODindex, 
                         (y + offsets[offsetIndex].y) * LODindex];
                     
-                    vertexList.Add(new Vector3(
+                    Vector3 vertex = new Vector3(
                         xPosition,
                         height,
                         yPosition
-                    ));
+                    );
+
+                    vertexList.Add(vertex);
+
+                    if(!vertexIndexMap.ContainsKey(vertex)){
+                        vertexIndexMap.Add(vertex,vertexCount + offsetIndex);
+                    }
                 }
 
                 for (int tIndex = 0; tIndex < triOrder.Length; tIndex++)
                 {
-                    triangleList.Add(vertexCout + triOrder[tIndex]);
+                    Vector3 mappedVertex = vertexList[vertexCount + triOrder[tIndex]];
+                    triangleList.Add(vertexIndexMap[mappedVertex]);
+                    // triangleList.Add(vertexCount + triOrder[tIndex]);
                 }
 
-                vertexCout += 4;
+                vertexCount += 4;
             }
         }
-        
+
+
+
         MeshData meshData = new MeshData(vertexList.ToArray(), triangleList.ToArray(), position,LODindex);
         return meshData;
     }    

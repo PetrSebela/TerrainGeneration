@@ -50,12 +50,11 @@ public class SceneDirector : MonoBehaviour
     }
 
     public void LoadSimulation(string path){
-        SerializationHandler.DeserializeTerrain(path,this);
+        SerializationHandler.DeserializeTerrainSettings(path,this);
         SceneManager.LoadScene("Simulation",LoadSceneMode.Single);
     }
 
     public void RemoveSimulation(string path){
-
         System.IO.Directory.Delete(path,true);
         WorldLister.LoadWorldList();
     }
