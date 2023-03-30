@@ -12,6 +12,7 @@ public class UserConfig
     public int UserFOV = 60;
     public int LevelDetail = 0;
     public float MouseSensitivity = 1.5f;
+    public bool InputSmoothing = false;
 
     public static void SaveConfig(UserConfig userConfig){
         string userConfigJson = JsonUtility.ToJson(userConfig);

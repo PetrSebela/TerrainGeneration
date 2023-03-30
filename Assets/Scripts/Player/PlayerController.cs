@@ -26,6 +26,10 @@ public class PlayerController : MonoBehaviour
 
     
     [Header("Exposed Variables")]
+    [SerializeField] [Range(0f,10f)] private float CameraSmoothingValue;
+    [SerializeField] [Range(0f,10f)] private float InputSmoothingValue;
+     [SerializeField] [Range(0f,10f)] private float AccelerationSmoothingValue;
+
     [SerializeField] private Camera cam;
     [SerializeField] private int zoomFOV;
     public int normalFOV;
@@ -40,6 +44,7 @@ public class PlayerController : MonoBehaviour
     public KeyCode FlyUpKey;
     public KeyCode FlyDownKey;
     public KeyCode Accelerate;
+    public KeyCode InputSmoothingKey;
 
 
     private Vector2 MouseMovement;
@@ -59,7 +64,12 @@ public class PlayerController : MonoBehaviour
     private bool Accelerated = false;
     private bool IsGrounded = false;
     private bool IgnoreGround = false;
+    public bool InputSmoothing = false;
 
+    private float moveForce = 0;
+
+
+    private Vector2 RealRotation = Vector2.zero;
     public ControllerType ControllerType = ControllerType.Flight;
 
     void Start()
@@ -78,7 +88,13 @@ public class PlayerController : MonoBehaviour
         mapTranform.anchorMax = Vector2.one;
         mapTranform.anchorMin = Vector2.one;
         mapTranform.anchoredPosition = new Vector2(-25,-25);
-
+        
+        WishDirection = Vector3.zero;
+        Inputs = Vector3.zero;
+        Rigidbody.velocity = Vector3.zero;
+        CameraRotation = Vector2.zero;
+        RealRotation = Vector2.zero;
+        
         Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Cursor.visible;
         
@@ -151,6 +167,15 @@ public class PlayerController : MonoBehaviour
                 IgnoreGround = true;
             }
         }
+        if(Input.GetKeyDown(InputSmoothingKey)){
+            InputSmoothing = !InputSmoothing;
+            chunkManager.UserConfig.InputSmoothing = InputSmoothing;
+            UserConfig.SaveConfig(chunkManager.UserConfig);
+            
+            if (!InputSmoothing){
+                CameraRotation = RealRotation;
+            }
+        }
 
         if (Input.GetKeyDown(ZoomCamera))
             cam.fieldOfView = zoomFOV;
@@ -175,7 +200,14 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(FlyDownKey))
             Inputs.z--;
 
-        WishDirection = CameraOrientation.forward * Inputs.y + CameraOrientation.right * Inputs.x + CameraOrientation.up * Inputs.z;
+        Inputs = Vector3.ClampMagnitude(Inputs,1);
+
+        if(InputSmoothing){
+            WishDirection = Vector3.Lerp(WishDirection, CameraOrientation.forward * Inputs.y + CameraOrientation.right * Inputs.x + CameraOrientation.up * Inputs.z, InputSmoothingValue * Time.deltaTime);
+        }
+        else{
+            WishDirection = CameraOrientation.forward * Inputs.y + CameraOrientation.right * Inputs.x + CameraOrientation.up * Inputs.z;
+        }
     }
 
     void FetchMouseInputs(){
@@ -187,8 +219,15 @@ public class PlayerController : MonoBehaviour
 
         CameraRotation.x = Mathf.Clamp(CameraRotation.x, -90f, 90f);
 
-        CameraTransform.localRotation = Quaternion.Euler(CameraRotation.x, 0, 0);
-        CameraOrientation.localRotation = Quaternion.Euler(0, CameraRotation.y, 0);
+        if(InputSmoothing){
+            RealRotation = Vector2.Lerp(RealRotation, CameraRotation, CameraSmoothingValue * Time.deltaTime);
+        }
+        else{
+            RealRotation = CameraRotation;
+        }
+
+        CameraTransform.localRotation = Quaternion.Euler(RealRotation.x, 0, 0);
+        CameraOrientation.localRotation = Quaternion.Euler(0, RealRotation.y, 0);
     }
 
     void FixedUpdate()
@@ -209,13 +248,11 @@ public class PlayerController : MonoBehaviour
 
     void MovePlayer()
     {
-        float moveForce;
-
         RaycastHit raycastHit;
         Physics.Raycast(this.transform.position, Vector3.down, out raycastHit, 2f);
 
         IsGrounded = Physics.CheckSphere(this.transform.position - new Vector3(0,1,0), 0.2f, GroundMask);
-        WishDirection.Normalize();
+        // WishDirection.Normalize();
 
 
         switch(ControllerType){
@@ -223,7 +260,7 @@ public class PlayerController : MonoBehaviour
                 Rigidbody.useGravity = false;
                 Rigidbody.drag = FlightDrag;
                 
-                moveForce = FlightForce * ((Accelerated)?AcceleratedFlightScale : 1); 
+                moveForce = Mathf.Lerp(moveForce, FlightForce * ((Accelerated)?AcceleratedFlightScale : 1),AccelerationSmoothingValue); 
                 Rigidbody.AddForce(
                     new Vector3(
                         WishDirection.x * moveForce, 
@@ -243,7 +280,7 @@ public class PlayerController : MonoBehaviour
 
             case ControllerType.Ground:
                 Rigidbody.useGravity = true;
-                moveForce = WalkForce * ((Accelerated)?AcceleratedWalkScale : 1); 
+                moveForce = Mathf.Lerp(moveForce, WalkForce * ((Accelerated)?AcceleratedWalkScale : 1),AccelerationSmoothingValue); 
                 
                 if (IsGrounded){
                     Rigidbody.drag = WalkingDrag;

@@ -14,9 +14,9 @@ public class DebugScript : MonoBehaviour
     [SerializeField] private TextMeshProUGUI FPSComponent;
     [SerializeField] private TextMeshProUGUI PlayerPosition;
     [SerializeField] private TextMeshProUGUI ControllerType;
+    [SerializeField] private TextMeshProUGUI SmoothingEnabled;
 
     private float deltaTime;
-
     private bool DebugActive;
     
     void Start(){
@@ -42,5 +42,6 @@ public class DebugScript : MonoBehaviour
         PlayerPosition.text = string.Format("Position [x,y,z] : {0}",new Vector3Int((int)position.x, (int)position.y, (int)position.z).ToString());
         
         ControllerType.text = string.Format("Current controller type : {0}", ChunkManager.PlayerController.ControllerType.ToString());
+        SmoothingEnabled.text = string.Format("Input smoothing : {0}",ChunkManager.PlayerController.InputSmoothing);
     }
 }
