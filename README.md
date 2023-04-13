@@ -1,8 +1,8 @@
 ![Repository baner](/RepoBaner.png)
 
 # Terrain generation
-This project foceuses on proplematics of procedural generation and optimization of 3D rendering
-This procet is build on Unity version 2021.3.20f1 LTS
+This project foceuses on proplematics of procedural generation and optimization of 3D rendering<br>
+Built on Unity version 2021.3.20f1 LTS
 
 ## Features
 In version 1.0.0 you can find all the feature that are required in my assignment
