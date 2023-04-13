@@ -18,7 +18,7 @@ MonoBehaviour:
     Max: 0.55
   SlopeLimit: 35
   Radius: 4
-  Count: 64
+  Count: 32
   TemperatureRange:
     Min: 0
     Max: 0.5
@@ -39,3 +39,4 @@ MonoBehaviour:
   ImpostorMaterials:
   - {fileID: 0}
   - {fileID: 0}
+  IgnoreLOD: 0

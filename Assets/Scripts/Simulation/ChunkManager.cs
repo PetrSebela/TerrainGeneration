@@ -88,7 +88,7 @@ public class ChunkManager : MonoBehaviour
     public List<ObjectSizeDescriptor> GlobalStructureSizeDescriptorList = new List<ObjectSizeDescriptor>();
 
     public TreeObject[] TreeObjects;
-    public TreeObject[] LowTreeObjects;
+    public TreeObject[] LowDetailTreeObjects;
 
     public int DockCount;
     public GameObject DockObject;
@@ -117,7 +117,8 @@ public class ChunkManager : MonoBehaviour
         PauseMenu.QualityDropdown.value = UserConfig.LevelDetail;
         PauseMenu.resolutionDropdown.value = PauseMenu.resolutionDropdown.options.FindIndex(option => option.text == UserConfig.WinWidth + "x" + UserConfig.WinHeight);
         PauseMenu.SensitivitySlider.value = UserConfig.MouseSensitivity;
-        
+        PlayerController.InputSmoothing = UserConfig.InputSmoothing;
+
         ImpostorMaterials = new Material[ImpostorTextures.Length];
         
         for (int i = 0; i < ImpostorTextures.Length; i++)
@@ -174,10 +175,12 @@ public class ChunkManager : MonoBehaviour
         else{
             Debug.Log("Viewer data loaded from memory");
             Debug.Log(SimulationState.ControllerType);
-            TrackedObject.position = SimulationState.ViewerPosition;
+            TrackedObject.position = SimulationState.ViewerPosition + new Vector3(0,0.25f,0);
             PlayerController.CameraRotation = SimulationState.ViewerOrientation;
+            PlayerController.RealRotation = SimulationState.ViewerOrientation;
             PlayerController.ControllerType = SimulationState.ControllerType;
             PlayerController.Rigidbody.useGravity = (SimulationState.ControllerType == ControllerType.Ground)? true: false;
+            PlayerController.HoldPosition = true;
         }
 
         int seedInt;
@@ -249,7 +252,7 @@ public class ChunkManager : MonoBehaviour
         LowDetailBatches.Clear();
         LowDetailCounter.Clear();
 
-        foreach (TreeObject treeObject in LowTreeObjects)
+        foreach (TreeObject treeObject in LowDetailTreeObjects)
         {
             LowDetailBatches.Add(treeObject,new List<List<Matrix4x4>>());
             LowDetailCounter.Add(treeObject,0);
@@ -268,8 +271,11 @@ public class ChunkManager : MonoBehaviour
         foreach (Chunk chunk in ChunkDictionary.Values)
         {
             if(chunk.CurrentLODindex >= 2  && chunk.CurrentLODindex <= 16){
-                foreach(TreeObject treeObject in LowTreeObjects)
+                foreach(TreeObject treeObject in LowDetailTreeObjects)
                 {    
+                    if(treeObject.IgnoreLOD){
+                        continue;
+                    }
                     foreach (Matrix4x4 item in chunk.LowDetailDictionary[treeObject])
                     {
                         if(LowDetailCounter[treeObject] % 1023 == 0){
@@ -313,23 +319,23 @@ public class ChunkManager : MonoBehaviour
         // Rendering enviromental details
         foreach (TreeObject treeObject in TreeObjects)
         {
-            foreach (List<Matrix4x4> envList in DetailBatches[treeObject])
+            foreach (List<Matrix4x4> matrix4x4List in DetailBatches[treeObject])
             {
                 for (int submeshIndex = 0; submeshIndex < treeObject.Mesh.subMeshCount; submeshIndex++)
                 {
-                    Graphics.DrawMeshInstanced(treeObject.Mesh, submeshIndex, treeObject.MeshMaterials[submeshIndex], envList);
+                    Graphics.DrawMeshInstanced(treeObject.Mesh, submeshIndex, treeObject.MeshMaterials[submeshIndex], matrix4x4List);
                 }            
             }
         }
 
 
-        foreach (TreeObject treeObject in LowTreeObjects)
+        foreach (TreeObject treeObject in LowDetailTreeObjects)
         {
-            foreach (List<Matrix4x4> envList in LowDetailBatches[treeObject])
+            foreach (List<Matrix4x4> matrix4x4List in LowDetailBatches[treeObject])
             {
                 for (int impostorMaterialIndex = 0; impostorMaterialIndex < 2; impostorMaterialIndex++)
                 {
-                    Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], envList);
+                    Graphics.DrawMeshInstanced(LowDetailBase, impostorMaterialIndex, treeObject.ImpostorMaterials[impostorMaterialIndex], matrix4x4List);
                 }            
             }
         }

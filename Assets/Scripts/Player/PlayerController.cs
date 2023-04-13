@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
     public KeyCode Accelerate;
     public KeyCode InputSmoothingKey;
 
-
+    public bool HoldPosition;
     private Vector2 MouseMovement;
     public Vector2 CameraRotation = new Vector2();
     public LayerMask GroundMask;
@@ -69,7 +69,7 @@ public class PlayerController : MonoBehaviour
     private float moveForce = 0;
 
 
-    private Vector2 RealRotation = Vector2.zero;
+    public Vector2 RealRotation = Vector2.zero;
     public ControllerType ControllerType = ControllerType.Flight;
 
     void Start()
@@ -92,8 +92,8 @@ public class PlayerController : MonoBehaviour
         WishDirection = Vector3.zero;
         Inputs = Vector3.zero;
         Rigidbody.velocity = Vector3.zero;
-        CameraRotation = Vector2.zero;
-        RealRotation = Vector2.zero;
+        // CameraRotation = Vector2.zero;
+        // RealRotation = Vector2.zero;
         
         Cursor.lockState = (IsPaused)? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = !Cursor.visible;
@@ -182,6 +182,9 @@ public class PlayerController : MonoBehaviour
         
         if (Input.GetKeyUp(ZoomCamera))
             cam.fieldOfView = normalFOV;
+        
+        if(HoldPosition)
+            Rigidbody.useGravity = false;
     }
     void FetchKeyboardInputs()
     {
@@ -309,6 +312,8 @@ public class PlayerController : MonoBehaviour
             default:
                 break;
         }
+        if(HoldPosition)
+            Rigidbody.useGravity = false;
     }
 }
 

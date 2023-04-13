@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32830358cbd79b64f97cc42bfaf08dc2, type: 3}
+  m_Script: {fileID: 11500000, guid: 97c631138a5c0a243beb36e2fa03fcc1, type: 3}
   m_Name: Rock
   m_EditorClassIdentifier: 
   Name: Rock
@@ -17,8 +17,20 @@ MonoBehaviour:
     Min: 0
     Max: 1
   SlopeLimit: 45
-  Radius: 1
-  MinDistanceFromStructures: 1
-  Count: 1024
-  Structure: {fileID: 8551340972438428866, guid: 6ae3a0372cb0d734382483b24bd18907,
-    type: 3}
+  Radius: 0
+  Count: 2
+  TemperatureRange:
+    Min: 0.058
+    Max: 0.579
+  HumidityRange:
+    Min: 0.06
+    Max: 0.586
+  BaseSize: {x: 100, y: 100, z: 100}
+  SizeVariation: {x: 50, y: 10, z: 50}
+  Mesh: {fileID: 4199401309831131938, guid: a43ebdc06447df548b7bec5e41e1b4c4, type: 3}
+  MeshMaterials:
+  - {fileID: 2100000, guid: e5ca328d0940b214794d2c5689a52e63, type: 2}
+  ImpostorTextures: []
+  BaseImpostorMaterial: {fileID: 0}
+  ImpostorMaterials: []
+  IgnoreLOD: 1

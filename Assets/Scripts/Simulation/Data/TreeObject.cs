@@ -28,4 +28,5 @@ public class TreeObject : ScriptableObject
     public Texture2D[] ImpostorTextures;
     public Material BaseImpostorMaterial;
     public Material[] ImpostorMaterials;
+    public bool IgnoreLOD = false;
 }

@@ -604,19 +604,19 @@ MonoBehaviour:
   StructureObjects:
   - {fileID: 11400000, guid: 7ad3d54beebaba543ab2f72c857a0887, type: 2}
   - {fileID: 11400000, guid: ed23ada9f4b688b4e9e6bb4e5b539c5e, type: 2}
-  - {fileID: 11400000, guid: 60bc4e827f7a41241b2b74fbde91bcd7, type: 2}
   TreeObjects:
   - {fileID: 11400000, guid: 9f56475458602814c88b974c24873220, type: 2}
   - {fileID: 11400000, guid: e803f121e4524474280e56d78ae7d694, type: 2}
   - {fileID: 11400000, guid: 9692f4203e132204ea20911157d9c07b, type: 2}
-  LowTreeObjects:
+  - {fileID: 11400000, guid: 456dd8e7c0d85234182c22414287d196, type: 2}
+  LowDetailTreeObjects:
   - {fileID: 11400000, guid: 9f56475458602814c88b974c24873220, type: 2}
   - {fileID: 11400000, guid: e803f121e4524474280e56d78ae7d694, type: 2}
   - {fileID: 11400000, guid: 9692f4203e132204ea20911157d9c07b, type: 2}
-  DockCount: 12
+  DockCount: 4
   DockObject: {fileID: 4679943002850363553, guid: 412baaf5464c35b4b9d7e56cc52c75b7,
     type: 3}
-  ForestSize: 0.75
+  ForestSize: 0.9
   UserConfig:
     WinHeight: 1080
     WinWidth: 1920

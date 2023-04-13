@@ -268,6 +268,7 @@ public class GenerationManager
             int dockIndex = UnityEngine.Random.Range(0,ChunkManager.DockCount-1);
             ChunkManager.TrackedObject.position = dockPosition[dockIndex] + new Vector3(0,5,0);
             ChunkManager.PlayerController.CameraRotation = dockOrientation[dockIndex];
+            ChunkManager.PlayerController.RealRotation = dockOrientation[dockIndex];
         }
 
 
@@ -412,7 +413,7 @@ public class GenerationManager
                 detailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
 
             Dictionary<TreeObject,Matrix4x4[]> lowDetailDictionaryArray = new Dictionary<TreeObject, Matrix4x4[]>();
-            foreach (TreeObject treeObject in ChunkManager.LowTreeObjects)
+            foreach (TreeObject treeObject in ChunkManager.LowDetailTreeObjects)
                 lowDetailDictionaryArray.Add(treeObject, detailDictionary[treeObject].ToArray());                    
 
             chunk.DetailDictionary = detailDictionaryArray;
@@ -469,6 +470,9 @@ public class GenerationManager
             ChunkManager.WorldSize,
             ChunkManager.ChunkSettings.ChunkResolution,
             ChunkManager);
+
+        ChunkManager.PlayerController.HoldPosition = false;
+
 
         // Finishing procedure
         Debug.Log("Finishing coruting");

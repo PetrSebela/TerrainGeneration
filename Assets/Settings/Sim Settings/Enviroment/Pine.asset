@@ -21,10 +21,10 @@ MonoBehaviour:
   Count: 64
   TemperatureRange:
     Min: 0
-    Max: 0.45
+    Max: 0.4
   HumidityRange:
     Min: 0
-    Max: 0.45
+    Max: 0.4
   BaseSize: {x: 17, y: 17, z: 17}
   SizeVariation: {x: 2, y: 5, z: 2}
   Mesh: {fileID: -2432090755550338912, guid: 38fb9718d3d12e24cbc920f0b8bfb269, type: 3}
@@ -39,3 +39,4 @@ MonoBehaviour:
   ImpostorMaterials:
   - {fileID: 0}
   - {fileID: 0}
+  IgnoreLOD: 0

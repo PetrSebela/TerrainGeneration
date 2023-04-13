@@ -1,74 +1,28 @@
+![Repository baner](/RepoBaner.png)
+
 # Terrain generation
-This project will serve as my high school final thesis and is focused on problematics of procedural generation.
-I would like to adress performance from beginning and build everything with it in mind. 
+This project foceuses on proplematics of procedural generation and optimization of 3D rendering
+This procet is build on Unity version 2021.3.20f1 LTS
 
-This project is currently in sub beta state, so lot of features are missing.
+## Features
+In version 1.0.0 you can find all the feature that are required in my assignment
+List of feature in 1.0.0
+- user can specify some terrain feature
+- optimized rendering of 3D meshes including
+    - dynamic reduction of polygons based on camera view distance
+    - basic LOD system for trees
+- basic UI including
+    - main menu
+    - pause and settings menu
 
----
-## Target for beta release
-- basic terrain generation
-    - terrain will be limited to just island generation 
-- dynamic LOD system
-    - LOD for terrain (currently in development | mostly done)
-    - LOD for foliege
-- exposed setting for terrain generation
+## Future
+This project will serve as testing ground for all kinds of procedural generation algorythms and optimization techniques
 
-## Generation pipeline
-- GPU compatible algorithm
+In future works i would like to following:
+- rework mesh builder so that is uses marching cubes algorythm
+    - real-time terrain modification
+    - building system
+- generation of complex structures like vilages, powerlines and railroad network
 
-## Proc-Gen algorithm 
-1. sample heightmap (currently working on)
-2. apply falloff map
-3. generate infrastructure
-    - roads, powerlines, houses
-
-    - powerlines
-        generate points across the map that follow certain rules
-        connect these points together based on how far are they apart
-
-4. generate foliege
-
-## How it works (order of execution)
-( ChunkManager )
-    ( start ) -> ( Generate World )
-    - variables setup
-    - calls ( Generation Manager ) coturine
-        ( Generation Manager )
-            - runs through every possible chunk
-                - generates heightmap and enviromental details
-
-            - starts ( Mesh Construction Manager ) in separate thread
-                - runs forever
-
-            ( Mesh Constructor Manager )
-                - check if update requestQueue has any requests
-                    - if yes, it calculates needed data and calls ( GesMeshData )
-                    ( Get Mesh Data )
-                        - internaly calls ( MeshConstructor.ConstructTerrain ) and bundles some data with it
-                        ( MeshConstructor.ConstructTerrain )
-                            - Constructs mesh
-                    - after that it enques ChunkUpdate in [ MeshQueue ]
-
-            - puts some data into requestQueue and waits till ( Mesh Constructor Manager ) finised procesing all data
-            - instantiates all chunks and puts them into [ ChunkObjectDictionary ]
-            - spawns water chunks
-    ( update )
-    - start only ( Generation Manager ) finishes 
-
-## TASKS
-- [ ] Implement quadtree algorythm for chunk grouping in order to save batch calls viz subdivision.png
-
-## ProcGen algorithm design task
-- [ ] Mesh instanced trees
-- [ ] Island outline
-- [ ] Paths, houses, power lines, infrastructure
-
-
-# IDEAS
-## Reducing GPU call count
-- scrap quad tree division, keep generation as it is but group existing meshes into one based on LOD index and neighbours. 
-- Sort of like static batching but custom and working (Unity's is broken).
-
-
-##
+## External links
 - skybox - https://assetstore.unity.com/packages/2d/textures-materials/sky/fantasy-skybox-free-18353
