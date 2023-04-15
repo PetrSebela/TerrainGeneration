@@ -18,13 +18,15 @@ public class SceneDirector : MonoBehaviour
     [SerializeField] private TMP_Text winklesSliderValue;
     public UserConfig UserConfig;
 
+    // real chunks / 2 
     private Dictionary<string,int> SizeMapper = new Dictionary<string, int>(){
-       {"16 x 16", 8},
-       {"24 x 24", 12},
-       {"32 x 32", 16},
-       {"48 x 48", 24},
-       {"64 x 64", 32},
-       {"96 x 96", 48},
+       {"1 km2", 8},
+       {"2 km2", 12},
+       {"4 km2", 16},
+       {"8 km2", 24},
+       {"16 km2", 32},
+       {"32 km2", 48},
+       {"64 km2", 64},
     };
 
     public void Start(){

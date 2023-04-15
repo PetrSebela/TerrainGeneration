@@ -318,7 +318,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 16 x 16
+  m_text: 1 km2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 99bb65fd608109c4688b66fc83370b5a, type: 2}
   m_sharedMaterial: {fileID: 6269216842557706371, guid: 99bb65fd608109c4688b66fc83370b5a,
@@ -1359,6 +1359,7 @@ MonoBehaviour:
     UserFOV: 60
     LevelDetail: 0
     MouseSensitivity: 1.5
+    InputSmoothing: 0
 --- !u!1 &473561462
 GameObject:
   m_ObjectHideFlags: 0
@@ -2674,15 +2675,19 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: 16 x 16
+    - m_Text: 1 km2
       m_Image: {fileID: 0}
-    - m_Text: 24 x 24
+    - m_Text: 2 km2
       m_Image: {fileID: 0}
-    - m_Text: 48 x 48
+    - m_Text: 4 km2
       m_Image: {fileID: 0}
-    - m_Text: 64 x 64
+    - m_Text: 8 km2
       m_Image: {fileID: 0}
-    - m_Text: 96 x 96
+    - m_Text: 16 km2
+      m_Image: {fileID: 0}
+    - m_Text: 32 km2
+      m_Image: {fileID: 0}
+    - m_Text: 64 km2
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5810,10 +5815,6 @@ MonoBehaviour:
     - m_Text: 250
       m_Image: {fileID: 0}
     - m_Text: 300
-      m_Image: {fileID: 0}
-    - m_Text: 350
-      m_Image: {fileID: 0}
-    - m_Text: 400
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

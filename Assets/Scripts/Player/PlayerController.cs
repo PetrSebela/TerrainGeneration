@@ -233,13 +233,32 @@ public class PlayerController : MonoBehaviour
         CameraOrientation.localRotation = Quaternion.Euler(0, RealRotation.y, 0);
     }
 
+    bool TrackerOutOfBounds(){
+        return  Vector3.Distance(Vector3.zero, Rigidbody.transform.position) > chunkManager.ChunkSettings.ChunkSize * chunkManager.simulationSettings.WorldSize ||
+                Rigidbody.transform.position.y > 2048 || Rigidbody.transform.position.y < chunkManager.TerrainSettings.MaxHeight * -3;
+    }
+
     void FixedUpdate()
     {
-        if (IsPaused && !chunkManager.GenerationComplete)
+        if (IsPaused || !chunkManager.GenerationComplete)
             return;
 
         MovePlayer();
-        UpdateSimulationState();
+        UpdateSimulationState();  
+
+
+        if(TrackerOutOfBounds()){
+            Vector3 positionHold = Rigidbody.transform.position;
+            Vector2 pointOfBreachedBounds = new Vector2(
+                Mathf.Round(positionHold.x / chunkManager.ChunkSettings.ChunkSize), 
+                Mathf.Round(positionHold.z / chunkManager.ChunkSettings.ChunkSize)
+            );
+
+            Rigidbody.transform.position = new Vector3(0,chunkManager.TerrainSettings.MaxHeight + 10,0);
+            chunkManager.PastChunkPosition = Vector2.zero;
+            chunkManager.UpdateAtCoordinates(Vector2.zero);
+            chunkManager.UpdateAtCoordinates(pointOfBreachedBounds);
+        }
     }
 
     void UpdateSimulationState()

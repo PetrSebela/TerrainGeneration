@@ -3,7 +3,6 @@ using System;
 using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Collections;
 using System.Threading;
 
 public class ChunkManager : MonoBehaviour
@@ -230,15 +229,20 @@ public class ChunkManager : MonoBehaviour
         if (currentChunkPosition != PastChunkPosition)
         {
             PastChunkPosition = currentChunkPosition;
-            for (int x = -7; x <= 7; x++)
+            UpdateAtCoordinates(currentChunkPosition);
+        }
+    }
+
+    public void UpdateAtCoordinates(Vector2 currentChunkPosition)
+    {
+        for (int x = -7; x <= 7; x++)
+        {
+            for (int y = -7; y <= 7; y++)
             {
-                for (int y = -7; y <= 7; y++)
+                Vector2 sampler = currentChunkPosition + new Vector2(x, y);
+                if (IsInWorldBounds(sampler))
                 {
-                    Vector2 sampler = currentChunkPosition + new Vector2(x, y);
-                    if (IsInWorldBounds(sampler))
-                    {
-                        ChunkDictionary[sampler].UpdateChunk(new Vector3(PastChunkPosition.x,0,PastChunkPosition.y));
-                    }
+                    ChunkDictionary[sampler].UpdateChunk(new Vector3(PastChunkPosition.x, 0, PastChunkPosition.y));
                 }
             }
         }
