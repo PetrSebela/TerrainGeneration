@@ -1,7 +1,7 @@
 ![Repository baner](/RepoBaner.png)
 
 # Terrain generation
-This project foceuses on proplematics of procedural generation and optimization of 3D rendering<br>
+This project foceuses on problematics of procedural generation and optimization of 3D rendering<br>
 Built on Unity version 2021.3.20f1 LTS
 
 ## Features
@@ -18,7 +18,7 @@ List of feature in 1.0.0
 ## Future
 This project will serve as testing ground for all kinds of procedural generation algorythms and optimization techniques
 
-In future works i would like to following:
+In future works I would like to expand on the following points:
 - rework mesh builder so that is uses marching cubes algorythm
     - real-time terrain modification
     - building system
