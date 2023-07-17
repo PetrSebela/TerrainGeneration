@@ -1,7 +1,7 @@
 ![Repository baner](/RepoBaner.png)
 
 # Terrain generation
-This project foceuses on problematics of procedural generation and optimization of 3D rendering<br>
+This thesis is focused on problematics of procedural generation and optimization of 3D rendering<br>
 Built on Unity version 2021.3.20f1 LTS
 
 Demo - https://www.youtube.com/watch?v=zs7UHO_5z7Q
